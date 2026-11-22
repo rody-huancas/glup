@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FULLSCREEN_CHANGED_EVENT, ISLAND_OPEN_EVENT, ISLAND_ZONE_EVENT } from '@/shared/constants/events';
+import { FULLSCREEN_CHANGED_EVENT, ISLAND_OPEN_EVENT, ISLAND_ZONE_EVENT, TRAY_VISIBILITY_EVENT } from '@/shared/constants/events';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
 
@@ -7,15 +7,18 @@ interface UseIslandSignalsParams {
   onFullscreenEnter : () => void;
   onFullscreenExit  : () => void;
   onOpenRequest     : () => void;
+  // "Mostrar/Ocultar Glup" in the tray (true when hidden).
+  onTrayVisibility  : (hidden: boolean) => void;
 }
 
 // Drops are handled by the panel (home); the island only tracks whether a drag is in progress.
-export const useIslandSignals = ({ onFullscreenEnter, onFullscreenExit, onOpenRequest }: UseIslandSignalsParams) => {
+export const useIslandSignals = ({ onFullscreenEnter, onFullscreenExit, onOpenRequest, onTrayVisibility }: UseIslandSignalsParams) => {
   const [inside, setInside]     = useState(false);
   const [dragging, setDragging] = useState(false);
 
   useTauriEvent<boolean>(ISLAND_ZONE_EVENT, setInside);
   useTauriEvent<null>(ISLAND_OPEN_EVENT, onOpenRequest);
+  useTauriEvent<boolean>(TRAY_VISIBILITY_EVENT, onTrayVisibility);
 
   const onFullscreenChange = useCallback(
     (fullscreen: boolean) => (fullscreen ? onFullscreenEnter() : onFullscreenExit()),

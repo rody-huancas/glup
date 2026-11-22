@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { Dispatch, RefObject, SetStateAction } from 'react';
+import type { RefObject } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
@@ -10,20 +10,28 @@ import type { IslandElements } from '@/modules/island/interfaces/islandElements'
 import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
 import type { IslandMotion } from '@/modules/island/interfaces/islandTimeline';
-import type { IslandState, VisibleIslandState } from '@/modules/island/types/islandState';
+import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { getIslandArea } from '@/modules/island/utils/islandArea';
 import type { IslandAreaKind } from '@/modules/island/utils/islandArea';
 import { renderIslandShape } from '@/modules/island/utils/islandShape';
 import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, setCollapsedPose } from '@/modules/island/utils/islandTimeline';
+import { logIsland } from '@/modules/island/utils/islandLog';
 import { setIslandArea } from '@/modules/island/utils/islandWindow';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 
 gsap.registerPlugin(useGSAP, Flip);
 
+// The island state lives in the machine (useIslandMachine); this hook only animates and sets the region.
 interface UseIslandTimelineParams {
   elements  : IslandElements;
-  setState  : Dispatch<SetStateAction<IslandState>>;
   mascotRef : RefObject<MascotController | null>;
+  // setState  : Dispatch<SetStateAction<IslandState>>;
+}
+
+interface ShowNoticeParams {
+  notice : IslandNotice;
+  // Called once the pill is back, or right away when the notice cannot be shown.
+  onEnd  : () => void;
 }
 
 type Settle = (done: boolean) => void;
@@ -31,7 +39,7 @@ type Settle = (done: boolean) => void;
 const opposite = (state: VisibleIslandState): VisibleIslandState => (state === 'expanded' ? 'collapsed' : 'expanded');
 
 // Each transition resolves true when the island settles on its target, false when another one replaces it.
-export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTimelineParams) => {
+export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelineParams) => {
   const motion  = useRef<IslandMotion | null>(null);
   const settled = useRef<VisibleIslandState>('collapsed');
   // Glup is out of the pill (opening, open or closing): only then its arms and feet are seen and animated.
@@ -44,6 +52,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
   const area    = useRef<Promise<void>>(Promise.resolve());
   const shape   = useRef<IslandShape>({ ...ISLAND_SHAPES.collapsed });
   const hovered = useRef<gsap.core.Tween | null>(null);
+  const noticeEnd = useRef<(() => void) | null>(null);
 
   const mascot = useIslandMascot({ elements, mascotRef, reduced });
 
@@ -71,7 +80,13 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
 
   // Region changes run in order, so a late shrink can never land after a grow.
   const setArea = useCallback((kind: IslandAreaKind): Promise<void> => {
-    area.current = area.current.then(() => setIslandArea(getIslandArea(kind))).catch(() => undefined);
+    area.current = area.current
+      .then(() => {
+        logIsland(`región → ${kind}`);
+        return setIslandArea(getIslandArea(kind));
+      })
+      .catch(() => undefined);
+    // area.current = area.current.then(() => setIslandArea(getIslandArea(kind))).catch(() => undefined);
     return area.current;
   }, []);
 
@@ -86,6 +101,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     noticeLine.current?.kill();
     noticeHold.current = null;
     noticeLine.current = null;
+    noticeEnd.current  = null;
     if (elements.noticeText.current) gsap.set(elements.noticeText.current, { opacity: 0 });
     setNotice(null);
   }, [elements]);
@@ -96,11 +112,20 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     pending.forEach((settle) => settle(done));
   }, []);
 
-  // The region only shrinks to the pill once nothing else is left on screen.
+  const snapToPill = useMemo(
+    () => contextSafe(() => setCollapsedPose({ elements, shape: shape.current, onRender: render })),
+    [contextSafe, elements, render],
+  );
+
+  // The region only shrinks to the pill once nothing else is left on screen. Landing on the pill always
+  // snaps to its exact pose, so a reversed opening that started from the wide notice never leaves Glup
+  // or the silhouette outside the small region.
   const finish = useCallback(async (state: VisibleIslandState) => {
     motion.current?.timeline?.kill();
     motion.current  = null;
     settled.current = state;
+
+    if (state === 'collapsed') snapToPill();
 
     if (state === 'expanded') mascot.startIdle();
     else mascot.calm();
@@ -109,7 +134,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
 
     await setArea(state);
     if (!motion.current) resolveWaiters(true);
-  }, [mascot, setArea, resolveWaiters]);
+  }, [mascot, setArea, resolveWaiters, snapToPill]);
 
   // contextSafe ties the timelines to the component, so they are reverted on unmount.
   const createTimeline = useMemo(
@@ -156,23 +181,25 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
       return;
     }
 
-    setState(target);
+    // setState(target);
     setLimbsVisible(true);
     createTimeline(current);
-  }, [stopHover, stopNotice, mascot, setArea, finish, setState, createTimeline]);
+  }, [stopHover, stopNotice, mascot, setArea, finish, createTimeline]);
 
   // Turns the running timeline around from wherever it is, without restarting it.
+  // A timeline still at its very start cannot be reversed (GSAP fires nothing), so it settles right away.
   const redirect = useCallback((current: IslandMotion, target: VisibleIslandState) => {
     current.target = target;
-    setState(target);
+    // setState(target);
 
     if (target === 'collapsed') mascot.stopIdle();
     if (current.builtFor === 'expanded') void setArea('frame');
     if (!current.timeline) return;
 
     if (target === current.builtFor) current.timeline.play();
+    else if (current.timeline.time() === 0) void finish(target);
     else current.timeline.reverse();
-  }, [mascot, setState, setArea]);
+  }, [mascot, setArea, finish]);
 
   const transitionTo = useCallback(
     // farewell: the user closed on purpose (Recoger, Esc), so Glup waves goodbye.
@@ -212,12 +239,8 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     [contextSafe, stopHover, render],
   );
 
-  const snapToPill = useMemo(
-    () => contextSafe(() => setCollapsedPose({ elements, shape: shape.current, onRender: render })),
-    [contextSafe, elements, render],
-  );
-
-  // Drops any running transition so nothing can override the hidden state.
+  // Drops any running transition and lands on a clean pill: used to hide (fullscreen, tray) and for
+  // hard resets (tray, watchdog).
   const hide = useCallback(async () => {
     motion.current?.timeline?.kill();
     motion.current  = null;
@@ -230,44 +253,104 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     resolveWaiters(false);
     snapToPill();
     setLimbsVisible(false);
-    setState('hidden');
+    // setState('hidden');
     await setArea('collapsed');
-  }, [stopHover, stopNotice, mascot, resolveWaiters, snapToPill, setState, setArea]);
+  }, [stopHover, stopNotice, mascot, resolveWaiters, snapToPill, setArea]);
 
-  const reveal = useCallback(() => {
-    setState((previous) => (previous === 'hidden' ? 'collapsed' : previous));
-  }, [setState]);
+  // Leaving hidden is now a reset of the machine (hide above); the state no longer lives here.
+  // const reveal = useCallback(() => {
+  //   setState((previous) => (previous === 'hidden' ? 'collapsed' : previous));
+  // }, [setState]);
 
-  // A task ended with the island collapsed: the pill widens with the result for a few seconds.
-  // Hovering it then opens the panel as usual (the opening starts from the wide pill).
-  const notify = useMemo(
+  // A task ended with the island collapsed: the pill widens with the result for a few seconds, then comes
+  // back to the exact pill. A second result while it is showing only swaps the text and restarts the
+  // wait (stacking a new timeline used to leave the pill wide, with Glup outside the region).
+  const showNotice = useMemo(
     () =>
-      contextSafe((next: IslandNotice) => {
-        if (motion.current || settled.current !== 'collapsed' || reduced.current) return;
+      contextSafe(({ notice: next, onEnd }: ShowNoticeParams) => {
+        const end = () => {
+          const ended = noticeEnd.current ?? onEnd;
 
-        stopHover();
-        stopNotice();
-        setNotice(next);
+          noticeHold.current = null;
+          noticeLine.current = null;
+          noticeEnd.current  = null;
+          setNotice(null);
+          snapToPill();
+          void setArea('collapsed').then(ended);
+        };
 
-        void setArea('notice').then(() => {
-          if (motion.current) return;
-
-          const timeline = buildNoticeTimeline({ elements, shape: shape.current, onRender: render });
-          if (!timeline) return;
-
-          noticeLine.current = timeline.play();
+        const hold = (timeline: gsap.core.Timeline) => {
+          noticeHold.current?.kill();
           noticeHold.current = gsap.delayedCall(NOTICE_MOTION.hold, () => {
-            timeline.eventCallback('onReverseComplete', () => {
-              noticeLine.current = null;
-              setNotice(null);
-              void setArea('collapsed');
-            });
+            timeline.eventCallback('onReverseComplete', end);
             timeline.reverse();
           });
+        };
+
+        if (noticeLine.current) {
+          setNotice(next);
+          noticeEnd.current = onEnd;
+          hold(noticeLine.current.play());
+          return;
+        }
+
+        if (motion.current || settled.current !== 'collapsed' || reduced.current) {
+          onEnd();
+          return;
+        }
+
+        stopHover();
+        setNotice(next);
+        noticeEnd.current = onEnd;
+
+        void setArea('notice').then(() => {
+          if (motion.current || noticeEnd.current !== onEnd) return;
+
+          const timeline = buildNoticeTimeline({ elements, shape: shape.current, onRender: render });
+          if (!timeline) return end();
+
+          noticeLine.current = timeline.play();
+          hold(timeline);
         });
       }),
-    [contextSafe, stopHover, stopNotice, setArea, elements, render],
+    [contextSafe, stopHover, setArea, elements, render, snapToPill],
   );
 
-  return { transitionTo, hide, reveal, hover, limbsVisible, notice, notify };
+  // Nothing is moving: the watchdog can compare the region with the real window.
+  const isMoving = useCallback(() => motion.current !== null || noticeLine.current !== null, []);
+
+  //   // A task ended with the island collapsed: the pill widens with the result for a few seconds.
+  //   // Hovering it then opens the panel as usual (the opening starts from the wide pill).
+  //   const notify = useMemo(
+  //     () =>
+  //       contextSafe((next: IslandNotice) => {
+  //         if (motion.current || settled.current !== 'collapsed' || reduced.current) return;
+  //
+  //         stopHover();
+  //         stopNotice();
+  //         setNotice(next);
+  //
+  //         void setArea('notice').then(() => {
+  //           if (motion.current) return;
+  //
+  //           const timeline = buildNoticeTimeline({ elements, shape: shape.current, onRender: render });
+  //           if (!timeline) return;
+  //
+  //           noticeLine.current = timeline.play();
+  //           noticeHold.current = gsap.delayedCall(NOTICE_MOTION.hold, () => {
+  //             timeline.eventCallback('onReverseComplete', () => {
+  //               noticeLine.current = null;
+  //               setNotice(null);
+  //               void setArea('collapsed');
+  //             });
+  //             timeline.reverse();
+  //           });
+  //         });
+  //       }),
+  //     [contextSafe, stopHover, stopNotice, setArea, elements, render],
+  //   );
+  //
+
+  return { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving };
+  // return { transitionTo, hide, reveal, hover, limbsVisible, notice, notify };
 };
