@@ -1,49 +1,53 @@
 import type { CSSProperties } from 'react';
 import {
+  ACTIONS_LAYOUT,
   DROP_ZONE_INSETS,
   ISLAND_BACKGROUND,
-  ISLAND_SIZES,
-  MASCOT_POSES,
   MASCOT_SLOT_WIDTH,
 } from '@/modules/island/constants/island';
-import type { VisibleIslandState } from '@/modules/island/types/islandState';
+import type { IslandLayout } from '@/modules/island/interfaces/islandLayout';
 
-export const getPanelKeyframe = (target: VisibleIslandState) => {
-  const { width, height, radius } = ISLAND_SIZES[target];
+export const getPanelKeyframe = ({ size }: IslandLayout) => ({
+  width                   : `${size.width}px`,
+  height                  : `${size.height}px`,
+  borderBottomLeftRadius  : `${size.radius}px`,
+  borderBottomRightRadius : `${size.radius}px`,
+});
 
-  return {
-    width                   : `${width}px`,
-    height                  : `${height}px`,
-    borderBottomLeftRadius  : `${radius}px`,
-    borderBottomRightRadius : `${radius}px`,
-  };
-};
+export const getMascotKeyframe = ({ pose }: IslandLayout) => ({
+  transform: `translate(${pose.x}px, ${pose.y}px) scale(${pose.scale})`,
+});
 
-export const getMascotKeyframe = (target: VisibleIslandState) => {
-  const { x, y, scale } = MASCOT_POSES[target];
-
-  return { transform: `translate(${x}px, ${y}px) scale(${scale})` };
-};
-
-export const getDropZoneKeyframe = (target: VisibleIslandState) => ({
+export const getDropZoneKeyframe = ({ target }: IslandLayout) => ({
   opacity: target === 'expanded' ? 1 : 0,
 });
 
-export const getPanelStyle = (target: VisibleIslandState): CSSProperties => ({
-  ...getPanelKeyframe(target),
+export const getActionsKeyframe = ({ target }: IslandLayout) => ({
+  opacity: target === 'actions' ? 1 : 0,
+});
+
+export const getPanelStyle = (layout: IslandLayout): CSSProperties => ({
+  ...getPanelKeyframe(layout),
   background: ISLAND_BACKGROUND,
 });
 
-export const getMascotSlotStyle = (target: VisibleIslandState): CSSProperties => ({
-  ...getMascotKeyframe(target),
+export const getMascotSlotStyle = (layout: IslandLayout): CSSProperties => ({
+  ...getMascotKeyframe(layout),
   width           : `${MASCOT_SLOT_WIDTH}px`,
   transformOrigin : '0 0',
 });
 
-export const getDropZoneStyle = (target: VisibleIslandState): CSSProperties => ({
-  ...getDropZoneKeyframe(target),
+export const getDropZoneStyle = (layout: IslandLayout): CSSProperties => ({
+  ...getDropZoneKeyframe(layout),
   top    : `${DROP_ZONE_INSETS.top}px`,
   right  : `${DROP_ZONE_INSETS.right}px`,
   bottom : `${DROP_ZONE_INSETS.bottom}px`,
   left   : `${DROP_ZONE_INSETS.left}px`,
+});
+
+export const getActionsSlotStyle = (layout: IslandLayout): CSSProperties => ({
+  ...getActionsKeyframe(layout),
+  top   : `${ACTIONS_LAYOUT.padding}px`,
+  left  : `${ACTIONS_LAYOUT.contentLeft}px`,
+  width : `${ACTIONS_LAYOUT.width - ACTIONS_LAYOUT.contentLeft - ACTIONS_LAYOUT.padding}px`,
 });
