@@ -2,6 +2,8 @@
   { "id": "merge-pdf", "actionId": "merge", "fileType": "pdf", "title": "Unir PDFs", "description": "Varios en uno solo", "multiple": true },
   { "id": "sign-pdf", "actionId": "sign", "fileType": "pdf", "title": "Firmar PDF", "description": "Pon tu firma donde quieras", "multiple": false },
   { "id": "compress-pdf", "actionId": "compress", "fileType": "pdf", "title": "Reducir peso de PDF", "description": "Que pese menos", "multiple": false },
+  { "id": "split-pdf", "actionId": "split-pages", "fileType": "pdf", "title": "Separar PDF", "description": "Todas o solo algunas páginas", "multiple": false },
+  { "id": "pdf-to-images", "actionId": "to-images", "fileType": "pdf", "title": "PDF a imágenes", "description": "Cada página en JPG o PNG", "multiple": false },
   { "id": "convert-image", "actionId": "convert", "fileType": "image", "title": "Convertir imagen", "description": "WebP, JPG o PNG", "multiple": true },
   { "id": "compress-image", "actionId": "compress", "fileType": "image", "title": "Reducir peso imagen", "description": "Misma foto, menos peso", "multiple": true },
   { "id": "remove-background", "actionId": "remove-background", "fileType": "image", "title": "Quitar fondo", "description": "Deja solo lo importante", "multiple": true }
