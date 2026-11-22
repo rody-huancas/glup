@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_FACE, IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import { useBlink } from '@/modules/mascot/hooks/useBlink';
 import { useBreath } from '@/modules/mascot/hooks/useBreath';
@@ -11,7 +11,7 @@ import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { createMascotElements } from '@/modules/mascot/utils/elements';
 import { getFixedGaze } from '@/modules/mascot/utils/gaze';
 
-export const useMascot = () => {
+export const useMascot = (onStateChange?: (state: MascotState) => void) => {
   const [state, setState] = useState<MascotState>(IDLE_STATE);
   const [face, setFace]   = useState<Face>(DEFAULT_FACE);
   const elements          = useMemo(createMascotElements, []);
@@ -24,6 +24,10 @@ export const useMascot = () => {
   useEyeTracking({ eyes: elements.eyes, fixedGaze });
   useMouthPop({ mouth: face.mouth, mouths: elements.mouths });
   useStateAnimations({ state, elements, setFace, setState });
+
+  useEffect(() => {
+    onStateChange?.(state);
+  }, [state, onStateChange]);
 
   return { face, elements, pointerHandlers };
 };
