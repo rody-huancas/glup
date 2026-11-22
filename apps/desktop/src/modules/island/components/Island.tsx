@@ -36,7 +36,7 @@ export const Island = () => {
         <IslandPillAnchor anchorRef={elements.pillAnchor} />
         <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={notice} />
         <IslandPillProgress visible={progress.visible} fraction={progress.fraction} />
-        <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash}>
+        <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash} hidden={panel.signing !== null}>
           <Mascot
             controllerRef={panel.avatarRef}
             onStateChange={panel.onAvatarStateChange}
