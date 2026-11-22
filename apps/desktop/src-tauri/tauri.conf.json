@@ -16,8 +16,8 @@
       {
         "label": "main",
         "title": "Glup",
-        "width": 180,
-        "height": 165,
+        "width": 120,
+        "height": 24,
         "resizable": false,
         "maximizable": false,
         "minimizable": false,
@@ -27,6 +27,8 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
+        "focus": false,
+        "focusable": false,
         "dragDropEnabled": true
       }
     ],
