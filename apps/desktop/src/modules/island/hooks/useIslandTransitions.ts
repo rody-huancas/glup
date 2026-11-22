@@ -1,8 +1,11 @@
 import { useCallback, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import { ISLAND_SIZES } from '@/modules/island/constants/island';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
+import type { IslandLayout, WindowSize } from '@/modules/island/interfaces/islandLayout';
 import type { IslandState } from '@/modules/island/types/islandState';
 import { animateIsland, applyIslandPose } from '@/modules/island/utils/islandAnimations';
+import { getBoundingSize, getIslandLayout } from '@/modules/island/utils/islandLayout';
 import { resizeIslandWindow } from '@/modules/island/utils/islandWindow';
 
 interface UseIslandTransitionsParams {
@@ -11,56 +14,50 @@ interface UseIslandTransitionsParams {
 }
 
 export const useIslandTransitions = ({ elements, setState }: UseIslandTransitionsParams) => {
-  const busy       = useRef(false);
   const generation = useRef(0);
+  const queue      = useRef<Promise<void>>(Promise.resolve());
+  const windowSize = useRef<WindowSize>(ISLAND_SIZES.collapsed);
 
-  const expand = useCallback(async () => {
-    if (busy.current) return;
+  const resizeWindow = useCallback(async (size: WindowSize) => {
+    await resizeIslandWindow(size);
+    windowSize.current = size;
+  }, []);
 
-    busy.current  = true;
-    const current = generation.current;
+  // Grows the window before animating and shrinks it afterwards, so the panel is never clipped.
+  const transitionTo = useCallback((layout: IslandLayout): Promise<void> => {
+    const ticket    = generation.current;
+    const isCurrent = () => ticket === generation.current;
 
-    try {
-      await resizeIslandWindow('expanded');
-      if (current !== generation.current) return;
+    const run = async () => {
+      if (!isCurrent()) return;
 
-      setState('expanded');
-      await animateIsland({ elements, target: 'expanded' });
-    } finally {
-      busy.current = false;
-    }
-  }, [elements, setState]);
+      await resizeWindow(getBoundingSize(windowSize.current, layout.size));
+      if (!isCurrent()) return;
 
-  const collapse = useCallback(async () => {
-    if (busy.current) return;
+      if (layout.target !== 'collapsed') setState(layout.target);
+      await animateIsland({ elements, layout });
+      if (!isCurrent()) return;
 
-    busy.current  = true;
-    const current = generation.current;
+      await resizeWindow(layout.size);
+      if (isCurrent() && layout.target === 'collapsed') setState('collapsed');
+    };
 
-    try {
-      await animateIsland({ elements, target: 'collapsed' });
-      if (current !== generation.current) return;
+    queue.current = queue.current.then(run).catch(() => undefined);
+    return queue.current;
+  }, [elements, resizeWindow, setState]);
 
-      await resizeIslandWindow('collapsed');
-      if (current === generation.current) setState('collapsed');
-    } finally {
-      busy.current = false;
-    }
-  }, [elements, setState]);
-
-  // Invalidates any running transition so it cannot override the hidden state.
+  // Invalidates queued and running transitions so they cannot override the hidden state.
   const hide = useCallback(async () => {
     generation.current += 1;
-    busy.current        = false;
 
-    applyIslandPose({ elements, target: 'collapsed' });
+    applyIslandPose({ elements, layout: getIslandLayout({ target: 'collapsed', actionsHeight: 0 }) });
     setState('hidden');
-    await resizeIslandWindow('collapsed');
-  }, [elements, setState]);
+    await resizeWindow(ISLAND_SIZES.collapsed);
+  }, [elements, resizeWindow, setState]);
 
   const reveal = useCallback(() => {
     setState((previous) => (previous === 'hidden' ? 'collapsed' : previous));
   }, [setState]);
 
-  return { expand, collapse, hide, reveal };
+  return { transitionTo, hide, reveal };
 };

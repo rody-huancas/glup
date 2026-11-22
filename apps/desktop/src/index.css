@@ -1,4 +1,28 @@
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
 @import "tailwindcss";
+
+@theme {
+  --color-bg          : #141318;
+  --color-surface     : #1C1B22;
+  --color-raised      : #24232C;
+  --color-line        : #2E2D38;
+  --color-line-strong : #3A3846;
+  --color-line-dashed : #4A4660;
+  --color-text        : #EDEBF5;
+  --color-muted       : #A3A0B3;
+  --color-mint        : #7EE0BC;
+  --color-mint-ink    : #10291F;
+  --color-lilac       : #9D90FA;
+  --color-lilac-soft  : #C3BAFF;
+
+  --font-sans : "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-control : 12px;
+  --radius-panel   : 26px;
+}
 
 html,
 body,
@@ -10,4 +34,9 @@ body,
   background          : transparent;
   user-select         : none;
   -webkit-user-select : none;
+}
+
+body {
+  font-family : var(--font-sans);
+  color       : var(--color-text);
 }

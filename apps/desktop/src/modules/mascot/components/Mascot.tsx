@@ -4,15 +4,11 @@ import { MascotMouths } from '@/modules/mascot/components/MascotMouths';
 import { TRANSFORM_ORIGIN } from '@/modules/mascot/constants/animation';
 import { BODY_ASSET } from '@/modules/mascot/constants/assets';
 import { useMascot } from '@/modules/mascot/hooks/useMascot';
-import type { MascotState } from '@/modules/mascot/types/mascotState';
+import type { MascotOptions } from '@/modules/mascot/interfaces/controller';
 import { getBodyAspectRatio } from '@/modules/mascot/utils/pieceStyle';
 
-interface MascotProps {
-  onStateChange?: (state: MascotState) => void;
-}
-
-export const Mascot = ({ onStateChange }: MascotProps) => {
-  const { face, elements, pointerHandlers } = useMascot(onStateChange);
+export const Mascot = (props: MascotOptions) => {
+  const { face, elements, pointerHandlers } = useMascot(props);
 
   return (
     <div

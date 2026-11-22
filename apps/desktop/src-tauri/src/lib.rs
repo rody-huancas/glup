@@ -13,7 +13,9 @@ pub fn run() {
         .manage(Visibility::default())
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
-            commands::island::resize_island
+            commands::files::get_files_info,
+            commands::island::resize_island,
+            commands::island::set_island_focus
         ])
         .setup(|app| {
             let window = app
