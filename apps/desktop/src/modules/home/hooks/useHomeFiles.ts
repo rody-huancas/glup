@@ -19,9 +19,10 @@ import { useFileDrop } from '@/shared/hooks/useFileDrop';
 interface UseHomeFilesParams {
   commandAvatar   : (state: MascotState) => void;
   onFilesIncoming : () => void;
+  onSign          : (path: string) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // const [showActions, setShowActions] = useState(false);
@@ -38,7 +39,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming }: UseHomeFilesPar
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign });
   // const eating     = useEatingSequence({ mascotState: dropState, onDone: () => setShowActions(true) });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });

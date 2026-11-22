@@ -7,6 +7,7 @@ import { getMascotStatus } from '@/modules/main-window/utils/mascotStatus';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
+import { useSignMode } from '@/modules/sign/hooks/useSignMode';
 import { useTaskMood } from '@/modules/tasks/hooks/useTaskMood';
 
 export const useMainWindow = (): MainPanelState => {
@@ -16,27 +17,35 @@ export const useMainWindow = (): MainPanelState => {
 
   const commandAvatar = useCallback((state: MascotState) => avatarRef.current?.setState(state), []);
   const showHome      = useCallback(() => setPage(DEFAULT_PAGE), []);
-  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome });
+  const signMode      = useSignMode();
+  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start });
+  // const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome });
 
   useTaskMood(commandAvatar);
 
   const avatarStatus  = useMemo(() => getMascotStatus(avatarState), [avatarState]);
   const filesClose    = files.close;
+  const stopSigning   = signMode.stop;
 
   // Back to the home page with no pending selection, as when the island collapses.
   const reset = useCallback(() => {
     setPage(DEFAULT_PAGE);
     filesClose();
-  }, [filesClose]);
+    stopSigning();
+  }, [filesClose, stopSigning]);
 
   return {
     page,
     files,
     avatarRef,
     avatarStatus,
-    busy                : files.busy || avatarState.type === 'working',
+    // Signing keeps the island open until it is saved or cancelled.
+    busy                : files.busy || avatarState.type === 'working' || signMode.target !== null,
+    // busy                : files.busy || avatarState.type === 'working',
     navigate            : setPage,
     onAvatarStateChange : setAvatarState,
     reset,
+    signing             : signMode.target,
+    stopSigning,
   };
 };

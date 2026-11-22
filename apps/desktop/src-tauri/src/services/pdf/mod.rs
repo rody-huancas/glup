@@ -3,6 +3,7 @@ pub mod info;
 pub mod merge;
 pub mod reduce;
 pub mod save_images;
+pub mod sign;
 pub mod split;
 
 #[cfg(test)]
@@ -48,7 +49,7 @@ pub fn save(document: &mut Document) -> PdfResult<Vec<u8>> {
 
 // Copies inherited attributes (resources, boxes, rotation) onto the page, so it stands on its own
 // once the intermediate nodes of the page tree are dropped.
-fn own_inherited(document: &mut Document, page_id: ObjectId) {
+pub(crate) fn own_inherited(document: &mut Document, page_id: ObjectId) {
     let mut inherited: Vec<(Vec<u8>, Object)> = Vec::new();
     let mut parent = document.get_dictionary(page_id).ok().and_then(|page| page.get(b"Parent").and_then(Object::as_reference).ok());
 

@@ -1,10 +1,11 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { SelectionType } from '@/modules/actions/types/fileType';
 
-// Actions that really run; the rest still answer "Esto lo aprendo pronto" (Firmar, Quitar fondo).
+// Actions that really run; the rest still answer "Esto lo aprendo pronto" (Quitar fondo).
 export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
   image       : ['convert', 'compress', 'to-pdf', 'zip'],
-  pdf         : ['merge', 'compress', 'split-pages', 'to-images', 'zip'],
+  pdf         : ['merge', 'compress', 'sign', 'split-pages', 'to-images', 'zip'],
+  // pdf         : ['merge', 'compress', 'split-pages', 'to-images', 'zip'],
   'pdf-mixed' : ['merge', 'zip'],
   mixed       : ['zip'],
 };

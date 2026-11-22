@@ -15,7 +15,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use crate::services::{
     archive::{self, ZipEntry, ZipParams, ZIP_ERROR},
     destination::{self, Destination},
-    history::{self, format_size, HistoryEntry, NewEntryParams},
+    history::{self, format_size, HistoryEntry, NewEntryParams, SignedDetailParams},
     image::{compress, convert, to_pdf::PdfBuilder, SourceFormat, TargetFormat, READ_ERROR},
     naming::{output_path, OutputKind, OutputNameParams},
     parallel::{run_parallel, worker_count, ParallelParams},
@@ -24,10 +24,11 @@ use crate::services::{
         merge as pdf_merge,
         reduce::{self as pdf_reduce, ReduceLevel, TARGET_STEPS},
         save_images::{self, PageImageFormat, PageImageSession, PageImageSessions, SESSION_ERROR},
+        sign::{self as pdf_sign, Placement, PlacementContent, SignParams},
         split as pdf_split,
     },
     settings::SaveMode,
-    tasks,
+    signatures, tasks,
 };
 
 pub const ACTION_PROGRESS_EVENT: &str = "action-progress";
@@ -47,6 +48,7 @@ const ZIP_KIND: &str   = "zip";
 
 pub const MERGED_SUFFIX: &str  = "unido";
 pub const REDUCED_SUFFIX: &str = "reducido";
+pub const SIGNED_SUFFIX: &str  = "firmado";
 pub const IMAGES_SUFFIX: &str  = "imagenes";
 pub const PAGES_ERROR: &str    = "Esas páginas no existen en el PDF";
 const PDF_EXTENSION: &str      = "pdf";
@@ -965,4 +967,67 @@ fn finish_page_images_inner(app: &AppHandle, request: FinishPageImagesRequest) -
     report.output      = Some(output);
     report.output_size = Some(result.size);
     Ok(report)
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignRequest {
+    pub path: String,
+    pub placements: Vec<Placement>,
+    pub destination: Option<Destination>,
+    pub task_id: Option<String>,
+}
+
+// "Firmar": the signatures and texts placed on the pages, in contrato-firmado.pdf. Temporary signatures
+// (not kept for later) are removed once it is done.
+pub fn sign_pdf(app: &AppHandle, request: SignRequest) -> Result<ActionReport, String> {
+    let source  = PathBuf::from(&request.path);
+    let control = app.state::<ActionControl>();
+    let run     = Run {
+        app,
+        paths       : vec![source.clone()],
+        destination : request.destination.unwrap_or_default(),
+        cancel      : &control.cancelled,
+        reserved    : Mutex::new(HashSet::new()),
+        task        : request.task_id.clone(),
+    };
+
+    run.progress(ProgressParams { current: 0, total: 1, name: &file_name(&source), active: 1 });
+
+    let summary = pdf_sign::summarize(&request.placements);
+    let kind    = OutputKind::Suffixed { suffix: SIGNED_SUFFIX, extension: PDF_EXTENSION };
+    let result  = pdf_tools::load(&source)
+        .and_then(|document| pdf_sign::sign(SignParams { document, placements: &request.placements }))
+        .and_then(|bytes| run.save(SaveParams { source: &source, kind, bytes: &bytes }));
+
+    let used: Vec<&str> = request.placements.iter().filter_map(|item| match &item.content {
+        PlacementContent::Image { path } => Some(path.as_str()),
+        PlacementContent::Text { .. } => None,
+    }).collect();
+    signatures::remove_temporary(&used);
+
+    run.progress(ProgressParams { current: 1, total: 1, name: "", active: 1 });
+
+    let (outcomes, batch) = match result {
+        Ok(result) => {
+            let detail = history::signed_detail(SignedDetailParams { signatures: summary.signatures, texts: summary.texts, pages: summary.pages });
+            let entry  = history::new_entry(NewEntryParams { output: &result.output, kind: PDF_KIND, action: "sign", detail });
+            let _      = history::append(app, vec![entry]);
+            (vec![saved(&source, &result)], Some(result))
+        }
+        Err(error) => (vec![failed(&source, error)], None),
+    };
+
+    Ok(ActionReport {
+        action_id        : "sign".to_string(),
+        outcomes,
+        output           : batch.as_ref().map(|result| result.output.to_string_lossy().into_owned()),
+        output_size      : batch.map(|result| result.size),
+        total            : 1,
+        cancelled        : false,
+        bundled          : false,
+        output_is_folder : false,
+        pages_done       : None,
+        pages_total      : None,
+    })
 }

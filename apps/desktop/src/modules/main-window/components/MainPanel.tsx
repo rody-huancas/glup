@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import { PageContent } from '@/modules/main-window/components/PageContent';
 import { Sidebar } from '@/modules/main-window/components/Sidebar';
 import type { MainPanelState, PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
+import { SignPage } from '@/modules/sign/pages/SignPage';
 
 interface MainPanelProps {
   panel           : MainPanelState;
@@ -16,6 +17,7 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
       avatarAnchorRef={avatarAnchorRef}
       avatarStatus={panel.avatarStatus}
       onNavigate={panel.navigate}
+      hidden={panel.signing !== null}
     />
     {/* <Sidebar
       page={panel.page}
@@ -24,6 +26,11 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
       onNavigate={panel.navigate}
       onAvatarStateChange={panel.onAvatarStateChange}
     /> */}
-    <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />
+    {panel.signing ? (
+      <SignPage target={panel.signing} destination={panel.files.saveLocation.destination} onExit={panel.stopSigning} />
+    ) : (
+      <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />
+    )}
+    {/* <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} /> */}
   </div>
 );

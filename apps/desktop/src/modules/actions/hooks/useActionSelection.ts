@@ -26,6 +26,8 @@ interface UseActionSelectionParams {
   onFinished  : () => void;
   destination : SaveDestination;
   bundle      : boolean;
+  // "Firmar" opens the signing screen with this PDF.
+  onSign      : (path: string) => void;
 }
 
 interface ExecuteParams {
@@ -55,7 +57,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -64,13 +66,15 @@ export const useActionSelection = ({ onFinished, destination, bundle }: UseActio
   const finishedRef               = useRef(onFinished);
   const destinationRef            = useRef(destination);
   const bundleRef                 = useRef(bundle);
+  const signRef                   = useRef(onSign);
   const loadId                    = useRef(0);
 
   useEffect(() => {
     finishedRef.current    = onFinished;
     destinationRef.current = destination;
     bundleRef.current      = bundle;
-  }, [onFinished, destination, bundle]);
+    signRef.current        = onSign;
+  }, [onFinished, destination, bundle, onSign]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -152,6 +156,13 @@ export const useActionSelection = ({ onFinished, destination, bundle }: UseActio
   const choose = useCallback((actionId: ActionId) => {
     if (!selection || phase !== 'choosing') return;
     if (!isImplemented(selection, actionId)) return learn();
+
+    // The signing screen takes over the panel; the selection is done.
+    if (actionId === 'sign') {
+      signRef.current(selection.paths[0]);
+      finishedRef.current();
+      return;
+    }
 
     // "Reducir peso" asks for a level only with PDFs.
     if (actionId === 'compress' && selection.type === 'pdf') return setPhase('reduce');

@@ -4,7 +4,7 @@ mod services;
 use tauri::Manager;
 
 use services::{
-    actions::ActionControl, history::HistoryStore, island_window::IslandArea, pdf::save_images::PageImageSessions,
+    actions::ActionControl, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
     settings::SettingsStore, tasks::TaskRegistry, visibility::Visibility,
 };
 
@@ -18,6 +18,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(Visibility::default())
         .manage(IslandArea::default())
+        .manage(IslandFrame::default())
         .manage(HistoryStore::default())
         .manage(SettingsStore::default())
         .manage(ActionControl::default())
@@ -35,6 +36,10 @@ pub fn run() {
             commands::actions::finish_page_images,
             commands::actions::get_active_tasks,
             commands::actions::dismiss_task,
+            commands::actions::sign_pdf,
+            commands::signatures::list_signatures,
+            commands::signatures::save_signature,
+            commands::signatures::delete_signature,
             commands::files::read_file_bytes,
             commands::settings::get_settings,
             commands::settings::update_settings,
@@ -42,7 +47,9 @@ pub fn run() {
             commands::history::clear_history,
             // commands::island::resize_island,
             commands::island::set_island_area,
-            commands::island::set_island_focus
+            commands::island::set_island_focus,
+            commands::island::get_island_status,
+            commands::island::log_island
             // commands::main_window::open_main_window
         ])
         // .on_window_event(services::main_window::handle_event)
@@ -53,11 +60,13 @@ pub fn run() {
 
             // services::window_position::place_bottom_right(&window)?;
             services::island_window::center_top(&window)?;
+            services::island_window::remember_frame(&window);
             services::island_window::set_area(&window, services::island_window::INITIAL_AREA)?;
             services::visibility::apply(app.handle());
             services::tray::create(app.handle())?;
             services::cursor_tracker::spawn(app.handle().clone());
             services::fullscreen_watcher::spawn(app.handle().clone());
+            services::island_watchdog::spawn(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())

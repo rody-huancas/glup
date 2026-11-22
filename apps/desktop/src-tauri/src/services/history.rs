@@ -70,6 +70,25 @@ pub fn reduced_max_detail(before: u64, after: u64) -> String {
     format!("Peso reducido al máximo: de {} a {}", format_size(before), format_size(after))
 }
 
+pub struct SignedDetailParams {
+    pub signatures: usize,
+    pub texts: usize,
+    pub pages: usize,
+}
+
+fn counted(count: usize, singular: &str, plural: &str) -> String {
+    format!("{count} {}", if count == 1 { singular } else { plural })
+}
+
+// "Firmado · 2 firmas en 2 páginas", "Firmado · 1 firma y 1 texto en 1 página".
+pub fn signed_detail(params: SignedDetailParams) -> String {
+    let signatures = (params.signatures > 0).then(|| counted(params.signatures, "firma", "firmas"));
+    let texts      = (params.texts > 0).then(|| counted(params.texts, "texto", "textos"));
+    let placed     = [signatures, texts].into_iter().flatten().collect::<Vec<_>>().join(" y ");
+
+    format!("Firmado · {placed} en {}", counted(params.pages, "página", "páginas"))
+}
+
 // pub fn size_change_detail(before: u64, after: u64) -> String {
 //     format!("De {} a {}", format_size(before), format_size(after))
 // }
@@ -170,6 +189,9 @@ mod tests {
         assert_eq!(format_size(3 * 1024 * 1024), "3 MB");
         assert_eq!(reduced_detail(2_516_582, 696_320), "Peso reducido: de 2,4 MB a 680 KB");
         assert_eq!(reduced_max_detail(3_984_589, 1_677_722), "Peso reducido al máximo: de 3,8 MB a 1,6 MB");
+        assert_eq!(signed_detail(SignedDetailParams { signatures: 2, texts: 0, pages: 2 }), "Firmado · 2 firmas en 2 páginas");
+        assert_eq!(signed_detail(SignedDetailParams { signatures: 1, texts: 1, pages: 1 }), "Firmado · 1 firma y 1 texto en 1 página");
+        assert_eq!(signed_detail(SignedDetailParams { signatures: 0, texts: 3, pages: 1 }), "Firmado · 3 textos en 1 página");
     }
 
     #[test]
