@@ -1,3 +1,4 @@
+import { LearnedSection } from '@/modules/background/components/LearnedSection';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { AutostartToggle } from '@/modules/settings/components/AutostartToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
@@ -7,7 +8,7 @@ import { Card } from '@/shared/components/Card';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { SectionLabel } from '@/shared/components/SectionLabel';
 
-// General (starting with the computer) and where results are saved.
+// General (starting with the computer), where results are saved and what Glup downloaded.
 export const SettingsPage = ({ files }: PageProps) => (
   <div className="flex flex-col gap-6">
     <PageHeader title={SETTINGS_TEXTS.title} subtitle={SETTINGS_TEXTS.subtitle} />
@@ -23,6 +24,7 @@ export const SettingsPage = ({ files }: PageProps) => (
         <SaveLocationPicker location={files.saveLocation} />
       </Card>
     </section>
+    <LearnedSection />
   </div>
 );
 
