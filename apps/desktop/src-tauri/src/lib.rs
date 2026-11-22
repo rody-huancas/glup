@@ -2,10 +2,11 @@ mod commands;
 mod services;
 
 use tauri::Manager;
+use tauri_plugin_autostart::MacosLauncher;
 
 use services::{
     actions::ActionControl, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
-    settings::SettingsStore, tasks::TaskRegistry, visibility::Visibility,
+    settings::SettingsStore, startup::{TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, visibility::Visibility,
 };
 
 pub const ISLAND_WINDOW_LABEL: &str = "island";
@@ -14,6 +15,9 @@ pub const ISLAND_WINDOW_LABEL: &str = "island";
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // First: a second Glup never opens; the one running shows its island, as "Abrir Glup".
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| services::island_window::request_open(app)))
+        .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![AUTOSTART_ARG])))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Visibility::default())
@@ -25,6 +29,7 @@ pub fn run() {
         .manage(PageImageSessions::default())
         .manage(TaskRegistry::default())
         .manage(CleanupState::default())
+        .manage(TrayAutostart::default())
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
             commands::files::get_files_info,
@@ -47,6 +52,9 @@ pub fn run() {
             commands::files::read_file_bytes,
             commands::settings::get_settings,
             commands::settings::update_settings,
+            commands::startup::get_launch_info,
+            commands::startup::get_autostart,
+            commands::startup::set_autostart,
             commands::history::get_history,
             commands::history::clear_history,
             // commands::island::resize_island,
