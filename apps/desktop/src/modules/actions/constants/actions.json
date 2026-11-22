@@ -9,5 +9,6 @@
   { "id": "compress", "label": "Reducir peso", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "to-pdf", "label": "A PDF", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "remove-background", "label": "Quitar fondo", "fileType": "image", "fileCount": "any", "primary": false },
+  { "id": "merge", "label": "Unir en un PDF", "fileType": "pdf-mixed", "fileCount": "multiple", "primary": true },
   { "id": "zip", "label": "Juntar en ZIP", "fileType": "any", "fileCount": "multiple", "primary": false }
 ]

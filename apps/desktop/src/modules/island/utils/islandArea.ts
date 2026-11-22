@@ -1,8 +1,11 @@
-import { HOVER_SHAPE, ISLAND_FRAME, ISLAND_SHAPES, SETTLE_SHAPE } from '@/modules/island/constants/islandShape';
+import { HOVER_SHAPE, ISLAND_FRAME, ISLAND_SHAPES, NOTICE_SHAPE, SETTLE_SHAPE } from '@/modules/island/constants/islandShape';
 import type { ShapeSize } from '@/modules/island/interfaces/islandShape';
 import { getShapeSize } from '@/modules/island/utils/islandPath';
 
-export type IslandAreaKind = 'collapsed' | 'expanded' | 'frame';
+export type IslandAreaKind = 'collapsed' | 'expanded' | 'frame' | 'notice';
+
+// Room for the notice's elastic overshoot.
+const NOTICE_OVERSHOOT = 1.12;
 
 // The collapsed area also fits the hover inflate and the landing shake, ears included.
 const COLLAPSED_AREA = getShapeSize({
@@ -15,6 +18,11 @@ const ISLAND_AREAS: Record<IslandAreaKind, ShapeSize> = {
   collapsed : COLLAPSED_AREA,
   expanded  : getShapeSize(ISLAND_SHAPES.expanded),
   frame     : ISLAND_FRAME,
+  notice    : getShapeSize({
+    ...NOTICE_SHAPE,
+    width  : NOTICE_SHAPE.width * NOTICE_OVERSHOOT,
+    height : NOTICE_SHAPE.height * NOTICE_OVERSHOOT,
+  }),
 };
 
 export const getIslandArea = (kind: IslandAreaKind): ShapeSize => ISLAND_AREAS[kind];

@@ -10,5 +10,7 @@ export interface IslandElements {
   flyer        : RefObject<HTMLDivElement | null>;
   squash       : RefObject<HTMLDivElement | null>;
   pillAnchor   : RefObject<HTMLDivElement | null>;
+  noticeAnchor : RefObject<HTMLDivElement | null>;
+  noticeText   : RefObject<HTMLDivElement | null>;
   avatarAnchor : RefObject<HTMLDivElement | null>;
 }

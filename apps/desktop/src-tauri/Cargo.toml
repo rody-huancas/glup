@@ -24,6 +24,8 @@ webp                = "0.3"
 oxipng              = { version = "10", default-features = false, features = ["parallel"] }
 lopdf               = "0.47"
 rayon               = "1"
+jpeg-encoder        = "0.7"
+jpeg-decoder        = { version = "0.3", default-features = false }
 zip                 = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 chrono              = { version = "0.4", default-features = false, features = ["clock", "std"] }
 

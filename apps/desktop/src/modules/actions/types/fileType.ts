@@ -4,8 +4,9 @@ export type SupportedFileType = Exclude<FileType, 'other'>;
 
 export type DialogFileType = SupportedFileType | 'any';
 
-// Several files of different (or unsupported) kinds: only "Juntar en ZIP" applies.
-export type SelectionType = SupportedFileType | 'mixed';
+// pdf-mixed: PDFs together with images (they can be merged). mixed: other kinds too, only "Juntar en ZIP".
+export type SelectionType = SupportedFileType | 'pdf-mixed' | 'mixed';
+// export type SelectionType = SupportedFileType | 'mixed';
 
 // Actions marked 'any' work with every selection type.
-export type ActionFileType = SupportedFileType | 'any';
+export type ActionFileType = SupportedFileType | 'pdf-mixed' | 'any';

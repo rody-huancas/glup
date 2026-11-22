@@ -3,7 +3,7 @@ import type { ActionDefinition } from '@/modules/actions/interfaces/actionDefini
 import type { FileInfo } from '@/modules/actions/interfaces/fileInfo';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
 import type { FileCount } from '@/modules/actions/types/fileCount';
-import type { SelectionType, SupportedFileType } from '@/modules/actions/types/fileType';
+import type { SelectionType } from '@/modules/actions/types/fileType';
 
 interface ActionsForParams {
   type  : SelectionType;
@@ -20,12 +20,21 @@ const matchesCount = (fileCount: FileCount, count: number): boolean => {
   return fileCount === 'multiple' ? count > 1 : count === 1;
 };
 
-export const getSelectionType = (files: FileInfo[]): SupportedFileType | null => {
+// One kind for all; PDFs with images are 'pdf-mixed' (they can be merged); anything else is null.
+export const getSelectionType = (files: FileInfo[]): Exclude<SelectionType, 'mixed'> | null => {
   const first = files[0]?.kind;
 
   if (!first || first === 'other') return null;
-  return files.every((file) => file.kind === first) ? first : null;
+  if (files.every((file) => file.kind === first)) return first;
+  return files.every((file) => file.kind !== 'other') ? 'pdf-mixed' : null;
 };
+
+// export const getSelectionType = (files: FileInfo[]): SupportedFileType | null => {
+//   const first = files[0]?.kind;
+//
+//   if (!first || first === 'other') return null;
+//   return files.every((file) => file.kind === first) ? first : null;
+// };
 
 export const getActionsFor = ({ type, count }: ActionsForParams): ActionDefinition[] =>
   ACTIONS

@@ -7,4 +7,6 @@ export interface ActionResult {
   failedNames : string[];
   openPath    : string | null;
   revealPath  : string | null;
+  // A folder of results: "Ver en carpeta" opens it instead of showing it selected.
+  revealOpens : boolean;
 }

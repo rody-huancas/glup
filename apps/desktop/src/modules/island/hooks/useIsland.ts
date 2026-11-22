@@ -8,6 +8,10 @@ import type { IslandState } from '@/modules/island/types/islandState';
 import { createIslandElements } from '@/modules/island/utils/elements';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
+import { useTaskTransitions } from '@/modules/tasks/hooks/useTaskTransitions';
+import { useTasks } from '@/modules/tasks/hooks/useTasks';
+import type { Task } from '@/modules/tasks/interfaces/task';
+import { getRunningTask, getTaskFraction } from '@/modules/tasks/utils/taskView';
 import { useKeyDown } from '@/shared/hooks/useKeyDown';
 
 export const useIsland = () => {
@@ -20,7 +24,7 @@ export const useIsland = () => {
   const resetPanel          = panel.reset;
 
   const { takeFocus, releaseFocus }    = useIslandFocus();
-  const { transitionTo, hide, reveal, hover, limbsVisible } = useIslandTimeline({ elements, setState, mascotRef: panel.avatarRef });
+  const { transitionTo, hide, reveal, hover, limbsVisible, notice, notify } = useIslandTimeline({ elements, setState, mascotRef: panel.avatarRef });
   // const { transitionTo, hide, reveal } = useIslandTransitions({ elements, setState });
 
   const expand = useCallback((pin: boolean) => {
@@ -90,6 +94,26 @@ export const useIsland = () => {
     if (state === 'expanded') takeFocus();
   }, [state, takeFocus]);
 
+  // Tasks run on their own; with the island collapsed the pill shows progress and a notice at the end.
+  const tasks    = useTasks();
+  const running  = getRunningTask(tasks);
+  const stateRef = useRef(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  const onTaskFinish = useCallback((task: Task) => {
+    if (stateRef.current === 'collapsed' && task.result) notify({ message: task.result.message, tone: task.result.tone });
+  }, [notify]);
+
+  useTaskTransitions({ tasks, onFinish: onTaskFinish });
+
+  const progress = useMemo(
+    () => ({ visible: state === 'collapsed' && running !== null && notice === null, fraction: running ? getTaskFraction(running) : null }),
+    [state, running, notice],
+  );
+
   const onMascotClick = useCallback(() => {
     if (state === 'collapsed') openPinned();
   }, [state, openPinned]);
@@ -99,5 +123,5 @@ export const useIsland = () => {
     [pinned, togglePin, collapseNow],
   );
 
-  return { state, elements, panel, controls, limbsVisible, onMascotClick, onPanelPointerDown };
+  return { state, elements, panel, controls, limbsVisible, notice, progress, onMascotClick, onPanelPointerDown };
 };

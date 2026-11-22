@@ -1,14 +1,20 @@
-import { ActionResultView } from '@/modules/actions/components/ActionResultView';
+// import { ActionResultView } from '@/modules/actions/components/ActionResultView';
 import { ActionsGrid } from '@/modules/actions/components/ActionsGrid';
 import { CloseButton } from '@/modules/actions/components/CloseButton';
 import { FormatPicker } from '@/modules/actions/components/FormatPicker';
-import { WorkingStatus } from '@/modules/actions/components/WorkingStatus';
+// import { WorkingStatus } from '@/modules/actions/components/WorkingStatus';
+import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ActionFlow } from '@/modules/actions/interfaces/actionFlow';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
 import { getSelectionIcon } from '@/modules/actions/utils/fileIcon';
 import { canBundle } from '@/modules/actions/utils/formats';
 import { getPhaseMessage } from '@/modules/actions/utils/phase';
 import { getActionsTitle, getSelectionSummary } from '@/modules/actions/utils/summary';
+import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
+import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
+import { PageSelectionStep } from '@/modules/pdf/components/PageSelectionStep';
+import { ReduceStep } from '@/modules/pdf/components/ReduceStep';
+import { SplitStep } from '@/modules/pdf/components/SplitStep';
 import { BundleZipToggle } from '@/modules/settings/components/BundleZipToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
 import { FileChip } from '@/shared/components/FileChip';
@@ -18,29 +24,58 @@ interface ActionsPanelProps {
   flow      : ActionFlow;
 }
 
+// Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
+const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result'];
+
 const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
   if (flow.phase === 'formats') {
     return <FormatPicker selection={selection} onChoose={flow.chooseFormat} onBack={flow.back} />;
   }
 
-  if (flow.phase === 'result' && flow.result) {
-    return <ActionResultView result={flow.result} onOpen={flow.openOutput} onReveal={flow.revealOutput} />;
+  if (flow.phase === 'order') {
+    return <MergeOrderStep files={selection.files} onMerge={flow.merge} onBack={flow.back} />;
   }
+
+  if (flow.phase === 'split') {
+    return <SplitStep onSplitAll={flow.splitAll} onPick={flow.pickPages} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'pages') {
+    return <PageSelectionStep path={selection.paths[0]} pages={selection.files[0]?.pages ?? null} onCreate={flow.splitPages} onBack={flow.back} />;
+  }
+
+  // The level chosen is remembered for next time.
+  if (flow.phase === 'reduce') {
+    const reduce = flow.reducePdf;
+    const remember = flow.saveLocation.setReduceLevel;
+
+    return (
+      <ReduceStep
+        lastLevel={flow.saveLocation.reduceLevel}
+        onReduce={(options) => {
+          remember(options.level);
+          reduce(options);
+        }}
+        onBack={flow.back}
+      />
+    );
+  }
+
+  if (flow.phase === 'image-format') {
+    return <PageImageStep onChoose={flow.toImages} onBack={flow.back} />;
+  }
+
+  // Results now show in the task card.
+  // if (flow.phase === 'result' && flow.result) {
+  //   return <ActionResultView result={flow.result} onOpen={flow.openOutput} onReveal={flow.revealOutput} />;
+  // }
 
   return (
     <>
       <h2 className="mt-3 text-[15px] font-semibold text-text">{getActionsTitle(selection)}</h2>
       <div className="mt-2.5">
-        {flow.phase === 'working' && flow.running ? (
-          <WorkingStatus
-            progress={flow.progress}
-            fileCount={selection.files.length}
-            cancelling={flow.cancelling}
-            onCancel={flow.cancel}
-          />
-        ) : (
-          <ActionsGrid actions={selection.actions} message={getPhaseMessage(flow.phase, flow.progress)} onChoose={flow.choose} />
-        )}
+        <ActionsGrid actions={selection.actions} message={getPhaseMessage(flow.phase)} onChoose={flow.choose} />
+        {/* Real runs show in the task card; only "Esto lo aprendo pronto" stays here. */}
       </div>
     </>
   );
@@ -60,7 +95,7 @@ export const ActionsPanel = ({ selection, flow }: ActionsPanelProps) => {
       {flow.phase !== 'result' && (
         <div className="mt-2.5 flex flex-col gap-2">
           <SaveLocationPicker location={flow.saveLocation} disabled={locked} />
-          {canBundle(selection) && <BundleZipToggle location={flow.saveLocation} disabled={locked} />}
+          {canBundle(selection) && !NO_BUNDLE_STEPS.includes(flow.phase) && <BundleZipToggle location={flow.saveLocation} disabled={locked} />}
         </div>
       )}
       <ActionsStep selection={selection} flow={flow} />

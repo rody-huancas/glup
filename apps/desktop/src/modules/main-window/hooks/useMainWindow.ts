@@ -7,6 +7,7 @@ import { getMascotStatus } from '@/modules/main-window/utils/mascotStatus';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
+import { useTaskMood } from '@/modules/tasks/hooks/useTaskMood';
 
 export const useMainWindow = (): MainPanelState => {
   const [page, setPage]               = useState<PageId>(DEFAULT_PAGE);
@@ -16,6 +17,9 @@ export const useMainWindow = (): MainPanelState => {
   const commandAvatar = useCallback((state: MascotState) => avatarRef.current?.setState(state), []);
   const showHome      = useCallback(() => setPage(DEFAULT_PAGE), []);
   const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome });
+
+  useTaskMood(commandAvatar);
+
   const avatarStatus  = useMemo(() => getMascotStatus(avatarState), [avatarState]);
   const filesClose    = files.close;
 

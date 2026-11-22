@@ -4,7 +4,8 @@ mod services;
 use tauri::Manager;
 
 use services::{
-    actions::ActionControl, history::HistoryStore, island_window::IslandArea, settings::SettingsStore, visibility::Visibility,
+    actions::ActionControl, history::HistoryStore, island_window::IslandArea, pdf::save_images::PageImageSessions,
+    settings::SettingsStore, tasks::TaskRegistry, visibility::Visibility,
 };
 
 pub const ISLAND_WINDOW_LABEL: &str = "island";
@@ -20,6 +21,8 @@ pub fn run() {
         .manage(HistoryStore::default())
         .manage(SettingsStore::default())
         .manage(ActionControl::default())
+        .manage(PageImageSessions::default())
+        .manage(TaskRegistry::default())
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
             commands::files::get_files_info,
@@ -27,6 +30,12 @@ pub fn run() {
             commands::files::reveal_file,
             commands::actions::run_action,
             commands::actions::cancel_action,
+            commands::actions::begin_page_images,
+            commands::actions::save_page_image,
+            commands::actions::finish_page_images,
+            commands::actions::get_active_tasks,
+            commands::actions::dismiss_task,
+            commands::files::read_file_bytes,
             commands::settings::get_settings,
             commands::settings::update_settings,
             commands::history::get_history,

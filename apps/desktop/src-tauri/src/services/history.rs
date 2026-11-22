@@ -65,6 +65,11 @@ pub fn reduced_detail(before: u64, after: u64) -> String {
     format!("Peso reducido: de {} a {}", format_size(before), format_size(after))
 }
 
+// "Peso reducido al máximo: de 3,8 MB a 1,6 MB"
+pub fn reduced_max_detail(before: u64, after: u64) -> String {
+    format!("Peso reducido al máximo: de {} a {}", format_size(before), format_size(after))
+}
+
 // pub fn size_change_detail(before: u64, after: u64) -> String {
 //     format!("De {} a {}", format_size(before), format_size(after))
 // }
@@ -164,6 +169,7 @@ mod tests {
         assert_eq!(format_size(2_516_582), "2,4 MB");
         assert_eq!(format_size(3 * 1024 * 1024), "3 MB");
         assert_eq!(reduced_detail(2_516_582, 696_320), "Peso reducido: de 2,4 MB a 680 KB");
+        assert_eq!(reduced_max_detail(3_984_589, 1_677_722), "Peso reducido al máximo: de 3,8 MB a 1,6 MB");
     }
 
     #[test]

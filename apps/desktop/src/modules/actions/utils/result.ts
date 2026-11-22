@@ -2,7 +2,7 @@ import { RESULT_TEXTS } from '@/modules/actions/constants/texts';
 import type { ActionReport, FileOutcome } from '@/modules/actions/interfaces/actionReport';
 import type { ActionResult } from '@/modules/actions/interfaces/actionResult';
 import { formatFileSize } from '@/modules/actions/utils/fileSize';
-import { getFileName } from '@/modules/actions/utils/paths';
+import { getExtension, getFileName } from '@/modules/actions/utils/paths';
 
 interface Groups {
   saved     : FileOutcome[];
@@ -15,6 +15,10 @@ const group = (outcomes: FileOutcome[]): Groups => ({
   failed    : outcomes.filter((item) => item.error !== null),
   unchanged : outcomes.filter((item) => item.unchanged !== null),
 });
+
+// "5 imágenes" or "3 PDFs", from the sources.
+const countItems = (saved: FileOutcome[]): string =>
+  saved.every((item) => getExtension(item.source) === 'pdf') ? RESULT_TEXTS.pdfs(saved.length) : RESULT_TEXTS.images(saved.length);
 
 const sizeChange = (saved: FileOutcome[]): string => {
   const before = saved.reduce((total, item) => total + item.sizeBefore, 0);
@@ -34,6 +38,8 @@ const doneMessage = (report: ActionReport, saved: FileOutcome[]): string => {
 const calmMessage = (report: ActionReport, unchanged: FileOutcome[]): string => {
   const several = unchanged.length > 1;
 
+  if (!several && unchanged[0]?.unchanged) return unchanged[0].unchanged;
+
   if (report.actionId === 'compress') return several ? RESULT_TEXTS.alreadySmallN : RESULT_TEXTS.alreadySmall;
   return several ? RESULT_TEXTS.sameFormatN : RESULT_TEXTS.sameFormat;
 };
@@ -51,14 +57,20 @@ export const summarizeReport = (report: ActionReport): ActionResult => {
   const firstOutput                  = report.output ?? saved[0]?.output ?? null;
   const single                       = report.output !== null || saved.length === 1;
 
+  // A folder of pages or images has no single file to open: only "Ver en carpeta", which opens it.
   const base = {
     failedNames : failed.map((item) => getFileName(item.source)),
-    openPath    : single ? firstOutput : null,
+    openPath    : single && !report.outputIsFolder ? firstOutput : null,
     revealPath  : firstOutput,
+    revealOpens : report.outputIsFolder,
     note        : null,
   };
 
   // "3 de 5 listas · cancelado": what finished before the cancel is kept.
+  if (report.cancelled && report.pagesTotal !== null) {
+    return { ...base, tone: 'calm', message: RESULT_TEXTS.cancelledPages(report.pagesDone ?? 0, report.pagesTotal) };
+  }
+
   if (report.cancelled) {
     const done = report.outcomes.length - failed.length;
     return { ...base, tone: 'calm', message: RESULT_TEXTS.cancelled(done, report.total) };
@@ -73,7 +85,7 @@ export const summarizeReport = (report: ActionReport): ActionResult => {
     return {
       ...base,
       tone       : 'success',
-      message    : RESULT_TEXTS.bundled(saved.length, formatFileSize(report.outputSize ?? 0)),
+      message    : RESULT_TEXTS.bundled(countItems(saved), formatFileSize(report.outputSize ?? 0)),
       note       : unchanged.length > 0 ? RESULT_TEXTS.skipped(unchanged.length) : null,
       openPath   : report.output,
       revealPath : report.output,
@@ -84,11 +96,14 @@ export const summarizeReport = (report: ActionReport): ActionResult => {
     return { ...base, tone: 'calm', message: calmMessage(report, unchanged) };
   }
 
+  const fileNote = saved.length === 1 ? saved[0].note ?? null : null;
+
   return {
     ...base,
     tone    : 'success',
     message : doneMessage(report, saved),
-    note    : unchanged.length > 0 ? RESULT_TEXTS.skipped(unchanged.length) : null,
+    note    : fileNote ?? (unchanged.length > 0 ? RESULT_TEXTS.skipped(unchanged.length) : null),
+    // note    : unchanged.length > 0 ? RESULT_TEXTS.skipped(unchanged.length) : null,
   };
 };
 
@@ -100,4 +115,5 @@ export const failedResult = (message: string): ActionResult => ({
   failedNames : [],
   openPath    : null,
   revealPath  : null,
+  revealOpens : false,
 });

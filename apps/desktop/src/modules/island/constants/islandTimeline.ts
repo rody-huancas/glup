@@ -24,6 +24,14 @@ export const CLOSE_MOTION = {
   // settle  : { impact: 0.06, duration: 0.3, ease: 'elastic.out(1, 0.4)' },
 };
 
+// Seconds. The notice grows with the same elastic as the panel, holds and goes back.
+export const NOTICE_MOTION = {
+  grow   : { duration: 0.6, ease: 'elastic.out(1, 0.75)' },
+  flight : { duration: 0.4, ease: 'back.out(1.4)' },
+  text   : { duration: 0.25, delay: 0.15, ease: 'power2.out' },
+  hold   : 4,
+};
+
 export const HOVER_MOTION = {
   inflate : { duration: 0.15, ease: 'back.out(2)' },
   deflate : { duration: 0.3, ease: 'elastic.out(1, 0.5)' },

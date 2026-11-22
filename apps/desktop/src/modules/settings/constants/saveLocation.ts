@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS: SettingsView = {
   saveMode      : 'same',
   customFolder  : null,
   bundleZip     : false,
+  reduceLevel   : 'normal',
   folderMissing : false,
 };
 

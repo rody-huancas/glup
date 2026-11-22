@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ReduceLevel } from '@/modules/pdf/types/reduceLevel';
 import { DEFAULT_SETTINGS } from '@/modules/settings/constants/saveLocation';
 import type { AppSettings, SaveDestination, SettingsView } from '@/modules/settings/interfaces/appSettings';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
@@ -26,21 +27,28 @@ export const useSaveLocation = (): SaveLocation => {
   // "Elegir carpeta…" always opens the folder dialog, starting at the last folder chosen.
   const choose = useCallback((mode: SaveMode) => {
     if (mode !== 'custom') {
-      save({ saveMode: mode, customFolder: view.customFolder, bundleZip: view.bundleZip });
+      save({ ...view, saveMode: mode });
+      // save({ saveMode: mode, customFolder: view.customFolder, bundleZip: view.bundleZip });
       return;
     }
 
     setPicking(true);
     void pickFolder(view.customFolder)
       .then((folder) => {
-        if (folder) save({ saveMode: 'custom', customFolder: folder, bundleZip: view.bundleZip });
+        if (folder) save({ ...view, saveMode: 'custom', customFolder: folder });
+        // if (folder) save({ saveMode: 'custom', customFolder: folder, bundleZip: view.bundleZip });
       })
       .finally(() => setPicking(false));
-  }, [view.customFolder, view.bundleZip, save]);
+  }, [view, save]);
 
   const setBundleZip = useCallback((bundle: boolean) => {
-    save({ saveMode: view.saveMode, customFolder: view.customFolder, bundleZip: bundle });
-  }, [view.saveMode, view.customFolder, save]);
+    save({ ...view, bundleZip: bundle });
+    // save({ saveMode: view.saveMode, customFolder: view.customFolder, bundleZip: bundle });
+  }, [view, save]);
+
+  const setReduceLevel = useCallback((level: ReduceLevel) => {
+    if (level !== view.reduceLevel) save({ ...view, reduceLevel: level });
+  }, [view, save]);
 
   const destination = useMemo<SaveDestination>(
     () => ({ mode: view.saveMode, folder: view.saveMode === 'custom' ? view.customFolder : null }),
@@ -54,7 +62,9 @@ export const useSaveLocation = (): SaveLocation => {
     picking,
     destination,
     bundleZip     : view.bundleZip,
+    reduceLevel   : view.reduceLevel,
     choose,
     setBundleZip,
+    setReduceLevel,
   };
 };

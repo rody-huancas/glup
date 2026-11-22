@@ -7,6 +7,8 @@ export interface FileOutcome {
   sizeAfter  : number | null;
   error      : string | null;
   unchanged  : string | null;
+  // "Lo más que pude: 2,4 MB" when the size limit was not reached.
+  note       : string | null;
 }
 
 export interface ActionReport {
@@ -16,10 +18,14 @@ export interface ActionReport {
   outputSize : number | null;
   total      : number;
   cancelled  : boolean;
-  bundled    : boolean;
+  bundled        : boolean;
+  outputIsFolder : boolean;
+  pagesDone      : number | null;
+  pagesTotal     : number | null;
 }
 
 export interface ActionProgress {
+  taskId? : string | null;
   current : number;
   total   : number;
   name    : string;

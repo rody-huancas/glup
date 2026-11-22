@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RESULT_MOODS } from '@/modules/actions/constants/resultMoods';
 import { ACTIONS_TEXTS } from '@/modules/actions/constants/texts';
 import { ACTIONS_TIMING } from '@/modules/actions/constants/timing';
 import { useActionSelection } from '@/modules/actions/hooks/useActionSelection';
@@ -63,17 +62,19 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming }: UseHomeFilesPar
     incomingRef.current();
     dropMascotRef.current?.setState(IDLE_STATE);
 
-    const selection = await actions.load(paths).catch(() => null);
+    const { selection, notice: refusal } = await actions.load(paths).catch(() => ({ selection: null, notice: null }));
+    // const selection = await actions.load(paths).catch(() => null);
 
     // The actions show right away; Glup keeps eating in parallel.
     if (selection) {
-      dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'mixed' ? 'image' : selection.type });
+      dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'pdf' || selection.type === 'pdf-mixed' ? 'pdf' : 'image' });
+      // dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'mixed' ? 'image' : selection.type });
       return;
     }
 
     pendingAction.current = null;
     dropMascotRef.current?.setState({ type: 'confused' });
-    setNotice(ACTIONS_TEXTS.rejected);
+    setNotice(refusal ?? ACTIONS_TEXTS.rejected);
     noticeTimer.current = window.setTimeout(() => setNotice(null), ACTIONS_TIMING.rejectedTime);
   }, [actions]);
 
@@ -123,11 +124,16 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming }: UseHomeFilesPar
     choose(pending);
   }, [visible, choose]);
 
+  // Real runs set Glup's mood from the task store (useTaskMood); here only the "learning" answer.
   useEffect(() => {
-    if (actions.phase === 'working')                   commandAvatar({ type: 'working' });
-    if (actions.phase === 'learning')                  commandAvatar({ type: 'confused' });
-    if (actions.phase === 'result' && actions.result) commandAvatar(RESULT_MOODS[actions.result.tone]);
-  }, [actions.phase, actions.result, commandAvatar]);
+    if (actions.phase === 'learning') commandAvatar({ type: 'confused' });
+  }, [actions.phase, commandAvatar]);
+
+  // useEffect(() => {
+  //   if (actions.phase === 'working')                   commandAvatar({ type: 'working' });
+  //   if (actions.phase === 'learning')                  commandAvatar({ type: 'confused' });
+  //   if (actions.phase === 'result' && actions.result) commandAvatar(RESULT_MOODS[actions.result.tone]);
+  // }, [actions.phase, actions.result, commandAvatar]);
 
   // useEffect(() => {
   //   if (actions.phase === 'working')  commandAvatar({ type: 'working' });
@@ -137,17 +143,16 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming }: UseHomeFilesPar
   const flow = useMemo<ActionFlow>(
     () => ({
       phase        : actions.phase,
-      progress     : actions.progress,
-      result       : actions.result,
-      running      : actions.running,
-      cancelling   : actions.cancelling,
       saveLocation,
       choose       : actions.choose,
       chooseFormat : actions.chooseFormat,
+      merge        : actions.merge,
+      splitAll     : actions.splitAll,
+      pickPages    : actions.pickPages,
+      splitPages   : actions.splitPages,
+      toImages     : actions.toImages,
+      reducePdf    : actions.reducePdf,
       back         : actions.back,
-      cancel       : actions.cancel,
-      openOutput   : actions.openOutput,
-      revealOutput : actions.revealOutput,
       close,
     }),
     [actions, saveLocation, close],
@@ -164,7 +169,9 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming }: UseHomeFilesPar
     saveLocation,
     phase                   : actions.phase,
     flow,
-    busy                    : dropState.type === 'eating' || actions.phase === 'working' || actions.pending !== null || saveLocation.picking,
+    // The order list and the page grid keep the island open while the cursor moves around.
+    busy                    : dropState.type === 'eating' || ['working', 'order', 'pages'].includes(actions.phase) || actions.pending !== null || saveLocation.picking,
+    // busy                    : dropState.type === 'eating' || actions.phase === 'working' || actions.pending !== null || saveLocation.picking,
     // busy                    : dropState.type === 'eating' || actions.phase === 'working',
     dropMascotRef,
     onDropMascotStateChange : setDropState,
