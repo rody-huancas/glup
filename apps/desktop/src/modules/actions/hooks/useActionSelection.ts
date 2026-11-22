@@ -133,7 +133,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
   const describe = useCallback((actionId: ActionId, current: FileSelection): Omit<TaskSpec, 'run'> => {
     const label = current.actions.find((action) => action.id === actionId)?.label ?? '';
 
-    return { title: `${label} · ${getSelectionSummary(current).label}`, type: current.type, fileCount: current.files.length };
+    return { title: `${label} · ${getSelectionSummary(current).label}`, type: current.type, fileCount: current.files.length, owner: 'home' };
   }, []);
 
   // Queued in the task store (one at a time); the selection is done and the panel shows the task.

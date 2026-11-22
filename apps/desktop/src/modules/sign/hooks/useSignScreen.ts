@@ -63,6 +63,7 @@ export const useSignScreen = ({ target, destination, onExit }: UseSignScreenPara
       title     : SIGN_TEXTS.taskTitle(target.name),
       type      : 'pdf',
       fileCount : 1,
+      owner     : 'home',
       run       : ({ taskId }) => signPdf({ path: target.path, placements: requests, destination, taskId }),
     });
     onExit();

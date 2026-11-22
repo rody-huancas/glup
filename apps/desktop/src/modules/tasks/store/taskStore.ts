@@ -7,7 +7,10 @@ import { failedResult, summarizeReport } from '@/modules/actions/utils/result';
 import { TASK_TEXTS } from '@/modules/tasks/constants/tasks';
 import type { Task } from '@/modules/tasks/interfaces/task';
 import type { TaskRecord } from '@/modules/tasks/interfaces/taskRecord';
+import type { TaskReveal } from '@/modules/tasks/interfaces/taskReveal';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
+import { ownerOfAction } from '@/modules/tasks/utils/taskOwner';
+import { summaryToResult, toTaskResult } from '@/modules/tasks/utils/taskResult';
 import { dismissTask, getActiveTasks } from '@/modules/tasks/services/tasks';
 import { ACTION_PROGRESS_EVENT, TASK_FINISHED_EVENT } from '@/shared/constants/events';
 
@@ -18,6 +21,8 @@ let started        = false;
 const listeners    = new Set<() => void>();
 const specs        = new Map<string, TaskSpec>();
 const cancelled    = new Set<string>();
+// Tasks that finished with the island collapsed, until the next opening.
+let reveals: TaskReveal[] = [];
 
 const emit = () => listeners.forEach((listener) => listener());
 
@@ -35,7 +40,7 @@ const createId = (): string => `task-${Date.now().toString(36)}-${Math.random().
 const finish = (id: string, result: ActionResult) => {
   if (find(id)?.status !== 'running') return;
 
-  update(id, { status: 'done', result, progress: null, cancelling: false });
+  update(id, { status: 'done', result, progress: null, cancelling: false, finishedAt: Date.now() });
   specs.delete(id);
   cancelled.delete(id);
   pump();
@@ -57,13 +62,15 @@ const pump = () => {
       onProgress  : (progress) => update(next.id, { progress }),
       isCancelled : () => cancelled.has(next.id),
     })
-    .then(summarizeReport)
+    .then(toTaskResult)
+    // .then(summarizeReport)
     .catch((error: unknown) => failedResult(String(error)))
     .then((result) => finish(next.id, result));
 };
 
 const resultOf = (record: TaskRecord): ActionResult | null => {
   if (record.report) return summarizeReport(record.report);
+  if (record.summary) return summaryToResult(record.summary);
   return record.error ? failedResult(record.error) : null;
 };
 
@@ -88,6 +95,9 @@ const restore = async () => {
       progress   : record.progress,
       result     : record.finished ? resultOf(record) : null,
       cancelling : false,
+      owner      : ownerOfAction(record.actionId),
+      finishedAt : record.finished ? Date.now() : null,
+      createdAt  : Date.now(),
     })),
   ]);
 };
@@ -123,7 +133,7 @@ export const enqueueTask = (spec: TaskSpec): string => {
   specs.set(id, spec);
   setTasks([
     ...tasks,
-    { id, title: spec.title, type: spec.type, fileCount: spec.fileCount, status: 'queued', progress: null, result: null, cancelling: false },
+    { id, title: spec.title, type: spec.type, fileCount: spec.fileCount, status: 'queued', progress: null, result: null, cancelling: false, owner: spec.owner, finishedAt: null, createdAt: Date.now() },
   ]);
 
   pump();
@@ -155,3 +165,22 @@ export const dismissTaskResult = (id: string) => {
   setTasks(tasks.filter((task) => task.id !== id));
   void dismissTask(id).catch(() => undefined);
 };
+
+// The island finished a task while collapsed: remember its owner screen for the next opening.
+export const markForReveal = (id: string) => {
+  const task = find(id);
+  if (task) reveals = [...reveals, { owner: task.owner, finishedAt: task.finishedAt ?? Date.now() }];
+};
+
+// The finished tasks waiting to be seen, and forget them (the opening decides with pickOpenPage).
+export const takeReveals = (): TaskReveal[] => {
+  const pending = reveals;
+  reveals       = [];
+  return pending;
+};
+
+// export const takeRevealPage = (): PageId | null => {
+//   const page = pickRevealPage(reveals);
+//   reveals    = [];
+//   return page;
+// };
