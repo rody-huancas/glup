@@ -14,6 +14,9 @@ import { isImplemented, usesBundle } from '@/modules/actions/utils/formats';
 import { createPendingSelection } from '@/modules/actions/utils/pending';
 import { createSelection } from '@/modules/actions/utils/selection';
 import { getSelectionSummary } from '@/modules/actions/utils/summary';
+import { getBackgroundModel } from '@/modules/background/services/backgroundModel';
+import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
+import { nextLearnPhase } from '@/modules/background/utils/learnStep';
 import { PDF_TEXTS } from '@/modules/pdf/constants/pdf';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import { exportPdfPages } from '@/modules/pdf/services/pageImages';
@@ -47,12 +50,16 @@ const ACTION_STEPS: Partial<Record<ActionId, ActionsPhase>> = {
 
 // Where "Volver" goes from each step.
 const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
-  formats        : 'choosing',
-  order          : 'choosing',
-  split          : 'choosing',
-  'image-format' : 'choosing',
-  reduce         : 'choosing',
-  pages          : 'split',
+  formats          : 'choosing',
+  order            : 'choosing',
+  split            : 'choosing',
+  'image-format'   : 'choosing',
+  reduce           : 'choosing',
+  pages            : 'split',
+  'learn-model'    : 'choosing',
+  // The download goes on as a task; only the step is left.
+  'learning-model' : 'choosing',
+  background       : 'choosing',
 };
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
@@ -167,6 +174,14 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
     // "Reducir peso" asks for a level only with PDFs.
     if (actionId === 'compress' && selection.type === 'pdf') return setPhase('reduce');
 
+    // "Quitar fondo" asks for permission to download what it needs the first time.
+    if (actionId === 'remove-background') {
+      void getBackgroundModel()
+        .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing')))
+        .catch(() => setPhase((current) => nextLearnPhase(current, 'missing')));
+      return;
+    }
+
     const step = ACTION_STEPS[actionId];
     if (step) return setPhase(step);
 
@@ -176,6 +191,15 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
   const chooseFormat = useCallback((format: ImageFormat) => {
     if (phase === 'formats') execute({ actionId: 'convert', options: { format } });
   }, [phase, execute]);
+
+  const chooseBackground = useCallback((background: BackgroundKind) => {
+    if (phase === 'background') execute({ actionId: 'remove-background', options: { background } });
+  }, [phase, execute]);
+
+  // The learning step: downloading, back to the question (cancelled or failed), or ready.
+  const modelStarted = useCallback(() => setPhase((current) => nextLearnPhase(current, 'started')), []);
+  const modelStopped = useCallback(() => setPhase((current) => nextLearnPhase(current, 'stopped')), []);
+  const modelReady   = useCallback(() => setPhase((current) => nextLearnPhase(current, 'ready')), []);
 
   const merge = useCallback((paths: string[]) => {
     if (phase === 'order') execute({ actionId: 'merge', paths });
@@ -241,6 +265,10 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
     splitPages,
     toImages,
     reducePdf,
+    chooseBackground,
+    modelStarted,
+    modelStopped,
+    modelReady,
     back,
     discard,
   };

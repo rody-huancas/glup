@@ -13,6 +13,8 @@ use crate::services::island_window;
 pub const AUTOSTART_ARG: &str           = "--autostart";
 pub const AUTOSTART_CHANGED_EVENT: &str = "autostart-changed";
 pub const AUTOSTART_ERROR: &str         = "No pude cambiar el inicio automático";
+// In development the open on launch is off (every Rust rebuild restarts the process); this turns it on.
+pub const LAUNCH_OPEN_VAR: &str         = "GLUP_LAUNCH_OPEN";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,6 +39,27 @@ impl LaunchOpen {
     pub fn take(&self) -> bool {
         self.0.swap(false, Ordering::SeqCst)
     }
+}
+
+pub struct LaunchOpenParams {
+    pub autostart: bool,
+    // A development build (debug_assertions).
+    pub debug: bool,
+    // GLUP_LAUNCH_OPEN=1, to try the open on launch in development on purpose.
+    pub forced: bool,
+}
+
+// Opened by hand expands the island, except by Windows at startup and, in development, unless forced.
+pub fn opens_on_launch(params: LaunchOpenParams) -> bool {
+    !params.autostart && (!params.debug || params.forced)
+}
+
+pub fn launch_open_pending() -> bool {
+    opens_on_launch(LaunchOpenParams {
+        autostart : launch_info().autostart,
+        debug     : cfg!(debug_assertions),
+        forced    : std::env::var(LAUNCH_OPEN_VAR).is_ok_and(|value| value == "1"),
+    })
 }
 
 pub fn launched_by_autostart<I: IntoIterator<Item = String>>(args: I) -> bool {
@@ -93,6 +116,17 @@ mod tests {
         assert!(launch.take());
         assert!(!launch.take());
         assert!(!LaunchOpen::new(false).take());
+    }
+
+    #[test]
+    fn opens_on_launch_only_by_hand_and_in_development_only_when_forced() {
+        let open = |autostart, debug, forced| opens_on_launch(LaunchOpenParams { autostart, debug, forced });
+
+        assert!(open(false, false, false));
+        assert!(!open(true, false, false));
+        assert!(!open(false, true, false));
+        assert!(open(false, true, true));
+        assert!(!open(true, true, true));
     }
 
     #[test]

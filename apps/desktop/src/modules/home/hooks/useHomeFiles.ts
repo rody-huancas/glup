@@ -19,7 +19,9 @@ import { useSaveLocation } from '@/modules/settings/hooks/useSaveLocation';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 // Steps with a list, a grid or a choice: the person is in the middle of them.
-const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce'];
+// Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
+const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background'];
+// const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce'];
 
 interface UseHomeFilesParams {
   commandAvatar   : (state: MascotState) => void;
@@ -150,17 +152,21 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
 
   const flow = useMemo<ActionFlow>(
     () => ({
-      phase        : actions.phase,
+      phase            : actions.phase,
       saveLocation,
-      choose       : actions.choose,
-      chooseFormat : actions.chooseFormat,
-      merge        : actions.merge,
-      splitAll     : actions.splitAll,
-      pickPages    : actions.pickPages,
-      splitPages   : actions.splitPages,
-      toImages     : actions.toImages,
-      reducePdf    : actions.reducePdf,
-      back         : actions.back,
+      choose           : actions.choose,
+      chooseFormat     : actions.chooseFormat,
+      merge            : actions.merge,
+      splitAll         : actions.splitAll,
+      pickPages        : actions.pickPages,
+      splitPages       : actions.splitPages,
+      toImages         : actions.toImages,
+      reducePdf        : actions.reducePdf,
+      chooseBackground : actions.chooseBackground,
+      modelStarted     : actions.modelStarted,
+      modelStopped     : actions.modelStopped,
+      modelReady       : actions.modelReady,
+      back             : actions.back,
       close,
     }),
     [actions, saveLocation, close],

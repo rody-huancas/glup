@@ -33,6 +33,10 @@ chrono                       = { version = "0.4", default-features = false, feat
 walkdir                      = "2.5"
 blake3                       = "1.8"
 trash                        = "5.4"
+# Background removal: ONNX Runtime (prebuilt, linked at build time), the one-time model download and its check.
+ort                          = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "download-binaries", "copy-dylibs", "tls-native", "api-31", "directml"] }
+ureq                         = "3.5"
+sha2                         = "0.11"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_System_Com"] }
@@ -54,4 +58,20 @@ opt-level = 3
 opt-level = 3
 
 [profile.dev.package.libwebp-sys]
+opt-level = 3
+
+# "Quitar fondo" writes big PNGs and walks every pixel of the mask.
+[profile.dev.package.png]
+opt-level = 3
+
+[profile.dev.package.fdeflate]
+opt-level = 3
+
+[profile.dev.package.miniz_oxide]
+opt-level = 3
+
+[profile.dev.package.crc32fast]
+opt-level = 3
+
+[profile.dev.package.jpeg-encoder]
 opt-level = 3

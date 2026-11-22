@@ -14,6 +14,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::services::{
     archive::{self, ZipEntry, ZipParams, ZIP_ERROR},
+    background::{self, BackgroundKind, REMOVED_SUFFIX},
     destination::{self, Destination},
     history::{self, format_size, HistoryEntry, NewEntryParams, SignedDetailParams},
     image::{compress, convert, to_pdf::PdfBuilder, SourceFormat, TargetFormat, READ_ERROR},
@@ -51,6 +52,7 @@ pub const REDUCED_SUFFIX: &str = "reducido";
 pub const SIGNED_SUFFIX: &str  = "firmado";
 pub const IMAGES_SUFFIX: &str  = "imagenes";
 pub const PAGES_ERROR: &str    = "Esas páginas no existen en el PDF";
+pub const REMOVED_DETAIL: &str = "Fondo quitado";
 const PDF_EXTENSION: &str      = "pdf";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
@@ -77,6 +79,8 @@ pub struct ActionOptions {
     pub bundle: Option<bool>,
     pub split: Option<SplitOptions>,
     pub reduce: Option<ReduceOptions>,
+    // "Quitar fondo": transparent (PNG) or white (JPG).
+    pub background: Option<BackgroundKind>,
 }
 
 // "Reducir peso" for PDFs: the level and, optionally, a size the result must stay under.
@@ -142,6 +146,8 @@ pub struct ActionProgress {
     pub name: String,
     // Files processed at the same time.
     pub active: usize,
+    // Replaces "N de M" when the progress is not counted in files ("12 MB de 109 MB").
+    pub detail: Option<String>,
 }
 
 // Shared cancel flag: files in progress always finish, new ones are not started.
@@ -195,6 +201,7 @@ impl Run<'_> {
             total   : params.total,
             name    : params.name.to_string(),
             active  : params.active,
+            detail  : None,
         };
 
         if let Some(task) = &self.task {
@@ -320,6 +327,14 @@ fn compress_one(run: &Run, source: &Path) -> Result<FileResult, String> {
     run.save(SaveParams { source, kind, bytes: &compressed.bytes }).map(FileResult::Saved)
 }
 
+// "Quitar fondo" for one image: foto.jpg → foto-sin-fondo.png (or .jpg over white).
+fn remove_background_one(run: &Run, source: &Path, kind: BackgroundKind) -> Result<FileResult, String> {
+    let removed = background::remove(run.app, source, kind)?;
+    let kind    = OutputKind::Suffixed { suffix: REMOVED_SUFFIX, extension: removed.extension };
+
+    run.save(SaveParams { source, kind, bytes: &removed.bytes }).map(FileResult::Saved)
+}
+
 struct Collected {
     outcomes: Vec<FileOutcome>,
     entries: Vec<HistoryEntry>,
@@ -375,6 +390,16 @@ fn run_compress(run: &Run) -> Collected {
     let detail               = |source: &Path, result: &Saved| history::reduced_detail(file_size(source), result.size);
 
     let (outcomes, entries) = collect_results(CollectParams { run, results, action: "compress", kind: IMAGE_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+// One image at a time: the model already uses several cores (or the graphics card).
+fn run_remove_background(run: &Run, kind: BackgroundKind) -> Collected {
+    let mut results = Vec::new();
+    let cancelled   = run.each(|source| results.push(Some(remove_background_one(run, source, kind))));
+    let detail      = |_: &Path, _: &Saved| REMOVED_DETAIL.to_string();
+
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: "remove-background", kind: IMAGE_KIND, detail: &detail });
     Collected { outcomes, entries, batch: None, cancelled }
 }
 
@@ -530,7 +555,11 @@ fn bundle(params: BundleParams) -> Collected {
     let zip_path = output.to_string_lossy().into_owned();
     let outcomes = collected.outcomes.into_iter().map(|item| if item.output.is_some() { FileOutcome { output: Some(zip_path.clone()), ..item } } else { item }).collect();
     let noun     = if outputs.iter().all(|path| is_pdf(path)) { "PDFs" } else { "imágenes" };
-    let detail   = format!("{} {noun} en un ZIP · {}", outputs.len(), format_size(report.size));
+    let detail   = if action == "remove-background" {
+        format!("{REMOVED_DETAIL} · {} imágenes", outputs.len())
+    } else {
+        format!("{} {noun} en un ZIP · {}", outputs.len(), format_size(report.size))
+    };
     // let detail   = format!("{} imágenes en un ZIP · {}", outputs.len(), format_size(report.size));
     let entry    = history::new_entry(NewEntryParams { output: &output, kind: ZIP_KIND, action, detail });
 
@@ -542,12 +571,12 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
     let control = app.state::<ActionControl>();
     control.cancelled.store(false, Ordering::SeqCst);
 
-    let options     = request.options.unwrap_or(ActionOptions { format: None, destination: None, bundle: None, split: None, reduce: None });
+    let options     = request.options.unwrap_or(ActionOptions { format: None, destination: None, bundle: None, split: None, reduce: None, background: None });
     let destination = options.destination.unwrap_or_default();
     let paths       = request.paths.iter().map(PathBuf::from).collect::<Vec<_>>();
     let total       = paths.len();
     let action      = request.action_id.as_str();
-    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress");
+    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background");
     let scratch     = if bundled { Some(scratch_folder()?) } else { None };
 
     // Bundled results are made in the scratch folder first, then zipped into the real destination.
@@ -567,6 +596,7 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         ("compress", _) if all_pdfs => run_reduce_pdf(&run, options.reduce.unwrap_or_default()),
         ("compress", _)             => run_compress(&run),
         ("to-pdf", _)               => run_to_pdf(&run),
+        ("remove-background", _)    => run_remove_background(&run, options.background.unwrap_or_default()),
         ("zip", _)                  => run_zip(&run),
         ("merge", _)                => run_merge(&run),
         ("split-pages", _)          => {

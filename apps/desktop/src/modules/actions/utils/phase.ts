@@ -3,16 +3,19 @@ import type { ActionProgress } from '@/modules/actions/interfaces/actionReport';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 
 const PHASE_MESSAGES: Record<ActionsPhase, string | null> = {
-  choosing       : null,
-  formats        : null,
-  order          : null,
-  split          : null,
-  reduce         : null,
-  pages          : null,
-  'image-format' : null,
-  working        : ACTIONS_TEXTS.working,
-  learning       : ACTIONS_TEXTS.learning,
-  result         : null,
+  choosing         : null,
+  formats          : null,
+  order            : null,
+  split            : null,
+  reduce           : null,
+  pages            : null,
+  'image-format'   : null,
+  'learn-model'    : null,
+  'learning-model' : null,
+  background       : null,
+  working          : ACTIONS_TEXTS.working,
+  learning         : ACTIONS_TEXTS.learning,
+  result           : null,
 };
 
 // "Trabajando… 2 de 5" when there are several files.

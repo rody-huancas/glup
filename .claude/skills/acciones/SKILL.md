@@ -67,7 +67,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 
 | Tipo | Acciones |
 | --- | --- |
-| Imagen | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso, A PDF, Quitar fondo (pronto) |
+| Imagen | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso, A PDF, Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
 | PDF (1) | Reducir peso (Normal, Al máximo, peso objetivo), Firmar, Separar páginas, A imágenes |
 | PDF (2+) | Unir, Reducir peso, Juntar en ZIP |
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |

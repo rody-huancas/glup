@@ -30,6 +30,13 @@ const sizeChange = (saved: FileOutcome[]): string => {
 // "Listo · de 2,4 MB a 680 KB", "Listo · 5 imágenes · de 12 MB a 3,1 MB" or "Listo · foto.pdf".
 const doneMessage = (report: ActionReport, saved: FileOutcome[]): string => {
   if (report.output) return `${RESULT_TEXTS.done} · ${getFileName(report.output)}`;
+
+  // The size says nothing here: the name of the cut-out, or how many.
+  if (report.actionId === 'remove-background') {
+    const first = saved[0]?.output;
+    return saved.length === 1 && first ? `${RESULT_TEXTS.done} · ${getFileName(first)}` : `${RESULT_TEXTS.done} · ${RESULT_TEXTS.withoutBg(saved.length)}`;
+  }
+
   if (saved.length === 1) return `${RESULT_TEXTS.done} · ${sizeChange(saved)}`;
 
   return `${RESULT_TEXTS.done} · ${RESULT_TEXTS.images(saved.length)} · ${sizeChange(saved)}`;

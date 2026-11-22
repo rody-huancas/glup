@@ -23,6 +23,7 @@ export const ACTIONS_TEXTS = {
 
 export const RESULT_TEXTS = {
   done           : 'Listo',
+  withoutBg      : (count: number) => `${count} ${count === 1 ? 'imagen' : 'imágenes'} sin fondo`,
   images         : (count: number) => `${count} ${count === 1 ? 'imagen' : 'imágenes'}`,
   sizeChange     : (before: string, after: string) => `de ${before} a ${after}`,
   partial        : (done: number, total: number, failed: number) => `${done} de ${total} listas · ${failed} no se pudo`,

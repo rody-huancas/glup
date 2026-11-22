@@ -10,6 +10,8 @@ import { getSelectionIcon } from '@/modules/actions/utils/fileIcon';
 import { canBundle } from '@/modules/actions/utils/formats';
 import { getPhaseMessage } from '@/modules/actions/utils/phase';
 import { getActionsTitle, getSelectionSummary } from '@/modules/actions/utils/summary';
+import { BackgroundStep } from '@/modules/background/components/BackgroundStep';
+import { LearnModelStep } from '@/modules/background/components/LearnModelStep';
 import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
 import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
 import { PageSelectionStep } from '@/modules/pdf/components/PageSelectionStep';
@@ -25,7 +27,8 @@ interface ActionsPanelProps {
 }
 
 // Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
-const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result'];
+const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model'];
+// const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result'];
 
 const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
   if (flow.phase === 'formats') {
@@ -63,6 +66,22 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
 
   if (flow.phase === 'image-format') {
     return <PageImageStep onChoose={flow.toImages} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'learn-model' || flow.phase === 'learning-model') {
+    return (
+      <LearnModelStep
+        downloading={flow.phase === 'learning-model'}
+        onStarted={flow.modelStarted}
+        onStopped={flow.modelStopped}
+        onReady={flow.modelReady}
+        onBack={flow.back}
+      />
+    );
+  }
+
+  if (flow.phase === 'background') {
+    return <BackgroundStep onChoose={flow.chooseBackground} onBack={flow.back} />;
   }
 
   // Results now show in the task card.

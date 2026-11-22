@@ -71,8 +71,22 @@ lado. Si dos reglas parecen chocar, se pregunta.
     que la persona los vea, los marque y confirme, y solo si siguen iguales que al revisarlos. Todo lo
     demás que encuentre Limpieza (instaladores, comprimidos, repetidos, archivos grandes) va a la
     papelera.
-11. **Todo es local.** Ninguna función envía archivos ni datos de la persona a internet. Las funciones
-    con IA (futuras) son opcionales, usan la clave de la propia persona y lo dicen claramente.
+11. **Todo es local.** Ninguna función envía archivos ni datos de la persona a internet: las
+    imágenes, los PDFs y lo que se haga con ellos nunca salen de la computadora.
+    **Descargar herramientas sí se puede**, en una sola dirección (de internet a la PC) y solo lo que
+    Glup necesita para trabajar (por ejemplo el modelo de «Quitar fondo»):
+    - Siempre **con permiso**: la primera vez que hace falta, Glup pregunta y dice **cuánto pesa** y
+      que es **una sola vez**; «Ahora no» siempre es una opción. Nada se descarga en segundo plano
+      sin que la persona lo pida.
+    - **Fuera del instalador**, en la carpeta de datos de la app (`models/`).
+    - **Desde una URL fija a una versión exacta** (nunca «la última») y **verificada con su
+      SHA-256** al terminar; si no coincide se borra y se avisa. La URL y el hash viven en una
+      constante, para poder moverlos a una copia propia en los Releases del repo.
+    - La descarga es una tarea con progreso y Cancelar, y se reanuda si se corta.
+    - En Ajustes › «Lo que aprendí» se ve cuánto ocupa y se puede borrar.
+    - Su licencia también cumple la regla 12 y va en `THIRD_PARTY_NOTICES.md`.
+    Las funciones con IA en línea (futuras) son opcionales, usan la clave de la propia persona y lo
+    dicen claramente.
 12. **Licencias.** Glup es MIT. Solo se agregan dependencias con licencias permisivas: MIT,
     Apache-2.0, BSD, ISC, Zlib, Unicode; fuentes con OFL. **Prohibidas** GPL, AGPL y LGPL enlazada
     estáticamente (por ejemplo Ghostscript o MuPDF). Una dependencia nueva se justifica en el PR:
