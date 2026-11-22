@@ -6,13 +6,14 @@ import { getFileName } from '@/modules/actions/utils/paths';
 import { getActionsFor } from '@/modules/actions/utils/selection';
 import { getFileKind } from '@/modules/mascot/utils/fileKind';
 
-// All paths share a kind by extension; otherwise several files are 'mixed' and a single unknown one is null.
+// By extension: one kind for all, PDFs with images, otherwise several files are 'mixed' and a single unknown one is null.
 const guessType = (paths: string[]): SelectionType | null => {
   const kinds = paths.map(getFileKind);
   const first = kinds[0] ?? null;
 
   if (first && kinds.every((kind) => kind === first)) return first;
-  return paths.length >= 2 ? 'mixed' : null;
+  if (paths.length < 2) return null;
+  return kinds.every((kind) => kind !== null) ? 'pdf-mixed' : 'mixed';
 };
 
 // Count, name and the number of action buttons are known right away, so the skeleton matches the panel.
