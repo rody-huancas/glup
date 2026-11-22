@@ -16,7 +16,7 @@ import type { IslandElements } from '@/modules/island/interfaces/islandElements'
 import type { HoverTweenParams, IslandPoseParams, IslandTimelineParams } from '@/modules/island/interfaces/islandTimeline';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { addFlightFlourish } from '@/modules/island/utils/mascotFlight';
-import { addHop } from '@/modules/island/utils/mascotMoves';
+// import { addHop } from '@/modules/island/utils/mascotMoves';
 import { getOvershootEnd } from '@/modules/island/utils/overshoot';
 import { getThemeColor } from '@/modules/island/utils/themeColor';
 import { REVEAL_ATTRIBUTE } from '@/shared/constants/reveal';
@@ -126,7 +126,8 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
     .call(forwardOnly(timeline, cues.celebrate), undefined, hopAt);
 
   addFlightFlourish({ timeline, lift, squash, at: grow, duration: flight.duration });
-  addHop({ timeline, lift, at: hopAt });
+  // The landing hop gave way to a wave with arm-wave (MascotGesture 'wave', fired by cues.celebrate).
+  // addHop({ timeline, lift, at: hopAt });
 
   REVEAL_BLOCKS.forEach((group, block) => {
     const items = getGroupItems(content, group);
@@ -144,26 +145,30 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
 };
 
 // Glup closes its eyes happily for an instant (farewell) before flying back to the pill.
-const buildCloseTimeline = ({ targets, shape, cues, onRender }: BuildParams): gsap.core.Timeline => {
+// Closed on purpose, it also waves first, so the flight and the shrink wait for it.
+const buildCloseTimeline = ({ targets, shape, cues, farewell, onRender }: BuildParams): gsap.core.Timeline => {
   const { fill, outline, content, lift, flyer, squash, pillAnchor } = targets;
   const { content: fadeOut, flight, shrink, settle } = CLOSE_MOTION;
 
   const collapsed = ISLAND_SHAPES.collapsed;
-  const arrived   = shrink.startAt + shrink.duration;
-  const takeOff   = MASCOT_MOTION.farewell.lead;
+  const shrinkAt  = farewell ? shrink.startAt : shrink.leaveStartAt;
+  const arrived   = shrinkAt + shrink.duration;
+  const takeOff   = farewell ? MASCOT_MOTION.farewell.lead : MASCOT_MOTION.farewell.leaveLead;
   const timeline  = gsap.timeline({ paused: true, onUpdate: onRender });
+  // const arrived   = shrink.startAt + shrink.duration;
+  // const takeOff   = MASCOT_MOTION.farewell.lead;
 
   return timeline
-    .call(forwardOnly(timeline, cues.farewell), undefined, 0)
+    .call(forwardOnly(timeline, () => cues.farewell(farewell)), undefined, 0)
     .to(lift, { y: 0, duration: fadeOut.duration }, 0)
     .to(squash, { rotation: 0, duration: fadeOut.duration }, 0)
     .to(content, { opacity: 0, y: fadeOut.y, duration: fadeOut.duration, ease: fadeOut.ease }, 0)
     .to(squash, { scaleX: 1, scaleY: 1, duration: fadeOut.duration }, 0)
     .to(flyer, { ...getFitVars(flyer, pillAnchor), duration: flight.duration, ease: flight.ease }, takeOff)
     // .to(flyer, { ...getFitVars(flyer, pillAnchor), duration: flight.duration, ease: flight.ease }, 0)
-    .to(shape, { ...collapsed, duration: shrink.duration, ease: shrink.ease }, shrink.startAt)
-    .to(fill, { ...getFillVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrink.startAt)
-    .to(outline, { ...getOutlineVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrink.startAt)
+    .to(shape, { ...collapsed, duration: shrink.duration, ease: shrink.ease }, shrinkAt)
+    .to(fill, { ...getFillVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
+    .to(outline, { ...getOutlineVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(shape, { ...SETTLE_SHAPE, duration: settle.impact, ease: 'power1.out' }, arrived)
     .to(
       shape,
@@ -174,7 +179,7 @@ const buildCloseTimeline = ({ targets, shape, cues, onRender }: BuildParams): gs
 
 // Reduced motion: a plain fade, the shape jumps straight to its final form.
 // Faces still change; there is no flight, arc or hop.
-const buildReducedTimeline = ({ targets, shape, cues, onRender }: BuildParams, target: VisibleIslandState): gsap.core.Timeline => {
+const buildReducedTimeline = ({ targets, shape, cues, farewell, onRender }: BuildParams, target: VisibleIslandState): gsap.core.Timeline => {
   const { panel, fill, outline, content, flyer, pillAnchor, avatarAnchor } = targets;
   const { duration, ease } = REDUCED_MOTION.fade;
   const timeline           = gsap.timeline({ paused: true, onUpdate: onRender });
@@ -196,7 +201,7 @@ const buildReducedTimeline = ({ targets, shape, cues, onRender }: BuildParams, t
   }
 
   return timeline
-    .call(forwardOnly(timeline, cues.farewell))
+    .call(forwardOnly(timeline, () => cues.farewell(farewell)))
     .to(panel, { opacity: 0, duration, ease })
     .set(shape, { ...ISLAND_SHAPES.collapsed })
     .set(fill, getFillVars('collapsed'))

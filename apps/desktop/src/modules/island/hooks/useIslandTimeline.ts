@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -33,6 +33,8 @@ const opposite = (state: VisibleIslandState): VisibleIslandState => (state === '
 export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTimelineParams) => {
   const motion  = useRef<IslandMotion | null>(null);
   const settled = useRef<VisibleIslandState>('collapsed');
+  // Glup is out of the pill (opening, open or closing): only then its arms and feet are seen and animated.
+  const [limbsVisible, setLimbsVisible] = useState(false);
   const waiters = useRef<Settle[]>([]);
   const reduced = useRef(false);
   const area    = useRef<Promise<void>>(Promise.resolve());
@@ -89,6 +91,8 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     if (state === 'expanded') mascot.startIdle();
     else mascot.calm();
 
+    setLimbsVisible(state === 'expanded');
+
     await setArea(state);
     if (!motion.current) resolveWaiters(true);
   }, [mascot, setArea, resolveWaiters]);
@@ -103,6 +107,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
           reduced        : reduced.current,
           shape          : shape.current,
           cues           : mascot,
+          farewell       : current.farewell,
           onRender       : render,
           onShapeSettled : () => void setArea('expanded'),
         });
@@ -121,8 +126,8 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
   );
 
   // The expansion overshoots the panel, so it always runs inside the whole window.
-  const start = useCallback(async (target: VisibleIslandState) => {
-    const current: IslandMotion = { builtFor: target, target, timeline: null };
+  const start = useCallback(async (target: VisibleIslandState, farewell: boolean) => {
+    const current: IslandMotion = { builtFor: target, target, farewell, timeline: null };
     motion.current              = current;
 
     stopHover();
@@ -137,6 +142,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     }
 
     setState(target);
+    setLimbsVisible(true);
     createTimeline(current);
   }, [stopHover, mascot, setArea, finish, setState, createTimeline]);
 
@@ -154,7 +160,8 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
   }, [mascot, setState, setArea]);
 
   const transitionTo = useCallback(
-    (target: VisibleIslandState) =>
+    // farewell: the user closed on purpose (Recoger, Esc), so Glup waves goodbye.
+    (target: VisibleIslandState, farewell = false) =>
       new Promise<boolean>((resolve) => {
         const current = motion.current;
 
@@ -173,7 +180,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
         waiters.current.push(resolve);
 
         if (current) redirect(current, target);
-        else void start(target);
+        else void start(target, farewell);
       }),
     [resolveWaiters, redirect, start],
   );
@@ -206,6 +213,7 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     mascot.calm();
     resolveWaiters(false);
     snapToPill();
+    setLimbsVisible(false);
     setState('hidden');
     await setArea('collapsed');
   }, [stopHover, mascot, resolveWaiters, snapToPill, setState, setArea]);
@@ -214,5 +222,5 @@ export const useIslandTimeline = ({ elements, setState, mascotRef }: UseIslandTi
     setState((previous) => (previous === 'hidden' ? 'collapsed' : previous));
   }, [setState]);
 
-  return { transitionTo, hide, reveal, hover };
+  return { transitionTo, hide, reveal, hover, limbsVisible };
 };

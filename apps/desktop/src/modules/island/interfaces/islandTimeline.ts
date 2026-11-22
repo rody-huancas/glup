@@ -9,6 +9,8 @@ export interface IslandTimelineParams {
   reduced        : boolean;
   shape          : IslandShape;
   cues           : MascotCues;
+  // Closed on purpose (Recoger, Esc): Glup waves goodbye before flying back.
+  farewell       : boolean;
   onRender       : () => void;
   onShapeSettled : () => void;
 }
@@ -28,5 +30,6 @@ export interface HoverTweenParams {
 export interface IslandMotion {
   builtFor : VisibleIslandState;
   target   : VisibleIslandState;
+  farewell : boolean;
   timeline : gsap.core.Timeline | null;
 }

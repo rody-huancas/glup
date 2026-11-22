@@ -20,7 +20,7 @@ export const useIsland = () => {
   const resetPanel          = panel.reset;
 
   const { takeFocus, releaseFocus }    = useIslandFocus();
-  const { transitionTo, hide, reveal, hover } = useIslandTimeline({ elements, setState, mascotRef: panel.avatarRef });
+  const { transitionTo, hide, reveal, hover, limbsVisible } = useIslandTimeline({ elements, setState, mascotRef: panel.avatarRef });
   // const { transitionTo, hide, reveal } = useIslandTransitions({ elements, setState });
 
   const expand = useCallback((pin: boolean) => {
@@ -30,17 +30,20 @@ export const useIsland = () => {
 
   // Collapsing always unpins, gives the focus back and leaves the panel on a clean home page.
   // If the cursor is still over the island, hover stays locked until it leaves, so it does not reopen.
-  const collapse = useCallback(async () => {
+  // farewell: closed on purpose (Recoger, Esc) rather than because the cursor left.
+  const collapse = useCallback(async (farewell: boolean) => {
     setPinned(false);
     setLocked(insideRef.current);
     releaseFocus();
-    if (await transitionTo('collapsed')) resetPanel();
+    if (await transitionTo('collapsed', farewell)) resetPanel();
   }, [releaseFocus, transitionTo, resetPanel]);
 
-  const expandOnHover = useCallback(() => expand(false), [expand]);
-  const openPinned    = useCallback(() => expand(true), [expand]);
-  const collapseNow   = useCallback(() => void collapse(), [collapse]);
-  const togglePin     = useCallback(() => setPinned((previous) => !previous), []);
+  const expandOnHover   = useCallback(() => expand(false), [expand]);
+  const openPinned      = useCallback(() => expand(true), [expand]);
+  const collapseNow     = useCallback(() => void collapse(true), [collapse]);
+  const collapseOnLeave = useCallback(() => void collapse(false), [collapse]);
+  // const collapseNow   = useCallback(() => void collapse(), [collapse]);
+  const togglePin       = useCallback(() => setPinned((previous) => !previous), []);
 
   const onFullscreenEnter = useCallback(() => {
     setPinned(false);
@@ -72,7 +75,7 @@ export const useIsland = () => {
     dragging,
     blocked  : pinned || dragging || panel.busy,
     expand   : expandOnHover,
-    collapse : collapseNow,
+    collapse : collapseOnLeave,
   });
 
   useKeyDown({ key: 'Escape', enabled: state === 'expanded', handler: collapseNow });
@@ -96,5 +99,5 @@ export const useIsland = () => {
     [pinned, togglePin, collapseNow],
   );
 
-  return { state, elements, panel, controls, onMascotClick, onPanelPointerDown };
+  return { state, elements, panel, controls, limbsVisible, onMascotClick, onPanelPointerDown };
 };
