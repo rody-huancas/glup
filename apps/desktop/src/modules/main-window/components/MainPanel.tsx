@@ -3,6 +3,7 @@ import { PageContent } from '@/modules/main-window/components/PageContent';
 import { Sidebar } from '@/modules/main-window/components/Sidebar';
 import type { MainPanelState, PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { SignPage } from '@/modules/sign/pages/SignPage';
+import { WelcomeScreen } from '@/modules/welcome/components/WelcomeScreen';
 
 interface MainPanelProps {
   panel           : MainPanelState;
@@ -11,7 +12,7 @@ interface MainPanelProps {
 }
 
 export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) => (
-  <div className="flex h-full w-full">
+  <div className="relative flex h-full w-full">
     <Sidebar
       page={panel.page}
       avatarAnchorRef={avatarAnchorRef}
@@ -32,5 +33,6 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
       <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />
     )}
     {/* <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} /> */}
+    {panel.welcome.visible && <WelcomeScreen onAnswer={panel.welcome.answer} />}
   </div>
 );

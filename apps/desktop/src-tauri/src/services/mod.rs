@@ -14,6 +14,7 @@ pub mod parallel;
 pub mod pdf;
 pub mod settings;
 pub mod signatures;
+pub mod startup;
 pub mod tasks;
 // pub mod main_window;
 pub mod tray;

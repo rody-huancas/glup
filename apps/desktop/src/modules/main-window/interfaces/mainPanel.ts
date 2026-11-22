@@ -4,6 +4,7 @@ import type { PageId } from '@/modules/main-window/types/pageId';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import type { SignTarget } from '@/modules/sign/interfaces/signTarget';
+import type { WelcomeState } from '@/modules/welcome/interfaces/welcomeState';
 
 export interface MainPanelState {
   page                : PageId;
@@ -19,6 +20,8 @@ export interface MainPanelState {
   // The PDF being signed: the panel shows the signing screen, full width.
   signing             : SignTarget | null;
   stopSigning         : () => void;
+  // First run: the welcome covers the panel until it is answered.
+  welcome             : WelcomeState;
 }
 
 export interface PanelControlsProps {

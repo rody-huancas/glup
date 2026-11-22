@@ -8,7 +8,9 @@ description: Reglas de la isla de Glup (la pastilla del borde superior que se de
 ## La isla
 
 Glup vive en una ventana transparente, siempre encima y sin ícono en la barra de tareas, centrada en
-el borde superior del monitor principal. La ventana tiene un tamaño fijo (el del pico de la
+el borde superior del monitor principal. **Nunca hay dos Glup abiertos**: con
+`tauri-plugin-single-instance`, abrirlo otra vez (acceso directo, menú Inicio) no lanza otro; el que
+ya está despliega la isla fijada, como «Abrir Glup» de la bandeja. La ventana tiene un tamaño fijo (el del pico de la
 animación) y **una región de Windows recorta lo visible y clicable** al tamaño del estado actual, para
 que los clics alrededor lleguen a las apps de abajo.
 
@@ -50,6 +52,25 @@ solo traduce cada fase en animación, región y foco.
   sus acciones a la vista (sin ejecutar) queda **pendiente**: la pastilla recogida muestra un puntito
   lila y, al abrir, Inicio la muestra tal como estaba. Se descarta solo al cerrarla (x o «Volver»), al
   soltar otros archivos o a los 10 minutos con la isla recogida.
+
+### Arranque y bienvenida
+
+- **Inicio con Windows** (`tauri-plugin-autostart`, opción en Ajustes › General y casilla en la
+  bandeja, siempre con el estado real del sistema): Windows lo abre con `--autostart` y Glup arranca
+  como la pastilla recogida, sin desplegarse ni hacer ruido.
+- **Abierto a mano** (menú Inicio, acceso directo, sin `--autostart`; `useLaunchOpen`): la isla se
+  despliega fijada al arrancar, como «Abrir Glup», para que se note que se abrió. Lo decide Rust una
+  sola vez por proceso (`take_launch_open` devuelve true solo la primera vez): el webview puede
+  recargarse (Vite en dev, una recuperación) y el frontend nunca decide por su cuenta que es el arranque.
+- **Instancia única:** solo despliega cuando de verdad se intenta abrir otro Glup, y no si ese segundo
+  arranque trae `--autostart`.
+- **Bienvenida, solo la primera vez** (sin `settings.json` previo y sin `--autostart`; lo decide
+  `shouldShowWelcome` en `modules/welcome/utils/welcome.ts`): la isla se despliega sola y una pantalla
+  cubre el panel con Glup grande saludando, «¡Hola! Soy Glup.» y la pregunta «¿Quieres que esté
+  siempre a mano?». «Sí, abrir al encender» o «Ahora no» guardan la elección (`welcomeSeen` en
+  `settings.json`), activan o no el inicio automático y llevan a Inicio. Mientras está a la vista
+  cuenta como paso (`step`): no se recoge sola. Un `settings.json` de antes cuenta como bienvenida
+  vista.
 
 ### Pantalla al desplegar
 

@@ -19,10 +19,13 @@ export const DEFAULT_SETTINGS: SettingsView = {
   customFolder  : null,
   bundleZip     : false,
   reduceLevel   : 'normal',
+  // Seen until the real settings say otherwise, so the welcome never flashes.
+  welcomeSeen   : true,
   folderMissing : false,
 };
 
 export const SETTINGS_TEXTS = {
   title    : 'Ajustes',
-  subtitle : 'Por ahora, solo dónde guardo lo que hago.',
+  subtitle : 'Cómo arranco y dónde guardo lo que hago.',
+  // subtitle : 'Por ahora, solo dónde guardo lo que hago.',
 };
