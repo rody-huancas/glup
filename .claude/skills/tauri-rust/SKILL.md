@@ -63,7 +63,11 @@ src-tauri/
     expuestos con el comando `set_island_area` (`commands/island.rs`); los vigilantes (`island_watchdog.rs`) corrigen desajustes. Las APIs de
     Windows van detrás de `#[cfg(windows)]`, con una versión vacía para los demás sistemas.
 13. **Crates.** Solo licencias permisivas (skill `convenciones`, regla 12). Preferir crates en Rust
-    puro; un crate que necesita una librería de C instalada aparte en Windows se discute antes. Los
+    puro; un crate que necesita una librería de C instalada aparte en Windows se discute antes.
+    Excepción acordada: `ort` (ONNX Runtime, para «Quitar fondo»), que baja ONNX Runtime ya compilado
+    al compilar y lo enlaza estático; no hay que instalar nada aparte ni empaquetar DLLs (DirectML lo
+    trae Windows). La sesión del modelo vive en `services/background/session.rs`: se carga una vez,
+    prueba la tarjeta gráfica con caída al procesador y se libera tras 5 minutos sin uso. Los
     crates pesados de imagen llevan `opt-level = 3` en `[profile.dev.package.*]`.
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
