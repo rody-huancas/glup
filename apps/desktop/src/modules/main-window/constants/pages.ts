@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { CleanupPage } from '@/modules/cleanup/pages/CleanupPage';
 import { HistoryPage } from '@/modules/history/pages/HistoryPage';
 import { HomePage } from '@/modules/home/pages/HomePage';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
@@ -9,6 +10,7 @@ import { ToolsPage } from '@/modules/tools/pages/ToolsPage';
 export const PAGES: Record<PageId, ComponentType<PageProps>> = {
   home     : HomePage,
   tools    : ToolsPage,
+  cleanup  : CleanupPage,
   history  : HistoryPage,
   settings : SettingsPage,
 };

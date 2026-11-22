@@ -4,13 +4,16 @@ import type { IconProps } from '@/shared/interfaces/icon';
 import { cx } from '@/shared/utils/classNames';
 
 interface NavItemProps {
-  label   : string;
-  icon    : ComponentType<IconProps>;
-  active  : boolean;
-  onClick : () => void;
+  label       : string;
+  icon        : ComponentType<IconProps>;
+  active      : boolean;
+  onClick     : () => void;
+  // Something new waits there (a mint dot), with its text for screen readers.
+  badge?      : boolean;
+  badgeLabel? : string;
 }
 
-export const NavItem = ({ label, icon: Icon, active, onClick }: NavItemProps) => (
+export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, badgeLabel }: NavItemProps) => (
   <button
     type="button"
     onClick={onClick}
@@ -23,5 +26,6 @@ export const NavItem = ({ label, icon: Icon, active, onClick }: NavItemProps) =>
   >
     <Icon />
     {label}
+    {badge && <span aria-label={badgeLabel} className="ml-auto size-2 shrink-0 rounded-full bg-mint" />}
   </button>
 );
