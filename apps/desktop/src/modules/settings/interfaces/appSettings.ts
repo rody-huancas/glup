@@ -6,6 +6,8 @@ export interface AppSettings {
   customFolder : string | null;
   bundleZip    : boolean;
   reduceLevel  : ReduceLevel;
+  // The first-run welcome was answered.
+  welcomeSeen  : boolean;
 }
 
 export interface SettingsView extends AppSettings {

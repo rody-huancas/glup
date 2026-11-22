@@ -32,6 +32,14 @@ pub struct Settings {
     pub bundle_zip: bool,
     // Last "Reducir peso" level chosen for PDFs.
     pub reduce_level: ReduceLevel,
+    // The welcome was answered. A settings.json from before it existed counts as seen: only a first
+    // run (no file) shows it.
+    #[serde(default = "already_seen")]
+    pub welcome_seen: bool,
+}
+
+fn already_seen() -> bool {
+    true
 }
 
 #[derive(Serialize)]
@@ -112,7 +120,18 @@ mod tests {
     use super::*;
 
     fn settings(mode: SaveMode, folder: Option<&str>) -> Settings {
-        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal }
+        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true }
+    }
+
+    #[test]
+    fn shows_the_welcome_only_without_a_settings_file() {
+        assert!(!Settings::default().welcome_seen);
+
+        let old: Settings = serde_json::from_str(r#"{ "saveMode": "glup" }"#).unwrap();
+        assert!(old.welcome_seen);
+
+        let answered: Settings = serde_json::from_str(r#"{ "welcomeSeen": false }"#).unwrap();
+        assert!(!answered.welcome_seen);
     }
 
     #[test]
