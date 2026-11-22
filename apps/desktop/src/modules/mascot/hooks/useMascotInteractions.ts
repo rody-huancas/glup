@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
-import { useFileDrop } from '@/modules/mascot/hooks/useFileDrop';
 import { usePointerDrag } from '@/modules/mascot/hooks/usePointerDrag';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { getFileKind } from '@/modules/mascot/utils/fileKind';
+import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 export const useMascotInteractions = (setState: Dispatch<SetStateAction<MascotState>>) => {
   const onClick = useCallback(() => setState({ type: 'happy' }), [setState]);

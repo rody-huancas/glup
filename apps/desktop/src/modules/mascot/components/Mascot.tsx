@@ -4,14 +4,19 @@ import { MascotMouths } from '@/modules/mascot/components/MascotMouths';
 import { TRANSFORM_ORIGIN } from '@/modules/mascot/constants/animation';
 import { BODY_ASSET } from '@/modules/mascot/constants/assets';
 import { useMascot } from '@/modules/mascot/hooks/useMascot';
+import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { getBodyAspectRatio } from '@/modules/mascot/utils/pieceStyle';
 
-export const Mascot = () => {
-  const { face, elements, pointerHandlers } = useMascot();
+interface MascotProps {
+  onStateChange?: (state: MascotState) => void;
+}
+
+export const Mascot = ({ onStateChange }: MascotProps) => {
+  const { face, elements, pointerHandlers } = useMascot(onStateChange);
 
   return (
     <div
-      className="relative w-[88%] cursor-pointer touch-none"
+      className="relative w-full cursor-pointer touch-none"
       style={{ aspectRatio: getBodyAspectRatio() }}
       {...pointerHandlers}
     >

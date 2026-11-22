@@ -1,11 +1,15 @@
 use std::{thread, time::Duration};
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
-pub const CURSOR_MOVED_EVENT: &str = "cursor-moved";
+use crate::MAIN_WINDOW_LABEL;
+
+pub const CURSOR_MOVED_EVENT: &str  = "cursor-moved";
+pub const ISLAND_ZONE_EVENT: &str   = "island-zone-changed";
 
 const POLL_INTERVAL: Duration = Duration::from_millis(33);
+const ZONE_MARGIN: f64        = 8.0;
 
 #[derive(Clone, Copy, PartialEq, Serialize)]
 pub struct CursorPosition {
@@ -25,6 +29,7 @@ pub fn read(app: &AppHandle) -> Option<CursorPosition> {
 pub fn spawn(app: AppHandle) {
     thread::spawn(move || {
         let mut last: Option<CursorPosition> = None;
+        let mut was_inside                   = false;
 
         loop {
             let current = read(&app);
@@ -34,7 +39,36 @@ pub fn spawn(app: AppHandle) {
                 let _ = app.emit(CURSOR_MOVED_EVENT, current);
             }
 
+            let inside = match (current, app.get_webview_window(MAIN_WINDOW_LABEL)) {
+                (Some(cursor), Some(window)) => zone_contains(&window, cursor),
+                _                            => false,
+            };
+
+            if inside != was_inside {
+                was_inside = inside;
+                let _ = app.emit(ISLAND_ZONE_EVENT, inside);
+            }
+
             thread::sleep(POLL_INTERVAL);
         }
     });
+}
+
+// The zone is the window itself: it always matches the current island size.
+fn zone_contains(window: &WebviewWindow, cursor: CursorPosition) -> bool {
+    if !window.is_visible().unwrap_or(false) {
+        return false;
+    }
+
+    let (Ok(position), Ok(size), Ok(scale)) = (window.outer_position(), window.outer_size(), window.scale_factor()) else {
+        return false;
+    };
+
+    let margin = (ZONE_MARGIN * scale).round() as i32;
+    let left   = position.x - margin;
+    let top    = position.y - margin;
+    let right  = position.x + size.width as i32 + margin;
+    let bottom = position.y + size.height as i32 + margin;
+
+    cursor.x >= left && cursor.x <= right && cursor.y >= top && cursor.y <= bottom
 }

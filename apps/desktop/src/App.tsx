@@ -1,7 +1,7 @@
-import { Mascot } from '@/modules/mascot/components/Mascot';
+import { Island } from '@/modules/island/components/Island';
 
 export const App = () => (
-  <main className="flex h-full w-full items-end justify-center">
-    <Mascot />
+  <main className="h-full w-full">
+    <Island />
   </main>
 );
