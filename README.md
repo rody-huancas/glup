@@ -48,4 +48,5 @@ pnpm build
 
 ## Licencia
 
-[MIT](LICENSE)
+[MIT](LICENSE). Las piezas de terceros que usa (el modelo de «Quitar fondo», ONNX Runtime) y sus
+licencias están en [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
