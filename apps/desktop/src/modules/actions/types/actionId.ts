@@ -5,4 +5,6 @@ export type ActionId =
   | 'to-images'
   | 'merge'
   | 'convert'
-  | 'remove-background';
+  | 'to-pdf'
+  | 'remove-background'
+  | 'zip';
