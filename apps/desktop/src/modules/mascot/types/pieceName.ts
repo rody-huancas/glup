@@ -1,3 +1,5 @@
+import type { LimbName } from '@/modules/mascot/types/limbName';
+
 export type PieceName =
   | 'eye-left'
   | 'eye-right'
@@ -9,4 +11,5 @@ export type PieceName =
   | 'mouth-line'
   | 'mouth-wavy'
   | 'file-pdf'
-  | 'file-image';
+  | 'file-image'
+  | LimbName;
