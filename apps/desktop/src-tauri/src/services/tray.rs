@@ -40,7 +40,12 @@ pub fn create(app: &AppHandle) -> Result<()> {
 
 fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
     match event.id().as_ref() {
-        OPEN_ID      => island_window::request_open(app),
+        OPEN_ID      => {
+            #[cfg(debug_assertions)]
+            eprintln!("[glup:isla] abrir fijada: «Abrir Glup» de la bandeja");
+            island_window::request_open(app);
+        }
+        // OPEN_ID      => island_window::request_open(app),
         // OPEN_ID   => {
         //     let _ = main_window::open(app);
         // }
