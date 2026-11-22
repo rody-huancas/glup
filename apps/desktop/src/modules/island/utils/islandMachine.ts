@@ -14,6 +14,7 @@ export const INITIAL_MACHINE: IslandMachine = {
   trayHidden : false,
   notice     : null,
   resets     : 0,
+  holds      : [],
 };
 
 const OPEN_PHASES: IslandPhase[]   = ['expanding', 'expanded'];
@@ -73,6 +74,9 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
 
     case 'reset':
       return isHiddenBy(machine) ? hidden(machine) : revealed(machine);
+
+    case 'holds':
+      return { ...machine, holds: event.holds };
   }
 };
 
@@ -111,6 +115,10 @@ export const isSettledPhase = (phase: IslandPhase): boolean => phase === 'collap
 
 export const hoverEnabled = (machine: IslandMachine): boolean => machine.inside && !machine.locked;
 
+// Leaving the panel does not close it while pinned or while the person is in the middle of something.
+// Glup eating or working no longer counts: tasks go on in the background with the pill's progress.
+export const isHeldOpen = (machine: IslandMachine): boolean => machine.pinned || machine.holds.length > 0;
+
 // Every broken rule, empty when all hold (checked in tests and logged in dev).
 export const checkInvariants = (machine: IslandMachine): string[] => {
   const broken: string[] = [];
@@ -132,5 +140,6 @@ export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'settled') return `settled(${event.phase})`;
   if (event.type === 'fullscreen') return `fullscreen(${event.on})`;
   if (event.type === 'tray') return `tray(${event.hidden ? 'oculta' : 'visible'})`;
+  if (event.type === 'holds') return `holds(${event.holds.join(', ') || 'ninguno'})`;
   return event.type;
 };
