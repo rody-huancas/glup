@@ -1,43 +1,24 @@
 import { useEffect } from 'react';
-import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
-import { ISLAND_TIMING } from '@/modules/island/constants/island';
-import type { IslandFlow, IslandState } from '@/modules/island/types/islandState';
-import { getCollapseDelay } from '@/modules/island/utils/collapseDelay';
-import type { MascotStateType } from '@/modules/mascot/types/mascotState';
+import type { IslandState } from '@/modules/island/types/islandState';
+import { getToggleDelay } from '@/modules/island/utils/collapseDelay';
 
 interface UseIslandAutoToggleParams {
   state    : IslandState;
   inside   : boolean;
   dragging : boolean;
-  flow     : IslandFlow;
-  phase    : ActionsPhase;
-  mascot   : MascotStateType;
+  blocked  : boolean;
   expand   : () => void;
   collapse : () => void;
 }
 
-export const useIslandAutoToggle = ({
-  state,
-  inside,
-  dragging,
-  flow,
-  phase,
-  mascot,
-  expand,
-  collapse,
-}: UseIslandAutoToggleParams) => {
+export const useIslandAutoToggle = ({ state, inside, dragging, blocked, expand, collapse }: UseIslandAutoToggleParams) => {
   useEffect(() => {
-    const delay = (() => {
-      if (state === 'collapsed') return inside ? ISLAND_TIMING.dwell : null;
-      if (inside) return null;
-      return getCollapseDelay({ state, mascot, dragging, flow, phase });
-    })();
-
+    const delay = getToggleDelay({ state, inside, dragging, blocked });
     if (delay === null) return;
 
     const action = state === 'collapsed' ? expand : collapse;
     const timer  = window.setTimeout(action, delay);
 
     return () => window.clearTimeout(timer);
-  }, [state, inside, dragging, flow, phase, mascot, expand, collapse]);
+  }, [state, inside, dragging, blocked, expand, collapse]);
 };

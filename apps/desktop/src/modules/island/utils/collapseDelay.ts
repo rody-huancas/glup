@@ -1,19 +1,17 @@
-import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
-import { COLLAPSE_BLOCKING_STATES, ISLAND_TIMING } from '@/modules/island/constants/island';
-import type { IslandFlow, IslandState } from '@/modules/island/types/islandState';
-import type { MascotStateType } from '@/modules/mascot/types/mascotState';
+import { ISLAND_TIMING } from '@/modules/island/constants/island';
+import type { IslandState } from '@/modules/island/types/islandState';
 
-interface CollapseDelayParams {
+interface ToggleDelayParams {
   state    : IslandState;
-  mascot   : MascotStateType;
+  inside   : boolean;
   dragging : boolean;
-  flow     : IslandFlow;
-  phase    : ActionsPhase;
+  blocked  : boolean;
 }
 
-export const getCollapseDelay = ({ state, mascot, dragging, flow, phase }: CollapseDelayParams): number | null => {
-  if (dragging || flow !== 'idle' || phase === 'working') return null;
-  if (COLLAPSE_BLOCKING_STATES.includes(mascot)) return null;
-  if (state === 'actions') return ISLAND_TIMING.actionsLeaveDelay;
-  return state === 'expanded' ? ISLAND_TIMING.leaveDelay : null;
+// Returns how long to wait before toggling the island, or null when it must stay as is.
+export const getToggleDelay = ({ state, inside, dragging, blocked }: ToggleDelayParams): number | null => {
+  if (state === 'collapsed' && dragging) return ISLAND_TIMING.dragDwell;
+  if (state === 'collapsed') return inside ? ISLAND_TIMING.dwell : null;
+  if (state === 'expanded' && !inside && !blocked) return ISLAND_TIMING.leaveDelay;
+  return null;
 };
