@@ -1,38 +1,45 @@
-import { ActionsPanel } from '@/modules/actions/components/ActionsPanel';
-import { IslandActionsSlot } from '@/modules/island/components/IslandActionsSlot';
-import { IslandDropZone } from '@/modules/island/components/IslandDropZone';
-import { IslandMascotSlot } from '@/modules/island/components/IslandMascotSlot';
-import { ISLAND_TEXTS } from '@/modules/island/constants/island';
+import { IslandContent } from '@/modules/island/components/IslandContent';
+import { IslandMascotFlyer } from '@/modules/island/components/IslandMascotFlyer';
+import { IslandPillAnchor } from '@/modules/island/components/IslandPillAnchor';
+import { IslandSilhouette } from '@/modules/island/components/IslandSilhouette';
+import { ISLAND_SHAPES } from '@/modules/island/constants/islandShape';
 import { useIsland } from '@/modules/island/hooks/useIsland';
-import { getIslandLayout } from '@/modules/island/utils/islandLayout';
-import { getPanelStyle } from '@/modules/island/utils/islandStyles';
+import { getShapeStyle } from '@/modules/island/utils/islandShape';
+// import { getIslandLayout } from '@/modules/island/utils/islandLayout';
+// import { getPanelStyle } from '@/modules/island/utils/islandStyles';
+import { MainPanel } from '@/modules/main-window/components/MainPanel';
 import { Mascot } from '@/modules/mascot/components/Mascot';
+import { preventSelectionStart } from '@/shared/utils/selection';
 
-const INITIAL_LAYOUT = getIslandLayout({ target: 'collapsed', actionsHeight: 0 });
+// const INITIAL_LAYOUT = getIslandLayout('collapsed');
 
+// The panel is clipped to the SVG silhouette, so the content and Glup never spill past its outline.
 export const Island = () => {
-  const {
-    state,
-    elements,
-    mascotRef,
-    notice,
-    selection,
-    phase,
-    choose,
-    close,
-    onMascotStateChange,
-  } = useIsland();
+  const { state, elements, panel, controls, onMascotClick, onPanelPointerDown } = useIsland();
+  const expanded = state === 'expanded';
 
   return (
-    <div className="flex h-full w-full items-start justify-center">
-      <div ref={elements.panel} className="relative shrink-0 overflow-hidden" style={getPanelStyle(INITIAL_LAYOUT)}>
-        <IslandMascotSlot slotRef={elements.mascot}>
-          <Mascot onStateChange={onMascotStateChange} controllerRef={mascotRef} happyEyes={state === 'actions'} />
-        </IslandMascotSlot>
-        <IslandDropZone zoneRef={elements.dropZone} message={notice ?? ISLAND_TEXTS.dropHere} />
-        <IslandActionsSlot slotRef={elements.actions} interactive={state === 'actions'}>
-          {selection && <ActionsPanel selection={selection} phase={phase} onChoose={choose} onClose={close} />}
-        </IslandActionsSlot>
+    <div className="flex h-full w-full items-start justify-center" onMouseDown={preventSelectionStart}>
+      <div
+        ref={elements.panel}
+        className="relative shrink-0 overflow-hidden"
+        style={getShapeStyle(ISLAND_SHAPES.collapsed)}
+        onPointerDownCapture={onPanelPointerDown}
+      >
+        {/* style={getPanelStyle(INITIAL_LAYOUT)} */}
+        <IslandSilhouette fillRef={elements.fill} outlineRef={elements.outline} />
+        <IslandContent contentRef={elements.content} interactive={expanded}>
+          <MainPanel panel={panel} controls={controls} avatarAnchorRef={elements.avatarAnchor} />
+        </IslandContent>
+        <IslandPillAnchor anchorRef={elements.pillAnchor} />
+        <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash}>
+          <Mascot
+            controllerRef={panel.avatarRef}
+            onStateChange={panel.onAvatarStateChange}
+            onClick={onMascotClick}
+            reactToDrops={false}
+          />
+        </IslandMascotFlyer>
       </div>
     </div>
   );
