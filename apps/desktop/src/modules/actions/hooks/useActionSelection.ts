@@ -1,25 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LOADING_SLOW_DELAY } from '@/modules/actions/constants/loading';
-import { BUNDLE_ACTIONS } from '@/modules/actions/constants/implemented';
 import { ACTIONS_TIMING } from '@/modules/actions/constants/timing';
-import type { ActionProgress } from '@/modules/actions/interfaces/actionReport';
-import type { ActionResult } from '@/modules/actions/interfaces/actionResult';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
+import type { LoadResult } from '@/modules/actions/interfaces/loadResult';
 import type { PendingSelection } from '@/modules/actions/interfaces/pendingSelection';
 import type { RunActionOptions } from '@/modules/actions/interfaces/runAction';
-import { openFile, revealFile } from '@/modules/actions/services/files';
 import { getFilesInfo } from '@/modules/actions/services/filesInfo';
-import { cancelAction, runAction } from '@/modules/actions/services/runAction';
+import { runAction } from '@/modules/actions/services/runAction';
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ImageFormat } from '@/modules/actions/types/imageFormat';
-import { isImplemented } from '@/modules/actions/utils/formats';
+import { isImplemented, usesBundle } from '@/modules/actions/utils/formats';
 import { createPendingSelection } from '@/modules/actions/utils/pending';
-import { failedResult, summarizeReport } from '@/modules/actions/utils/result';
 import { createSelection } from '@/modules/actions/utils/selection';
+import { getSelectionSummary } from '@/modules/actions/utils/summary';
+import { PDF_TEXTS } from '@/modules/pdf/constants/pdf';
+import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
+import { exportPdfPages } from '@/modules/pdf/services/pageImages';
+import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
-import { ACTION_PROGRESS_EVENT } from '@/shared/constants/events';
-import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
+import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
+import { enqueueTask } from '@/modules/tasks/store/taskStore';
 
 interface UseActionSelectionParams {
   onFinished  : () => void;
@@ -27,28 +28,49 @@ interface UseActionSelectionParams {
   bundle      : boolean;
 }
 
+interface ExecuteParams {
+  actionId : ActionId;
+  options? : RunActionOptions;
+  // The merge order, when it differs from the drop order.
+  paths?   : string[];
+}
+
+// Actions that open a second step before running.
+const ACTION_STEPS: Partial<Record<ActionId, ActionsPhase>> = {
+  convert       : 'formats',
+  merge         : 'order',
+  'split-pages' : 'split',
+  'to-images'   : 'image-format',
+};
+
+// Where "Volver" goes from each step.
+const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
+  formats        : 'choosing',
+  order          : 'choosing',
+  split          : 'choosing',
+  'image-format' : 'choosing',
+  reduce         : 'choosing',
+  pages          : 'split',
+};
+
+// Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
+// panel: the selection is cleared right away and the task shows its progress and result on its own.
 export const useActionSelection = ({ onFinished, destination, bundle }: UseActionSelectionParams) => {
-  const [selection, setSelection]   = useState<FileSelection | null>(null);
-  const [pending, setPending]       = useState<PendingSelection | null>(null);
-  const [slow, setSlow]             = useState(false);
-  const [phase, setPhase]           = useState<ActionsPhase>('choosing');
-  const [progress, setProgress]     = useState<ActionProgress | null>(null);
-  const [result, setResult]         = useState<ActionResult | null>(null);
-  const [running, setRunning]       = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const timers                      = useRef<number[]>([]);
-  const finishedRef                 = useRef(onFinished);
-  const destinationRef              = useRef(destination);
-  const bundleRef                   = useRef(bundle);
-  const runId                       = useRef(0);
+  const [selection, setSelection] = useState<FileSelection | null>(null);
+  const [pending, setPending]     = useState<PendingSelection | null>(null);
+  const [slow, setSlow]           = useState(false);
+  const [phase, setPhase]         = useState<ActionsPhase>('choosing');
+  const timers                    = useRef<number[]>([]);
+  const finishedRef               = useRef(onFinished);
+  const destinationRef            = useRef(destination);
+  const bundleRef                 = useRef(bundle);
+  const loadId                    = useRef(0);
 
   useEffect(() => {
     finishedRef.current    = onFinished;
     destinationRef.current = destination;
     bundleRef.current      = bundle;
   }, [onFinished, destination, bundle]);
-
-  useTauriEvent<ActionProgress>(ACTION_PROGRESS_EVENT, setProgress);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -60,14 +82,14 @@ export const useActionSelection = ({ onFinished, destination, bundle }: UseActio
   }, []);
 
   // The count and the skeleton show at once; the real selection replaces them when Rust answers.
-  const load = useCallback(async (paths: string[]): Promise<FileSelection | null> => {
+  // A PDF with a password is refused with its own notice.
+  const load = useCallback(async (paths: string[]): Promise<LoadResult> => {
     clearTimers();
 
-    const ticket  = runId.current + 1;
-    runId.current = ticket;
+    const ticket   = loadId.current + 1;
+    loadId.current = ticket;
 
     setSelection(null);
-    setResult(null);
     setPhase('choosing');
     setPending(createPendingSelection(paths));
     setSlow(false);
@@ -76,33 +98,22 @@ export const useActionSelection = ({ onFinished, destination, bundle }: UseActio
 
     try {
       const files = await getFilesInfo(paths);
-      if (ticket !== runId.current) return null;
+      if (ticket !== loadId.current) return { selection: null, notice: null };
+
+      if (files.some((file) => file.protected)) return { selection: null, notice: PDF_TEXTS.password };
 
       const next = createSelection({ paths, files });
       setSelection(next);
-      return next;
+      return { selection: next, notice: null };
     } finally {
       window.clearTimeout(slowTimer);
 
-      if (ticket === runId.current) {
+      if (ticket === loadId.current) {
         setPending(null);
         setSlow(false);
       }
     }
   }, [clearTimers]);
-
-  // const load = useCallback(async (paths: string[]): Promise<FileSelection | null> => {
-  //   clearTimers();
-  //   runId.current += 1;
-  //
-  //   const files = await getFilesInfo(paths);
-  //   const next  = createSelection({ paths, files });
-  //
-  //   setSelection(next);
-  //   setPhase('choosing');
-  //   setResult(null);
-  //   return next;
-  // }, [clearTimers]);
 
   // Actions not built yet keep the old answer: working for a moment, then "Esto lo aprendo pronto".
   const learn = useCallback(() => {
@@ -114,87 +125,93 @@ export const useActionSelection = ({ onFinished, destination, bundle }: UseActio
     }, ACTIONS_TIMING.workingTime);
   }, [schedule]);
 
-  // A newer load or a discard invalidates the run, so a late result never shows up on a fresh panel.
-  const execute = useCallback(async (actionId: ActionId, options?: RunActionOptions) => {
+  // "Reducir peso · contrato.pdf", with the selection's icon.
+  const describe = useCallback((actionId: ActionId, current: FileSelection): Omit<TaskSpec, 'run'> => {
+    const label = current.actions.find((action) => action.id === actionId)?.label ?? '';
+
+    return { title: `${label} · ${getSelectionSummary(current).label}`, type: current.type, fileCount: current.files.length };
+  }, []);
+
+  // Queued in the task store (one at a time); the selection is done and the panel shows the task.
+  const enqueue = useCallback((actionId: ActionId, run: TaskSpec['run']) => {
     if (!selection) return;
 
-    const ticket = runId.current + 1;
-    runId.current = ticket;
+    enqueueTask({ ...describe(actionId, selection), run });
+    finishedRef.current();
+  }, [selection, describe]);
 
-    setPhase('working');
-    setProgress(null);
-    setResult(null);
-    setRunning(true);
-    setCancelling(false);
+  const execute = useCallback(({ actionId, options, paths }: ExecuteParams) => {
+    if (!selection) return;
 
-    const delivery = { destination: destinationRef.current, bundle: bundleRef.current && BUNDLE_ACTIONS.includes(actionId) };
+    const delivery = { destination: destinationRef.current, bundle: bundleRef.current && usesBundle(actionId) };
+    const files    = paths ?? selection.paths;
 
-    const next = await runAction({ actionId, paths: selection.paths, options: { ...options, ...delivery } })
-      .then(summarizeReport)
-      .catch((error: unknown) => failedResult(String(error)));
-
-    if (ticket !== runId.current) return;
-
-    setRunning(false);
-    setCancelling(false);
-    setResult(next);
-    setPhase('result');
-  }, [selection]);
+    enqueue(actionId, ({ taskId }) => runAction({ actionId, paths: files, options: { ...options, ...delivery }, taskId }));
+  }, [selection, enqueue]);
 
   const choose = useCallback((actionId: ActionId) => {
     if (!selection || phase !== 'choosing') return;
     if (!isImplemented(selection, actionId)) return learn();
-    if (actionId === 'convert') return setPhase('formats');
 
-    void execute(actionId);
+    // "Reducir peso" asks for a level only with PDFs.
+    if (actionId === 'compress' && selection.type === 'pdf') return setPhase('reduce');
+
+    const step = ACTION_STEPS[actionId];
+    if (step) return setPhase(step);
+
+    execute({ actionId });
   }, [selection, phase, learn, execute]);
 
-  // const choose = useCallback((actionId: ActionId) => {
-  //   if (!selection || phase !== 'choosing') return;
-  //
-  //   void runAction({ actionId, paths: selection.paths });
-  //   setPhase('working');
-  //
-  //   schedule(() => {
-  //     setPhase('learning');
-  //     schedule(() => finishedRef.current(), ACTIONS_TIMING.learningTime);
-  //   }, ACTIONS_TIMING.workingTime);
-  // }, [selection, phase, schedule]);
-
   const chooseFormat = useCallback((format: ImageFormat) => {
-    if (phase === 'formats') void execute('convert', { format });
+    if (phase === 'formats') execute({ actionId: 'convert', options: { format } });
+  }, [phase, execute]);
+
+  const merge = useCallback((paths: string[]) => {
+    if (phase === 'order') execute({ actionId: 'merge', paths });
+  }, [phase, execute]);
+
+  const splitAll = useCallback(() => {
+    if (phase === 'split') execute({ actionId: 'split-pages', options: { split: { mode: 'all', pages: [] } } });
+  }, [phase, execute]);
+
+  const pickPages = useCallback(() => {
+    if (phase === 'split') setPhase('pages');
+  }, [phase]);
+
+  const splitPages = useCallback((pages: number[]) => {
+    if (phase === 'pages' && pages.length > 0) execute({ actionId: 'split-pages', options: { split: { mode: 'select', pages } } });
+  }, [phase, execute]);
+
+  // pdf.js renders the pages in the webview; Rust writes them (see exportPdfPages).
+  const toImages = useCallback((format: PageImageFormat) => {
+    if (!selection || phase !== 'image-format') return;
+
+    const path        = selection.paths[0];
+    const destination = destinationRef.current;
+    const bundled     = bundleRef.current;
+
+    enqueue('to-images', ({ taskId, onProgress, isCancelled }) =>
+      exportPdfPages({ path, format, destination, bundle: bundled, onProgress, isCancelled, taskId }),
+    );
+  }, [selection, phase, enqueue]);
+
+  const reducePdf = useCallback((reduce: ReduceOptions) => {
+    if (phase === 'reduce') execute({ actionId: 'compress', options: { reduce } });
   }, [phase, execute]);
 
   const back = useCallback(() => {
-    if (phase === 'formats') setPhase('choosing');
+    const previous = BACK_STEPS[phase];
+    if (previous) setPhase(previous);
   }, [phase]);
 
-  const cancel = useCallback(() => {
-    if (!running || cancelling) return;
-
-    setCancelling(true);
-    void cancelAction();
-  }, [running, cancelling]);
-
-  const openOutput = useCallback(() => {
-    if (result?.openPath) void openFile(result.openPath);
-  }, [result]);
-
-  const revealOutput = useCallback(() => {
-    if (result?.revealPath) void revealFile(result.revealPath);
-  }, [result]);
-
+  // Only the selection is dropped; tasks already queued or running are not touched.
   const discard = useCallback(() => {
     clearTimers();
-    runId.current += 1;
+    loadId.current += 1;
     setSelection(null);
     setPending(null);
     setSlow(false);
     setPhase('choosing');
-    setProgress(null);
-    setResult(null);
-    setRunning(false);
-    setCancelling(false);
   }, [clearTimers]);
 
   useEffect(() => clearTimers, [clearTimers]);
@@ -204,17 +221,19 @@ export const useActionSelection = ({ onFinished, destination, bundle }: UseActio
     pending,
     slow,
     phase,
-    progress,
-    result,
-    running,
-    cancelling,
     load,
     choose,
     chooseFormat,
+    merge,
+    splitAll,
+    pickPages,
+    splitPages,
+    toImages,
+    reducePdf,
     back,
-    cancel,
-    openOutput,
-    revealOutput,
     discard,
   };
 };
+
+// The previous version also ran the action and kept its progress and result here, so collapsing the
+// island (which discards the selection) lost them; see git history before the tasks module.

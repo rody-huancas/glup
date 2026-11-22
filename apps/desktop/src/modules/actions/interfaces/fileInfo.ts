@@ -6,4 +6,7 @@ export interface FileInfo {
   extension : string;
   size      : number;
   kind      : FileType;
+  // PDFs: page count (null when unknown) and whether it needs a password.
+  pages     : number | null;
+  protected : boolean;
 }
