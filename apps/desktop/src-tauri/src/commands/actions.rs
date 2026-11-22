@@ -4,7 +4,7 @@ use tauri::{
 };
 
 use crate::services::{
-    actions::{self, ActionReport, ActionRequest, FinishPageImagesRequest, PageImagesRequest},
+    actions::{self, ActionReport, ActionRequest, FinishPageImagesRequest, PageImagesRequest, SignRequest},
     pdf::save_images::{self, PageImageSessions, SavePageParams, PAGE_ERROR},
     tasks::{self, TaskRecord},
 };
@@ -42,6 +42,28 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 //         .await
 //         .map_err(|error| error.to_string())?
 // }
+
+// "Firmar" runs like any other action: registered task, blocking worker, result kept.
+#[tauri::command]
+pub async fn sign_pdf(app: AppHandle, request: SignRequest) -> Result<ActionReport, String> {
+    let task = request.task_id.clone();
+
+    if let Some(task) = &task {
+        tasks::start(&app, task, "sign");
+    }
+
+    let worker = app.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || actions::sign_pdf(&worker, request))
+        .await
+        .map_err(|error| error.to_string())
+        .and_then(|result| result);
+
+    if let Some(task) = &task {
+        tasks::finish(&app, task, &result);
+    }
+
+    result
+}
 
 #[tauri::command]
 pub fn get_active_tasks(app: AppHandle) -> Vec<TaskRecord> {
