@@ -5,4 +5,5 @@ export const createIslandElements = (): IslandElements => ({
   panel    : createRef(),
   mascot   : createRef(),
   dropZone : createRef(),
+  actions  : createRef(),
 });
