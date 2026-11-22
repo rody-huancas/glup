@@ -1,4 +1,5 @@
 import { ActionsPanel } from '@/modules/actions/components/ActionsPanel';
+import { ActionsSkeleton } from '@/modules/actions/components/ActionsSkeleton';
 import { HOME_TEXTS } from '@/modules/home/constants/home';
 import type { HomeFiles } from '@/modules/home/interfaces/homeFiles';
 import { Card } from '@/shared/components/Card';
@@ -9,10 +10,10 @@ interface HomeActionsCardProps {
 }
 
 export const HomeActionsCard = ({ files }: HomeActionsCardProps) => {
-  if (!files.selection) return null;
+  if (!files.selection && !files.loading) return null;
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex shrink-0 flex-col gap-2">
       <button
         type="button"
         onClick={files.close}
@@ -22,7 +23,14 @@ export const HomeActionsCard = ({ files }: HomeActionsCardProps) => {
         {HOME_TEXTS.back}
       </button>
       <Card className="p-3.5">
-        <ActionsPanel selection={files.selection} phase={files.phase} onChoose={files.choose} onClose={files.close} />
+        {files.selection ? (
+          <ActionsPanel selection={files.selection} flow={files.flow} />
+        ) : (
+          files.loading && (
+            <ActionsSkeleton pending={files.loading} slow={files.slow} location={files.saveLocation} onClose={files.close} />
+          )
+        )}
+        {/* <ActionsPanel selection={files.selection} phase={files.phase} onChoose={files.choose} onClose={files.close} /> */}
       </Card>
     </section>
   );
