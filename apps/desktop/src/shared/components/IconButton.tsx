@@ -9,6 +9,7 @@ interface IconButtonProps {
   active?    : boolean;
   className? : string;
   iconClass? : string;
+  disabled?  : boolean;
 }
 
 export const IconButton = ({
@@ -18,15 +19,17 @@ export const IconButton = ({
   active = false,
   className,
   iconClass = 'size-3.5',
+  disabled  = false,
 }: IconButtonProps) => (
   <button
     type="button"
     aria-label={label}
     aria-pressed={active || undefined}
     title={label}
+    disabled={disabled}
     onClick={onClick}
     className={cx(
-      'flex shrink-0 cursor-pointer items-center justify-center rounded-control transition-colors hover:bg-raised',
+      'flex shrink-0 cursor-pointer items-center justify-center rounded-control transition-colors hover:bg-raised disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent',
       active ? 'text-mint' : 'text-muted hover:text-text',
       className,
     )}
