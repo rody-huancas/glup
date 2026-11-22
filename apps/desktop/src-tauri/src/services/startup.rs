@@ -1,8 +1,13 @@
-use std::sync::Mutex;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Mutex,
+};
 
 use serde::Serialize;
 use tauri::{menu::CheckMenuItem, AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
+
+use crate::services::island_window;
 
 // Passed by Windows when Glup starts with the computer: it then stays as the quiet pill.
 pub const AUTOSTART_ARG: &str           = "--autostart";
@@ -19,12 +24,39 @@ pub struct LaunchInfo {
 #[derive(Default)]
 pub struct TrayAutostart(pub Mutex<Option<CheckMenuItem<Wry>>>);
 
+// Whether this process still owes the "opened by hand" expand. Decided once in Rust at start: the
+// webview can reload (Vite in dev, a WebView2 recovery) and must never take that for a new launch.
+pub struct LaunchOpen(AtomicBool);
+
+impl LaunchOpen {
+    pub fn new(pending: bool) -> Self {
+        LaunchOpen(AtomicBool::new(pending))
+    }
+
+    // True only the first time it is asked.
+    pub fn take(&self) -> bool {
+        self.0.swap(false, Ordering::SeqCst)
+    }
+}
+
 pub fn launched_by_autostart<I: IntoIterator<Item = String>>(args: I) -> bool {
     args.into_iter().any(|arg| arg == AUTOSTART_ARG)
 }
 
 pub fn launch_info() -> LaunchInfo {
     LaunchInfo { autostart: launched_by_autostart(std::env::args()) }
+}
+
+// Someone tried to open a second Glup: the running one shows its island. A second launch by Windows at
+// startup is not someone asking for it.
+pub fn second_launch(app: &AppHandle, args: Vec<String>) {
+    if launched_by_autostart(args) {
+        return;
+    }
+
+    #[cfg(debug_assertions)]
+    eprintln!("[glup:isla] abrir fijada: se intentó abrir otro Glup");
+    island_window::request_open(app);
 }
 
 // What Windows really has, not what was saved.
@@ -53,6 +85,15 @@ pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn launch_open_is_taken_only_once() {
+        let launch = LaunchOpen::new(true);
+
+        assert!(launch.take());
+        assert!(!launch.take());
+        assert!(!LaunchOpen::new(false).take());
+    }
 
     #[test]
     fn recognizes_the_autostart_launch() {

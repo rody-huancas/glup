@@ -1,10 +1,16 @@
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 
-use crate::services::startup::{self, LaunchInfo};
+use crate::services::startup::{self, LaunchInfo, LaunchOpen};
 
 #[tauri::command]
 pub fn get_launch_info() -> LaunchInfo {
     startup::launch_info()
+}
+
+// True only the first time in this process, and only if Glup was opened by hand.
+#[tauri::command]
+pub fn take_launch_open(launch: State<'_, LaunchOpen>) -> bool {
+    launch.take()
 }
 
 #[tauri::command]
