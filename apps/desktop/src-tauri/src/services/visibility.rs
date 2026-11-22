@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use tauri::{AppHandle, Manager};
 
-use crate::MAIN_WINDOW_LABEL;
+use crate::ISLAND_WINDOW_LABEL;
 
 #[derive(Default)]
 struct VisibilityFlags {
@@ -15,6 +15,10 @@ pub struct Visibility(Mutex<VisibilityFlags>);
 
 pub fn toggle_user_hidden(app: &AppHandle) {
     update(app, |flags| flags.user_hidden = !flags.user_hidden);
+}
+
+pub fn show_for_user(app: &AppHandle) {
+    update(app, |flags| flags.user_hidden = false);
 }
 
 pub fn set_fullscreen(app: &AppHandle, fullscreen: bool) {
@@ -33,7 +37,7 @@ fn update(app: &AppHandle, change: impl FnOnce(&mut VisibilityFlags)) {
 
     change(&mut flags);
 
-    let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) else {
+    let Some(window) = app.get_webview_window(ISLAND_WINDOW_LABEL) else {
         return;
     };
 
