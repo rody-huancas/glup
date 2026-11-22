@@ -1,10 +1,10 @@
 use tauri::{
     menu::{Menu, MenuEvent, MenuItem},
     tray::TrayIconBuilder,
-    AppHandle, Manager, Result,
+    AppHandle, Result,
 };
 
-use crate::MAIN_WINDOW_LABEL;
+use crate::services::visibility;
 
 const TRAY_ID: &str   = "glup-tray";
 const TOGGLE_ID: &str = "toggle";
@@ -31,20 +31,8 @@ pub fn create(app: &AppHandle) -> Result<()> {
 
 fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
     match event.id().as_ref() {
-        TOGGLE_ID => toggle_main_window(app),
+        TOGGLE_ID => visibility::toggle_user_hidden(app),
         QUIT_ID   => app.exit(0),
         _         => {}
-    }
-}
-
-fn toggle_main_window(app: &AppHandle) {
-    let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) else {
-        return;
-    };
-
-    if window.is_visible().unwrap_or(false) {
-        let _ = window.hide();
-    } else {
-        let _ = window.show();
     }
 }
