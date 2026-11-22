@@ -39,11 +39,13 @@ export const useIslandMascot = ({ elements, mascotRef, reduced }: UseIslandMasco
   const celebrate = useCallback(() => {
     if (mascotRef.current) scaleEyes(mascotRef.current, 1);
     express(MASCOT_FACES.celebrating, MASCOT_MOTION.celebrate.hold);
+    void mascotRef.current?.gesture('wave');
   }, [express, mascotRef]);
 
-  const farewell = useCallback(() => {
+  const farewell = useCallback((wave: boolean) => {
     express(MASCOT_FACES.farewell, MASCOT_MOTION.farewell.hold);
-  }, [express]);
+    if (wave) void mascotRef.current?.gesture('wave-once');
+  }, [express, mascotRef]);
 
   const calm = useCallback(() => {
     express(null);

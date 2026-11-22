@@ -2,7 +2,9 @@
 export interface MascotCues {
   excite    : () => void;
   celebrate : () => void;
-  farewell  : () => void;
+  // wave: only when the user closed the island on purpose.
+  farewell  : (wave: boolean) => void;
+  // farewell  : () => void;
 }
 
 export interface IslandMascot extends MascotCues {

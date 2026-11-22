@@ -62,6 +62,7 @@ const buildSway = (squash: HTMLElement): gsap.core.Timeline => {
 export const buildIdleMove = ({ kind, controller, lift, squash }: IdleMoveParams): gsap.core.Timeline => {
   if (kind === 'look') return buildLook(controller);
   if (kind === 'sway') return buildSway(squash);
+  if (kind === 'stretch' || kind === 'tap-dance') return gsap.timeline().call(() => void controller.gesture(kind));
   return addHop({ timeline: gsap.timeline(), lift, at: 0 });
 };
 
