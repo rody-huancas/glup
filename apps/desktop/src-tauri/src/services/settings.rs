@@ -7,6 +7,8 @@ use std::{
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::services::pdf::reduce::ReduceLevel;
+
 pub const SETTINGS_CHANGED_EVENT: &str = "settings-changed";
 
 const SETTINGS_FILE: &str = "settings.json";
@@ -28,6 +30,8 @@ pub struct Settings {
     pub custom_folder: Option<String>,
     // "Entregar todo en un ZIP".
     pub bundle_zip: bool,
+    // Last "Reducir peso" level chosen for PDFs.
+    pub reduce_level: ReduceLevel,
 }
 
 #[derive(Serialize)]
@@ -108,7 +112,7 @@ mod tests {
     use super::*;
 
     fn settings(mode: SaveMode, folder: Option<&str>) -> Settings {
-        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false }
+        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal }
     }
 
     #[test]
