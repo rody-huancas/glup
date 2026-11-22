@@ -15,6 +15,12 @@ pub enum OutputKind<'a> {
     BatchPdf { stamp: &'a str },
     // archivos-AAAA-MM-DD-HHmm.zip, resultados-AAAA-MM-DD-HHmm.zip
     Archive { prefix: &'a str, stamp: &'a str },
+    // contrato.pdf → contrato-unido.pdf, contrato-reducido.pdf, contrato-paginas.zip
+    Suffixed { suffix: &'a str, extension: &'a str },
+    // contrato.pdf → contrato-paginas-1-3-5.pdf (the whole name comes ready)
+    Named { name: &'a str, extension: &'a str },
+    // contrato.pdf → contrato-paginas/ (a folder, no extension)
+    Folder { suffix: &'a str },
 }
 
 pub struct OutputNameParams<'a> {
@@ -32,11 +38,14 @@ fn base_name(params: &OutputNameParams) -> (String, String) {
     let stem = stem_of(params.source);
 
     match params.kind {
-        OutputKind::Converted { extension }   => (stem, extension.to_string()),
-        OutputKind::Compressed { extension }  => (format!("{stem}-{COMPRESSED_SUFFIX}"), extension.to_string()),
-        OutputKind::Pdf                       => (stem, "pdf".to_string()),
-        OutputKind::BatchPdf { stamp }        => (format!("{BATCH_PDF_PREFIX}-{stamp}"), "pdf".to_string()),
-        OutputKind::Archive { prefix, stamp } => (format!("{prefix}-{stamp}"), ZIP_EXTENSION.to_string()),
+        OutputKind::Converted { extension }        => (stem, extension.to_string()),
+        OutputKind::Compressed { extension }       => (format!("{stem}-{COMPRESSED_SUFFIX}"), extension.to_string()),
+        OutputKind::Pdf                            => (stem, "pdf".to_string()),
+        OutputKind::BatchPdf { stamp }             => (format!("{BATCH_PDF_PREFIX}-{stamp}"), "pdf".to_string()),
+        OutputKind::Archive { prefix, stamp }      => (format!("{prefix}-{stamp}"), ZIP_EXTENSION.to_string()),
+        OutputKind::Suffixed { suffix, extension } => (format!("{stem}-{suffix}"), extension.to_string()),
+        OutputKind::Named { name, extension }      => (name.to_string(), extension.to_string()),
+        OutputKind::Folder { suffix }              => (format!("{stem}-{suffix}"), String::new()),
     }
 }
 
@@ -46,14 +55,16 @@ pub fn output_path(params: &OutputNameParams, exists: impl Fn(&Path) -> bool) ->
     let folder            = params.folder;
     // let folder            = params.source.parent().unwrap_or_else(|| Path::new(""));
     let (name, extension) = base_name(params);
-    let first             = folder.join(format!("{name}.{extension}"));
+    let dotted            = if extension.is_empty() { String::new() } else { format!(".{extension}") };
+    let first             = folder.join(format!("{name}{dotted}"));
+    // let first             = folder.join(format!("{name}.{extension}"));
 
     if !exists(&first) {
         return first;
     }
 
     (2..)
-        .map(|copy| folder.join(format!("{name} ({copy}).{extension}")))
+        .map(|copy| folder.join(format!("{name} ({copy}){dotted}")))
         .find(|candidate| !exists(candidate))
         .unwrap_or(first)
 }
@@ -115,6 +126,13 @@ mod tests {
             name_for("C:/fotos/a.jpg", OutputKind::Archive { prefix: "archivos", stamp: "2026-11-22-0930" }, &["C:/fotos/archivos-2026-11-22-0930.zip"]),
             PathBuf::from("C:/fotos/archivos-2026-11-22-0930 (2).zip"),
         );
+    }
+
+    #[test]
+    fn pdf_outputs_use_suffixes_names_and_folders() {
+        assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Suffixed { suffix: "unido", extension: "pdf" }, &[]), PathBuf::from("C:/docs/contrato-unido.pdf"));
+        assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Named { name: "contrato-paginas-1-3", extension: "pdf" }, &[]), PathBuf::from("C:/docs/contrato-paginas-1-3.pdf"));
+        assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Folder { suffix: "paginas" }, &["C:/docs/contrato-paginas"]), PathBuf::from("C:/docs/contrato-paginas (2)"));
     }
 
     #[test]
