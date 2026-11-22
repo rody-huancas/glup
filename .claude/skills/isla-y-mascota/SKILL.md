@@ -62,6 +62,9 @@ solo traduce cada fase en animación, región y foco.
   despliega fijada al arrancar, como «Abrir Glup», para que se note que se abrió. Lo decide Rust una
   sola vez por proceso (`take_launch_open` devuelve true solo la primera vez): el webview puede
   recargarse (Vite en dev, una recuperación) y el frontend nunca decide por su cuenta que es el arranque.
+  **En desarrollo** (`debug_assertions`) no se despliega al arrancar, porque cada recompilación de
+  Rust reinicia el proceso y la isla se abriría fijada sola: `take_launch_open` devuelve false salvo
+  con la variable de entorno `GLUP_LAUNCH_OPEN=1`, para probarlo a propósito. En release no cambia.
 - **Instancia única:** solo despliega cuando de verdad se intenta abrir otro Glup, y no si ese segundo
   arranque trae `--autostart`.
 - **Bienvenida, solo la primera vez** (sin `settings.json` previo y sin `--autostart`; lo decide

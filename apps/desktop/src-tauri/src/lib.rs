@@ -32,7 +32,8 @@ pub fn run() {
         .manage(CleanupState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
-        .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
+        .manage(LaunchOpen::new(services::startup::launch_open_pending()))
+        // .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
             commands::files::get_files_info,
