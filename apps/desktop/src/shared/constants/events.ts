@@ -31,6 +31,7 @@ export const GET_SETTINGS             = 'get_settings';
 export const UPDATE_SETTINGS          = 'update_settings';
 export const SETTINGS_CHANGED_EVENT   = 'settings-changed';
 export const GET_LAUNCH_INFO          = 'get_launch_info';
+export const TAKE_LAUNCH_OPEN         = 'take_launch_open';
 export const GET_AUTOSTART            = 'get_autostart';
 export const SET_AUTOSTART            = 'set_autostart';
 export const AUTOSTART_CHANGED_EVENT  = 'autostart-changed';
