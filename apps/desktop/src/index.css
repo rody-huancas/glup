@@ -4,7 +4,8 @@
 @import "@fontsource/plus-jakarta-sans/700.css";
 @import "tailwindcss";
 
-@theme {
+/* static: the island reads these tokens from JS to animate its colors. */
+@theme static {
   --color-bg          : #141318;
   --color-surface     : #1C1B22;
   --color-raised      : #24232C;
@@ -22,6 +23,43 @@
 
   --radius-control : 12px;
   --radius-panel   : 26px;
+}
+
+@utility scroll-thin {
+  scrollbar-width : thin;
+  scrollbar-color : var(--color-line-strong) transparent;
+}
+
+/* Nothing in the island is selectable or draggable, and a click never leaves a focus mark. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    user-select                 : none;
+    -webkit-user-select         : none;
+    -webkit-user-drag           : none;
+    -webkit-tap-highlight-color : transparent;
+  }
+
+  ::selection {
+    background : transparent;
+  }
+
+  :focus {
+    outline : none;
+  }
+
+  :focus-visible {
+    outline        : 2px solid var(--color-lilac);
+    outline-offset : 2px;
+  }
+
+  input,
+  textarea,
+  [contenteditable='true'] {
+    user-select         : text;
+    -webkit-user-select : text;
+  }
 }
 
 html,

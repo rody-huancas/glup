@@ -1,6 +1,6 @@
 import type { ActionDefinition } from '@/modules/actions/interfaces/actionDefinition';
 import type { ActionId } from '@/modules/actions/types/actionId';
-import { getActionButtonClass } from '@/modules/actions/utils/actionStyles';
+import { Button } from '@/shared/components/Button';
 
 interface ActionButtonProps {
   action   : ActionDefinition;
@@ -9,12 +9,12 @@ interface ActionButtonProps {
 }
 
 export const ActionButton = ({ action, disabled, onChoose }: ActionButtonProps) => (
-  <button
-    type="button"
+  <Button
+    variant={action.primary ? 'primary' : 'secondary'}
     disabled={disabled}
     onClick={() => onChoose(action.id)}
-    className={getActionButtonClass(action.primary)}
+    className="h-10 px-3"
   >
     {action.label}
-  </button>
+  </Button>
 );

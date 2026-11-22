@@ -2,12 +2,7 @@ import { ISLAND_TRANSITIONS } from '@/modules/island/constants/island';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
 import type { IslandLayout } from '@/modules/island/interfaces/islandLayout';
 import type { IslandPoseParams } from '@/modules/island/interfaces/islandTransition';
-import {
-  getActionsKeyframe,
-  getDropZoneKeyframe,
-  getMascotKeyframe,
-  getPanelKeyframe,
-} from '@/modules/island/utils/islandStyles';
+import { getContentKeyframe, getPanelKeyframe, getPeekKeyframe } from '@/modules/island/utils/islandStyles';
 
 interface AnimateToParams {
   element  : HTMLElement | null;
@@ -16,10 +11,9 @@ interface AnimateToParams {
 }
 
 const KEYFRAME_BUILDERS: Record<keyof IslandElements, (layout: IslandLayout) => Keyframe> = {
-  panel    : getPanelKeyframe,
-  mascot   : getMascotKeyframe,
-  dropZone : getDropZoneKeyframe,
-  actions  : getActionsKeyframe,
+  panel   : getPanelKeyframe,
+  peek    : getPeekKeyframe,
+  content : getContentKeyframe,
 };
 
 const ELEMENT_KEYS = Object.keys(KEYFRAME_BUILDERS) as (keyof IslandElements)[];

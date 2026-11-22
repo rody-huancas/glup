@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import { usePointerDrag } from '@/modules/mascot/hooks/usePointerDrag';
@@ -6,14 +6,31 @@ import type { MascotState } from '@/modules/mascot/types/mascotState';
 // import { getFileKind } from '@/modules/mascot/utils/fileKind';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
-export const useMascotInteractions = (setState: Dispatch<SetStateAction<MascotState>>) => {
-  const onClick = useCallback(() => setState({ type: 'happy' }), [setState]);
+interface UseMascotInteractionsParams {
+  setState     : Dispatch<SetStateAction<MascotState>>;
+  onClick?     : () => void;
+  reactToDrops : boolean;
+}
 
-  // The drop reaction (eating or confused) is decided by the island, which validates the files first.
+export const useMascotInteractions = ({ setState, onClick, reactToDrops }: UseMascotInteractionsParams) => {
+  const clickRef = useRef(onClick);
+  const dropsRef = useRef(reactToDrops);
+
+  useEffect(() => {
+    clickRef.current = onClick;
+    dropsRef.current = reactToDrops;
+  }, [onClick, reactToDrops]);
+
+  const handleClick = useCallback(() => {
+    setState({ type: 'happy' });
+    clickRef.current?.();
+  }, [setState]);
+
+  // The drop reaction (eating or confused) is decided by whoever validates the files.
   const dropHandlers = useMemo(
     () => ({
-      onEnter : () => setState({ type: 'alert' }),
-      onLeave : () => setState(IDLE_STATE),
+      onEnter : () => dropsRef.current && setState({ type: 'alert' }),
+      onLeave : () => dropsRef.current && setState(IDLE_STATE),
       onDrop  : () => undefined,
       // onDrop  : (paths: string[]) => {
       //   console.log('Dropped paths:', paths);
@@ -27,5 +44,5 @@ export const useMascotInteractions = (setState: Dispatch<SetStateAction<MascotSt
 
   useFileDrop(dropHandlers);
 
-  return usePointerDrag(onClick);
+  return usePointerDrag(handleClick);
 };
