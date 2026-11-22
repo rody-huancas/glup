@@ -1,16 +1,20 @@
 import type { RefObject } from 'react';
+import { getIslandLayout } from '@/modules/island/utils/islandLayout';
 import { getDropZoneStyle } from '@/modules/island/utils/islandStyles';
 
 interface IslandDropZoneProps {
-  zoneRef: RefObject<HTMLDivElement | null>;
+  zoneRef : RefObject<HTMLDivElement | null>;
+  message : string;
 }
 
-export const IslandDropZone = ({ zoneRef }: IslandDropZoneProps) => (
+const INITIAL_LAYOUT = getIslandLayout({ target: 'collapsed', actionsHeight: 0 });
+
+export const IslandDropZone = ({ zoneRef, message }: IslandDropZoneProps) => (
   <div
     ref={zoneRef}
-    className="pointer-events-none absolute flex items-center justify-center rounded-2xl border-2 border-dashed border-white/20 px-4 text-center text-sm font-medium text-white/70"
-    style={getDropZoneStyle('collapsed')}
+    className="pointer-events-none absolute flex items-center justify-center rounded-control border-2 border-dashed border-line-dashed px-4 text-center text-sm font-medium text-muted"
+    style={getDropZoneStyle(INITIAL_LAYOUT)}
   >
-    Suelta un archivo aquí
+    {message}
   </div>
 );
