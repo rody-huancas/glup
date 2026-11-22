@@ -65,6 +65,12 @@ lado. Si dos reglas parecen chocar, se pregunta.
 10. **Los archivos de la persona son sagrados.** Nunca se modifica, sobrescribe ni borra un archivo
     original. Los resultados se escriben como archivos nuevos (ver skill `acciones`). Lo que se borra
     a pedido de la persona va a la papelera, nunca se elimina directo.
+    **Única excepción: Limpieza** (`services/cleanup/`). Los archivos temporales del usuario (de más
+    de 24 h) y las carpetas de caché de los navegadores se borran directo, porque Windows y los
+    navegadores los vuelven a crear; la papelera se vacía con la API de Windows. Siempre después de
+    que la persona los vea, los marque y confirme, y solo si siguen iguales que al revisarlos. Todo lo
+    demás que encuentre Limpieza (instaladores, comprimidos, repetidos, archivos grandes) va a la
+    papelera.
 11. **Todo es local.** Ninguna función envía archivos ni datos de la persona a internet. Las funciones
     con IA (futuras) son opcionales, usan la clave de la propia persona y lo dicen claramente.
 12. **Licencias.** Glup es MIT. Solo se agregan dependencias con licencias permisivas: MIT,
