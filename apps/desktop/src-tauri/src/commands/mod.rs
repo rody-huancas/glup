@@ -6,4 +6,5 @@ pub mod history;
 pub mod island;
 pub mod settings;
 pub mod signatures;
+pub mod startup;
 // pub mod main_window;
