@@ -18,6 +18,27 @@ pub struct TaskRecord {
     pub report: Option<ActionReport>,
     pub error: Option<String>,
     pub finished: bool,
+    // Tasks whose result is not a file report (Limpieza) describe it themselves.
+    pub summary: Option<TaskSummary>,
+}
+
+// tone: success, partial, calm or failed (as ResultTone in the frontend).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskSummary {
+    pub tone: String,
+    pub message: String,
+    pub note: Option<String>,
+}
+
+impl TaskSummary {
+    pub fn success(message: String) -> Self {
+        Self { tone: "success".to_string(), message, note: None }
+    }
+
+    pub fn calm(message: String) -> Self {
+        Self { tone: "calm".to_string(), message, note: None }
+    }
 }
 
 #[derive(Default)]
@@ -30,7 +51,7 @@ fn with_tasks<T>(app: &AppHandle, change: impl FnOnce(&mut HashMap<String, TaskR
 }
 
 pub fn start(app: &AppHandle, id: &str, action_id: &str) {
-    let record = TaskRecord { id: id.to_string(), action_id: action_id.to_string(), progress: None, report: None, error: None, finished: false };
+    let record = TaskRecord { id: id.to_string(), action_id: action_id.to_string(), progress: None, report: None, error: None, finished: false, summary: None };
     with_tasks(app, |tasks| tasks.insert(id.to_string(), record));
 }
 
@@ -51,6 +72,26 @@ pub fn finish(app: &AppHandle, id: &str, result: &Result<ActionReport, String>) 
         match result {
             Ok(report) => task.report = Some(report.clone()),
             Err(error) => task.error = Some(error.clone()),
+        }
+
+        Some(task.clone())
+    })
+    .flatten();
+
+    if let Some(record) = record {
+        let _ = app.emit(TASK_FINISHED_EVENT, record);
+    }
+}
+
+// Same as finish, for tasks that end with a summary instead of a file report.
+pub fn finish_summary(app: &AppHandle, id: &str, result: &Result<TaskSummary, String>) {
+    let record = with_tasks(app, |tasks| {
+        let task = tasks.get_mut(id)?;
+
+        task.finished = true;
+        match result {
+            Ok(summary) => task.summary = Some(summary.clone()),
+            Err(error)  => task.error = Some(error.clone()),
         }
 
         Some(task.clone())
