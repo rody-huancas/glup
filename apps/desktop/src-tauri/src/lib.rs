@@ -5,7 +5,7 @@ use tauri::Manager;
 use tauri_plugin_autostart::MacosLauncher;
 
 use services::{
-    actions::ActionControl, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
+    actions::ActionControl, background::session::BackgroundSession, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
     settings::SettingsStore, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, visibility::Visibility,
 };
 
@@ -31,6 +31,7 @@ pub fn run() {
         .manage(TaskRegistry::default())
         .manage(CleanupState::default())
         .manage(TrayAutostart::default())
+        .manage(BackgroundSession::default())
         .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
@@ -54,6 +55,9 @@ pub fn run() {
             commands::files::read_file_bytes,
             commands::settings::get_settings,
             commands::settings::update_settings,
+            commands::background::get_background_model,
+            commands::background::download_background_model,
+            commands::background::delete_background_model,
             commands::startup::get_launch_info,
             commands::startup::take_launch_open,
             commands::startup::get_autostart,

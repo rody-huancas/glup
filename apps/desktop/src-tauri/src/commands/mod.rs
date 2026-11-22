@@ -1,4 +1,5 @@
 pub mod actions;
+pub mod background;
 pub mod cleanup;
 pub mod cursor;
 pub mod files;
