@@ -16,7 +16,10 @@ export const OPEN_MOTION = {
 export const CLOSE_MOTION = {
   content : { duration: 0.12, ease: 'power2.in', y: 6 },
   flight  : { duration: 0.35, ease: 'power3.inOut' },
-  shrink  : { startAt: 0.06, duration: 0.32, ease: 'power3.inOut' },
+  // startAt: after the goodbye wave · leaveStartAt: when the cursor left (about 0.6 s in total).
+  shrink  : { startAt: 0.34, leaveStartAt: 0.06, duration: 0.32, ease: 'power3.inOut' },
+  // shrink  : { startAt: 0.34, duration: 0.32, ease: 'power3.inOut' },
+  // shrink  : { startAt: 0.06, duration: 0.32, ease: 'power3.inOut' },
   settle  : { impact: 0.06, duration: 0.22, ease: 'elastic.out(1, 0.4)' },
   // settle  : { impact: 0.06, duration: 0.3, ease: 'elastic.out(1, 0.4)' },
 };

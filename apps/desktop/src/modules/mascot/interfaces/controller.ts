@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
 import type { MascotElements } from '@/modules/mascot/interfaces/elements';
 import type { Face } from '@/modules/mascot/interfaces/face';
+import type { MascotGesture } from '@/modules/mascot/types/mascotGesture';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import type { Point } from '@/shared/interfaces/point';
 
@@ -11,6 +12,8 @@ export interface MascotController {
   look     : (gaze: Point | null) => void;
   isIdle   : () => boolean;
   elements : MascotElements;
+  // Arm and foot moves; resolves when done (or right away if they cannot play now).
+  gesture  : (name: MascotGesture) => Promise<void>;
 }
 
 export interface MascotOptions {
@@ -19,4 +22,6 @@ export interface MascotOptions {
   face?          : Partial<Face>;
   onClick?       : () => void;
   reactToDrops?  : boolean;
+  // False hides nothing but stops animating arms and feet (where they cannot be seen).
+  limbs?         : boolean;
 }

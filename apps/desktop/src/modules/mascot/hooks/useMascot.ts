@@ -4,6 +4,7 @@ import { useBlink } from '@/modules/mascot/hooks/useBlink';
 import { useBreath } from '@/modules/mascot/hooks/useBreath';
 import { useEyeTracking } from '@/modules/mascot/hooks/useEyeTracking';
 import { useMascotInteractions } from '@/modules/mascot/hooks/useMascotInteractions';
+import { useMascotLimbs } from '@/modules/mascot/hooks/useMascotLimbs';
 import { useMouthPop } from '@/modules/mascot/hooks/useMouthPop';
 import { useStateAnimations } from '@/modules/mascot/hooks/useStateAnimations';
 import type { MascotOptions } from '@/modules/mascot/interfaces/controller';
@@ -20,6 +21,7 @@ export const useMascot = ({
   face: faceOverride,
   onClick,
   reactToDrops = true,
+  limbs        = true,
 }: MascotOptions = {}) => {
   const [state, setState] = useState<MascotState>(IDLE_STATE);
   const [face, setFace]             = useState<Face>(DEFAULT_FACE);
@@ -39,6 +41,7 @@ export const useMascot = ({
   //   [face, state, faceOverride],
   // );
   const pointerHandlers   = useMascotInteractions({ setState, onClick, reactToDrops });
+  const { gesture }       = useMascotLimbs({ elements, state, enabled: limbs });
 
   useImperativeHandle(
     controllerRef,
@@ -48,8 +51,9 @@ export const useMascot = ({
       look     : setLook,
       isIdle   : () => stateRef.current.type === 'idle',
       elements,
+      gesture,
     }),
-    [elements],
+    [elements, gesture],
   );
   // useImperativeHandle(controllerRef, () => ({ setState }), []);
 

@@ -3,7 +3,9 @@ mod services;
 
 use tauri::Manager;
 
-use services::{island_window::IslandArea, visibility::Visibility};
+use services::{
+    actions::ActionControl, history::HistoryStore, island_window::IslandArea, settings::SettingsStore, visibility::Visibility,
+};
 
 pub const ISLAND_WINDOW_LABEL: &str = "island";
 // pub const MAIN_WINDOW_LABEL: &str   = "main";
@@ -12,11 +14,23 @@ pub const ISLAND_WINDOW_LABEL: &str = "island";
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(Visibility::default())
         .manage(IslandArea::default())
+        .manage(HistoryStore::default())
+        .manage(SettingsStore::default())
+        .manage(ActionControl::default())
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
             commands::files::get_files_info,
+            commands::files::open_file,
+            commands::files::reveal_file,
+            commands::actions::run_action,
+            commands::actions::cancel_action,
+            commands::settings::get_settings,
+            commands::settings::update_settings,
+            commands::history::get_history,
+            commands::history::clear_history,
             // commands::island::resize_island,
             commands::island::set_island_area,
             commands::island::set_island_focus

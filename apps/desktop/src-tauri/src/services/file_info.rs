@@ -1,11 +1,16 @@
-use std::{fs, path::Path};
+use std::{fs::File, io::Read, path::Path};
 
+use rayon::prelude::*;
 use serde::Serialize;
 
 const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
-const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
+const IMAGE_EXTENSIONS: [&str; 9] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif"];
+// const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
 
-#[derive(Clone, Copy, Serialize)]
+// Enough bytes to recognize every supported signature; the file is never decoded.
+const SNIFF_BYTES: usize = 16;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum FileKind {
     Pdf,
@@ -22,9 +27,47 @@ pub struct FileInfo {
     pub kind: FileKind,
 }
 
+fn kind_of(extension: &str) -> FileKind {
+    if PDF_EXTENSIONS.contains(&extension) {
+        FileKind::Pdf
+    } else if IMAGE_EXTENSIONS.contains(&extension) {
+        FileKind::Image
+    } else {
+        FileKind::Other
+    }
+}
+
+// Kind from the file signature (magic numbers).
+pub fn sniff_kind(head: &[u8]) -> FileKind {
+    let starts = |signature: &[u8]| head.starts_with(signature);
+    let ftyp   = head.get(4..8) == Some(b"ftyp") && matches!(head.get(8..12), Some(b"avif" | b"avis"));
+    let webp   = starts(b"RIFF") && head.get(8..12) == Some(b"WEBP");
+
+    if starts(b"%PDF") {
+        FileKind::Pdf
+    } else if starts(&[0x89, b'P', b'N', b'G']) || starts(&[0xFF, 0xD8, 0xFF]) || starts(b"GIF8") || starts(b"BM")
+        || starts(b"II*\0") || starts(b"MM\0*") || webp || ftyp
+    {
+        FileKind::Image
+    } else {
+        FileKind::Other
+    }
+}
+
+fn read_head(path: &Path) -> Vec<u8> {
+    let mut head = Vec::with_capacity(SNIFF_BYTES);
+
+    if let Ok(file) = File::open(path) {
+        let _ = file.take(SNIFF_BYTES as u64).read_to_end(&mut head);
+    }
+
+    head
+}
+
+// Metadata plus the first bytes: the extension says what it should be, the signature confirms it.
 pub fn read(path: &str) -> FileInfo {
     let file_path = Path::new(path);
-    let metadata  = fs::metadata(file_path).ok();
+    let metadata  = file_path.metadata().ok();
     let is_file   = metadata.as_ref().is_some_and(|data| data.is_file());
 
     let name = file_path
@@ -37,7 +80,8 @@ pub fn read(path: &str) -> FileInfo {
         .map(|value| value.to_string_lossy().to_lowercase())
         .unwrap_or_default();
 
-    let kind = if is_file { kind_of(&extension) } else { FileKind::Other };
+    let expected = if is_file { kind_of(&extension) } else { FileKind::Other };
+    let kind     = if expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected { expected } else { FileKind::Other };
 
     FileInfo {
         path: path.to_string(),
@@ -48,12 +92,82 @@ pub fn read(path: &str) -> FileInfo {
     }
 }
 
-fn kind_of(extension: &str) -> FileKind {
-    if PDF_EXTENSIONS.contains(&extension) {
-        FileKind::Pdf
-    } else if IMAGE_EXTENSIONS.contains(&extension) {
-        FileKind::Image
-    } else {
-        FileKind::Other
+// Many files are read in parallel; the order of `paths` is kept.
+pub fn read_all(paths: &[String]) -> Vec<FileInfo> {
+    paths.par_iter().map(|path| read(path)).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{fs, time::Instant};
+
+    use super::*;
+
+    // The previous version: metadata and extension only, one file after another.
+    fn read_by_extension(path: &str) -> FileKind {
+        let file_path = Path::new(path);
+        let is_file   = fs::metadata(file_path).is_ok_and(|data| data.is_file());
+        let extension = file_path.extension().map(|value| value.to_string_lossy().to_lowercase()).unwrap_or_default();
+
+        if is_file { kind_of(&extension) } else { FileKind::Other }
+    }
+
+    fn best_of(runs: usize, mut work: impl FnMut()) -> f64 {
+        (0..runs)
+            .map(|_| {
+                let start = Instant::now();
+                work();
+                start.elapsed().as_secs_f64() * 1000.0
+            })
+            .fold(f64::MAX, f64::min)
+    }
+
+    #[test]
+    fn recognizes_signatures() {
+        assert_eq!(sniff_kind(b"%PDF-1.7"), FileKind::Pdf);
+        assert_eq!(sniff_kind(&[0x89, b'P', b'N', b'G', 13, 10]), FileKind::Image);
+        assert_eq!(sniff_kind(&[0xFF, 0xD8, 0xFF, 0xE0]), FileKind::Image);
+        assert_eq!(sniff_kind(b"RIFF\0\0\0\0WEBPVP8 "), FileKind::Image);
+        assert_eq!(sniff_kind(b"\0\0\0\x1cftypavif"), FileKind::Image);
+        assert_eq!(sniff_kind(b"hola"), FileKind::Other);
+    }
+
+    #[test]
+    fn renamed_text_is_not_an_image() {
+        let folder = std::env::temp_dir().join(format!("glup-file-info-{}", std::process::id()));
+        fs::create_dir_all(&folder).unwrap();
+
+        let fake = folder.join("no-soy-imagen.png");
+        fs::write(&fake, "texto").unwrap();
+
+        assert_eq!(read(fake.to_str().unwrap()).kind, FileKind::Other);
+        let _ = fs::remove_dir_all(&folder);
+    }
+
+    #[test]
+    fn times_fifty_images() {
+        let folder = std::env::temp_dir().join(format!("glup-file-info-bench-{}", std::process::id()));
+        fs::create_dir_all(&folder).unwrap();
+
+        let paths: Vec<String> = (0..50)
+            .map(|index| {
+                let path  = folder.join(format!("foto-{index:02}.png"));
+                let image = image::RgbImage::from_fn(1200, 900, |x, y| image::Rgb([(x % 256) as u8, (y % 256) as u8, (index * 5) as u8]));
+                image.save(&path).unwrap();
+                path.to_string_lossy().into_owned()
+            })
+            .collect();
+
+        let before = best_of(5, || {
+            let _ = paths.iter().map(|path| read_by_extension(path)).collect::<Vec<_>>();
+        });
+        let after = best_of(5, || {
+            let _ = read_all(&paths);
+        });
+
+        println!("\n[get_files_info] 50 imágenes · antes {before:.2} ms (secuencial) · ahora {after:.2} ms (paralelo, con firma)");
+        assert!(read_all(&paths).iter().all(|info| info.kind == FileKind::Image));
+
+        let _ = fs::remove_dir_all(&folder);
     }
 }

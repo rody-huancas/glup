@@ -12,6 +12,16 @@ export const getPieceStyle = (name: PieceName): CSSProperties => {
   };
 };
 
+// Limbs rotate around their own pivot.
+export const getLimbStyle = (name: PieceName): CSSProperties => {
+  const pivot = MASCOT_LAYOUT.pieces[name].pivot;
+
+  return {
+    ...getPieceStyle(name),
+    transformOrigin: pivot ? `${pivot.x}% ${pivot.y}%` : undefined,
+  };
+};
+
 export const getBodyAspectRatio = (): string => `${MASCOT_LAYOUT.base.width} / ${MASCOT_LAYOUT.base.height}`;
 
 export const getVisibilityClass = (visible: boolean): string => (visible ? 'opacity-100' : 'opacity-0');

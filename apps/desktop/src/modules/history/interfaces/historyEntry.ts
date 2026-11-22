@@ -4,7 +4,8 @@ import type { SupportedFileType } from '@/modules/actions/types/fileType';
 export interface HistoryEntry {
   id     : string;
   name   : string;
-  type   : SupportedFileType;
+  path   : string;
+  type   : SupportedFileType | 'zip';
   action : ActionId;
   detail : string;
   date   : string;

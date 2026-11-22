@@ -1,7 +1,15 @@
+pub mod actions;
+pub mod archive;
 pub mod cursor_tracker;
+pub mod destination;
 pub mod file_info;
 pub mod fullscreen_watcher;
+pub mod history;
+pub mod image;
 pub mod island_window;
+pub mod naming;
+pub mod parallel;
+pub mod settings;
 // pub mod main_window;
 pub mod tray;
 pub mod visibility;

@@ -3,10 +3,10 @@ import type { ActionDefinition } from '@/modules/actions/interfaces/actionDefini
 import type { FileInfo } from '@/modules/actions/interfaces/fileInfo';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
 import type { FileCount } from '@/modules/actions/types/fileCount';
-import type { SupportedFileType } from '@/modules/actions/types/fileType';
+import type { SelectionType, SupportedFileType } from '@/modules/actions/types/fileType';
 
 interface ActionsForParams {
-  type  : SupportedFileType;
+  type  : SelectionType;
   count : number;
 }
 
@@ -29,11 +29,13 @@ export const getSelectionType = (files: FileInfo[]): SupportedFileType | null =>
 
 export const getActionsFor = ({ type, count }: ActionsForParams): ActionDefinition[] =>
   ACTIONS
-    .filter((action) => action.fileType === type && matchesCount(action.fileCount, count))
+    .filter((action) => (action.fileType === type || action.fileType === 'any') && matchesCount(action.fileCount, count))
+    // .filter((action) => action.fileType === type && matchesCount(action.fileCount, count))
     .sort((a, b) => Number(b.primary) - Number(a.primary));
 
+// Two or more files of mixed or unsupported kinds still make a selection, with only the actions for any type.
 export const createSelection = ({ paths, files }: CreateSelectionParams): FileSelection | null => {
-  const type = getSelectionType(files);
+  const type = getSelectionType(files) ?? (files.length >= 2 ? 'mixed' : null);
   if (!type) return null;
 
   const actions = getActionsFor({ type, count: files.length });

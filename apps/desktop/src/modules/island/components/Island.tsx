@@ -15,7 +15,7 @@ import { preventSelectionStart } from '@/shared/utils/selection';
 
 // The panel is clipped to the SVG silhouette, so the content and Glup never spill past its outline.
 export const Island = () => {
-  const { state, elements, panel, controls, onMascotClick, onPanelPointerDown } = useIsland();
+  const { state, elements, panel, controls, limbsVisible, onMascotClick, onPanelPointerDown } = useIsland();
   const expanded = state === 'expanded';
 
   return (
@@ -38,6 +38,7 @@ export const Island = () => {
             onStateChange={panel.onAvatarStateChange}
             onClick={onMascotClick}
             reactToDrops={false}
+            limbs={limbsVisible}
           />
         </IslandMascotFlyer>
       </div>

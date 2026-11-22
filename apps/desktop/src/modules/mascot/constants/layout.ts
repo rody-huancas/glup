@@ -17,5 +17,10 @@ export const MASCOT_LAYOUT: MascotLayout = {
     'mouth-wavy'      : { x: 47.056, y: 52.113, w: 12.214 },
     'file-pdf'        : { x: 46.082, y: 62.706, w: 14.085 },
     'file-image'      : { x: 44.676, y: 63.57,  w: 16.898 },
+    'arm-left'        : { x: 8.537,  y: 62.135, w: 14.014, layer: 'behind-body', pivot: { x: 88, y: 35 } },
+    'arm-right'       : { x: 77.439, y: 62.135, w: 13.97,  layer: 'behind-body', pivot: { x: 12, y: 35 } },
+    'arm-wave'        : { x: 81.555, y: 43.369, w: 17.683, layer: 'behind-body', pivot: { x: 12, y: 88 } },
+    'foot-left'       : { x: 26.829, y: 83.403, w: 16.902, layer: 'behind-body', pivot: { x: 50, y: 10 } },
+    'foot-right'      : { x: 55.869, y: 83.403, w: 16.817, layer: 'behind-body', pivot: { x: 50, y: 10 } },
   },
 };
