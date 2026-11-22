@@ -5,13 +5,16 @@ import { HOME_TEXTS } from '@/modules/home/constants/home';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { TaskCard } from '@/modules/tasks/components/TaskCard';
 import { useTasks } from '@/modules/tasks/hooks/useTasks';
+import { tasksForPage } from '@/modules/tasks/utils/taskOwner';
 import { getQueuedCount, getVisibleTask } from '@/modules/tasks/utils/taskView';
 import { PageHeader } from '@/shared/components/PageHeader';
 
 // One full-width column; the drop zone takes the free height, so Home always fills the panel without scrolling.
 // Below it: the files being chosen, otherwise the running task or its result, otherwise the quick tools.
 export const HomePage = ({ files }: PageProps) => {
-  const tasks       = useTasks();
+  // Only the tasks Inicio owns (actions on files); others show on their own screen.
+  const tasks       = tasksForPage(useTasks(), 'home');
+  // const tasks       = useTasks();
   const task        = getVisibleTask(tasks);
   const actionsOpen = Boolean(files.selection || files.loading);
   const showTask    = !actionsOpen && task !== null;

@@ -30,13 +30,18 @@ export const ISLAND_COLORS: Record<VisibleIslandState, IslandColors> = {
   expanded  : { background: 'bg', border: 'line' },
 };
 
+// The lilac dot of a pending file selection, inside the right end of the pill (px).
+export const PILL_DOT = { size: 6, inset: 14 };
+
 // How often the machine is compared with the real window (ms).
 export const ISLAND_WATCHDOG_INTERVAL = 2000;
 
 export const ISLAND_TIMING = {
-  dwell      : 120,
-  dragDwell  : 0,
-  leaveDelay : 350,
+  dwell            : 120,
+  dragDwell        : 0,
+  leaveDelay       : 350,
+  // Reopening after this long goes to Inicio instead of the last section (ms).
+  lastPageLifetime : 10 * 60 * 1000,
   // dwell      : 200,
   // leaveDelay : 600,
   // dwell             : 150,

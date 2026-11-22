@@ -36,10 +36,34 @@ solo traduce cada fase en animación, región y foco.
 | --- | --- |
 | Cursor sobre la pastilla 120 ms | Se infla y se despliega el panel |
 | Archivo arrastrado hacia la pastilla | Se despliega al instante, zona de soltar en mint |
-| Cursor fuera del panel 350 ms | Se recoge (salvo fijada, Glup comiendo o trabajando, o arrastrando) |
+| Cursor fuera del panel 350 ms | Se recoge, aunque haya una tarea en curso (la pastilla muestra su progreso) |
+| La persona está en medio de algo | No se recoge al salir el cursor: fijada, archivo arrastrándose encima, paso con lista o cuadrícula (ordenar, páginas, formato, nivel), pantalla de firma o un diálogo abierto (confirmación de Limpieza, crear firma, selector de archivos o carpetas) |
 | Recoger o Esc | Se recoge con despedida de Glup |
 | Tarea termina con la isla recogida | Aviso ancho 4 s con el resultado |
 | Pantalla completa en el monitor principal | `hidden` |
+
+- Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
+  `drag`, `step`, `sign`, `dialog`), que `useIsland` le envía con el evento `holds`. Un diálogo nuevo
+  la retiene con `useIslandHold(abierto)` o `holdWhile(...)` para los selectores nativos. Que Glup
+  coma o trabaje **no** la retiene.
+- Recoger **no** reinicia la navegación ni el estado de las secciones. Una selección de archivos con
+  sus acciones a la vista (sin ejecutar) queda **pendiente**: la pastilla recogida muestra un puntito
+  lila y, al abrir, Inicio la muestra tal como estaba. Se descarta solo al cerrarla (x o «Volver»), al
+  soltar otros archivos o a los 10 minutos con la isla recogida.
+
+### Pantalla al desplegar
+
+La decide `pickOpenPage` (`modules/tasks/utils/taskOwner.ts`, con pruebas), en este orden:
+
+1. Un archivo arrastrándose: Inicio (es donde se suelta).
+2. Una tarea terminada con la isla recogida y sin ver: su pantalla dueña (la más reciente).
+3. Una selección de archivos pendiente: Inicio, con esos archivos y sus acciones.
+4. Una tarea en curso: la pantalla dueña de la más reciente, con su progreso.
+5. Si no, la última sección en la que estaba la persona, con su estado; si se recogió hace más de
+   10 minutos (`ISLAND_TIMING.lastPageLifetime`), Inicio.
+
+Cada tarea declara su pantalla dueña (`owner`) al encolarse, y cada pantalla muestra solo sus tareas
+(`tasksForPage`).
 
 - **Foco**: `focus: true` en la ventana (sin eso, el drop de archivos no funciona en WebView2). La
   isla no le quita el foco a la app activa al aparecer; lo toma solo con un clic dentro o con acciones

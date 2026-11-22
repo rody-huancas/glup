@@ -40,11 +40,12 @@ export const useMainWindow = (): MainPanelState => {
     avatarRef,
     avatarStatus,
     // Signing keeps the island open until it is saved or cancelled.
-    busy                : files.busy || avatarState.type === 'working' || signMode.target !== null,
+    busy                : files.busy || signMode.target !== null,
     // busy                : files.busy || avatarState.type === 'working',
     navigate            : setPage,
     onAvatarStateChange : setAvatarState,
     reset,
+    discardSelection    : filesClose,
     signing             : signMode.target,
     stopSigning,
   };

@@ -1,4 +1,5 @@
 import type { ActionProgress, ActionReport } from '@/modules/actions/interfaces/actionReport';
+import type { TaskSummary } from '@/modules/tasks/interfaces/taskSummary';
 
 // A task as Rust keeps it (get_active_tasks, task-finished).
 export interface TaskRecord {
@@ -8,4 +9,5 @@ export interface TaskRecord {
   report   : ActionReport | null;
   error    : string | null;
   finished : boolean;
+  summary  : TaskSummary | null;
 }

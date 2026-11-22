@@ -1,5 +1,6 @@
 import type { ActionProgress } from '@/modules/actions/interfaces/actionReport';
 import type { ActionResult } from '@/modules/actions/interfaces/actionResult';
+import type { PageId } from '@/modules/main-window/types/pageId';
 import type { SelectionType } from '@/modules/actions/types/fileType';
 import type { TaskStatus } from '@/modules/tasks/types/taskStatus';
 
@@ -14,4 +15,9 @@ export interface Task {
   progress   : ActionProgress | null;
   result     : ActionResult | null;
   cancelling : boolean;
+  // The screen that shows its progress and result.
+  owner      : PageId;
+  finishedAt : number | null;
+  // When it was queued (the most recent task in progress decides the screen on opening).
+  createdAt  : number;
 }

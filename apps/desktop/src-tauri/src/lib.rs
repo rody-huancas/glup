@@ -4,7 +4,7 @@ mod services;
 use tauri::Manager;
 
 use services::{
-    actions::ActionControl, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
+    actions::ActionControl, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
     settings::SettingsStore, tasks::TaskRegistry, visibility::Visibility,
 };
 
@@ -24,6 +24,7 @@ pub fn run() {
         .manage(ActionControl::default())
         .manage(PageImageSessions::default())
         .manage(TaskRegistry::default())
+        .manage(CleanupState::default())
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
             commands::files::get_files_info,
@@ -37,6 +38,9 @@ pub fn run() {
             commands::actions::get_active_tasks,
             commands::actions::dismiss_task,
             commands::actions::sign_pdf,
+            commands::cleanup::get_disk_space,
+            commands::cleanup::scan_cleanup,
+            commands::cleanup::clean_up,
             commands::signatures::list_signatures,
             commands::signatures::save_signature,
             commands::signatures::delete_signature,

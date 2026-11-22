@@ -14,6 +14,8 @@ export interface MainPanelState {
   navigate            : (page: PageId) => void;
   onAvatarStateChange : (state: MascotState) => void;
   reset               : () => void;
+  // Collapsing only drops a file selection not run yet; sections keep their state.
+  discardSelection    : () => void;
   // The PDF being signed: the panel shows the signing screen, full width.
   signing             : SignTarget | null;
   stopSigning         : () => void;

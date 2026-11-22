@@ -9,6 +9,8 @@ export const useOpenEntry = () => {
   const timer                     = useRef(0);
 
   const open = useCallback((entry: HistoryEntry) => {
+    if (!entry.path) return;
+
     void openFile(entry.path)
       .then((opened) => {
         if (opened) return;

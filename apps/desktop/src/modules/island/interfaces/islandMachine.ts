@@ -1,4 +1,5 @@
 import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
+import type { HoldReason } from '@/modules/island/types/holdReason';
 import type { IslandPhase } from '@/modules/island/types/islandPhase';
 
 export interface IslandMachine {
@@ -14,6 +15,8 @@ export interface IslandMachine {
   notice     : IslandNotice | null;
   // Bumped by every hard reset (tray, watchdog), so the view snaps back to a clean pill.
   resets     : number;
+  // What keeps it open besides the pin; a running task never does (the pill shows its progress).
+  holds      : HoldReason[];
 }
 
 export type IslandEvent =
@@ -26,4 +29,5 @@ export type IslandEvent =
   | { type: 'notice-ended' }
   | { type: 'fullscreen'; on: boolean }
   | { type: 'tray'; hidden: boolean }
-  | { type: 'reset' };
+  | { type: 'reset' }
+  | { type: 'holds'; holds: HoldReason[] };

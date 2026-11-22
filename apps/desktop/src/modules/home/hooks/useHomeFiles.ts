@@ -5,16 +5,21 @@ import { useActionSelection } from '@/modules/actions/hooks/useActionSelection';
 import type { ActionFlow } from '@/modules/actions/interfaces/actionFlow';
 import { pickFiles as openFileDialog } from '@/modules/actions/services/fileDialog';
 import type { ActionId } from '@/modules/actions/types/actionId';
+import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import { useChewing } from '@/modules/home/hooks/useChewing';
 import { useDropZoneGestures } from '@/modules/home/hooks/useDropZoneGestures';
 // import { useEatingSequence } from '@/modules/home/hooks/useEatingSequence';
 import type { HomeFiles } from '@/modules/home/interfaces/homeFiles';
 import type { QuickTool } from '@/modules/home/interfaces/quickTool';
+import { holdWhile } from '@/modules/island/store/islandHolds';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { useSaveLocation } from '@/modules/settings/hooks/useSaveLocation';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
+
+// Steps with a list, a grid or a choice: the person is in the middle of them.
+const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce'];
 
 interface UseHomeFilesParams {
   commandAvatar   : (state: MascotState) => void;
@@ -26,7 +31,9 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // const [showActions, setShowActions] = useState(false);
-  const [dropState, setDropState]     = useState<MascotState>(IDLE_STATE);
+  // Glup eating no longer keeps the island open, so only the setter is used.
+  const [, setDropState]              = useState<MascotState>(IDLE_STATE);
+  // const [dropState, setDropState]     = useState<MascotState>(IDLE_STATE);
   const dropMascotRef                 = useRef<MascotController | null>(null);
   const noticeTimer                   = useRef(0);
   const discardRef                    = useRef<() => void>(() => undefined);
@@ -98,14 +105,14 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
   useFileDrop(dropHandlers);
 
   const pickFiles = useCallback(() => {
-    void openFileDialog({ type: 'any', multiple: true }).then((paths) => {
+    void holdWhile(() => openFileDialog({ type: 'any', multiple: true })).then((paths) => {
       if (paths.length > 0) void handlePaths(paths);
     });
   }, [handlePaths]);
 
   // Quick tools go through the same flow (Glup eats the files) and then pick their action on their own.
   const runTool = useCallback((tool: QuickTool) => {
-    void openFileDialog({ type: tool.fileType, multiple: tool.multiple }).then((paths) => {
+    void holdWhile(() => openFileDialog({ type: tool.fileType, multiple: tool.multiple })).then((paths) => {
       if (paths.length === 0) return;
 
       pendingAction.current = tool.actionId;
@@ -171,7 +178,9 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
     phase                   : actions.phase,
     flow,
     // The order list and the page grid keep the island open while the cursor moves around.
-    busy                    : dropState.type === 'eating' || ['working', 'order', 'pages'].includes(actions.phase) || actions.pending !== null || saveLocation.picking,
+    // Needs the person: a step with a list or a choice, or the folder picker. Glup eating or working no longer holds it.
+    busy                    : STEP_PHASES.includes(actions.phase) || saveLocation.picking,
+    // busy                    : dropState.type === 'eating' || ['working', 'order', 'pages'].includes(actions.phase) || actions.pending !== null || saveLocation.picking,
     // busy                    : dropState.type === 'eating' || actions.phase === 'working' || actions.pending !== null || saveLocation.picking,
     // busy                    : dropState.type === 'eating' || actions.phase === 'working',
     dropMascotRef,

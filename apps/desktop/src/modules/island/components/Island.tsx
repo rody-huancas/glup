@@ -2,6 +2,7 @@ import { IslandContent } from '@/modules/island/components/IslandContent';
 import { IslandMascotFlyer } from '@/modules/island/components/IslandMascotFlyer';
 import { IslandNoticeView } from '@/modules/island/components/IslandNoticeView';
 import { IslandPillAnchor } from '@/modules/island/components/IslandPillAnchor';
+import { IslandPillDot } from '@/modules/island/components/IslandPillDot';
 import { IslandPillProgress } from '@/modules/island/components/IslandPillProgress';
 import { IslandSilhouette } from '@/modules/island/components/IslandSilhouette';
 import { ISLAND_SHAPES } from '@/modules/island/constants/islandShape';
@@ -17,7 +18,7 @@ import { preventSelectionStart } from '@/shared/utils/selection';
 
 // The panel is clipped to the SVG silhouette, so the content and Glup never spill past its outline.
 export const Island = () => {
-  const { state, elements, panel, controls, limbsVisible, notice, progress, onMascotClick, onPanelPointerDown } = useIsland();
+  const { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection, onMascotClick, onPanelPointerDown } = useIsland();
   const expanded = state === 'expanded';
 
   return (
@@ -36,6 +37,7 @@ export const Island = () => {
         <IslandPillAnchor anchorRef={elements.pillAnchor} />
         <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={notice} />
         <IslandPillProgress visible={progress.visible} fraction={progress.fraction} />
+        <IslandPillDot visible={pendingSelection && notice === null} />
         <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash} hidden={panel.signing !== null}>
           <Mascot
             controllerRef={panel.avatarRef}

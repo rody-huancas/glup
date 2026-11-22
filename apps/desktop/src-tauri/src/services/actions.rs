@@ -147,7 +147,8 @@ pub struct ActionProgress {
 // Shared cancel flag: files in progress always finish, new ones are not started.
 #[derive(Default)]
 pub struct ActionControl {
-    cancelled: AtomicBool,
+    // Shared with Limpieza, which runs through the same task queue.
+    pub cancelled: AtomicBool,
 }
 
 struct Saved {

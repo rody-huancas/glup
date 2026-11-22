@@ -4,13 +4,18 @@ import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
 import { useIslandMachine } from '@/modules/island/hooks/useIslandMachine';
 import { useIslandSignals } from '@/modules/island/hooks/useIslandSignals';
 import { useIslandTimeline } from '@/modules/island/hooks/useIslandTimeline';
+import { useIslandHolds } from '@/modules/island/hooks/useIslandHolds';
 import { useIslandWatchdog } from '@/modules/island/hooks/useIslandWatchdog';
 import { createIslandElements } from '@/modules/island/utils/elements';
-import { hoverEnabled, toIslandState } from '@/modules/island/utils/islandMachine';
+import { ISLAND_TIMING } from '@/modules/island/constants/island';
+import type { HoldReason } from '@/modules/island/types/holdReason';
+import { hoverEnabled, isHeldOpen, toIslandState } from '@/modules/island/utils/islandMachine';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { useTaskTransitions } from '@/modules/tasks/hooks/useTaskTransitions';
 import { useTasks } from '@/modules/tasks/hooks/useTasks';
+import { getTasks, markForReveal, takeReveals } from '@/modules/tasks/store/taskStore';
+import { pickOpenPage } from '@/modules/tasks/utils/taskOwner';
 import type { Task } from '@/modules/tasks/interfaces/task';
 import { getRunningTask, getTaskFraction } from '@/modules/tasks/utils/taskView';
 import { useKeyDown } from '@/shared/hooks/useKeyDown';
@@ -22,12 +27,16 @@ export const useIsland = () => {
   const { machine, send } = useIslandMachine();
   const elements          = useMemo(createIslandElements, []);
   const panel             = useMainWindow();
-  const resetRef          = useRef(panel.reset);
+  // Collapsing, hiding or a reset keep everything, even a file selection not run yet (it waits as
+  // pending and expires after a while); resetRef only drops that selection.
+  const resetRef          = useRef(panel.discardSelection);
+  // const resetRef          = useRef(panel.reset);
   const state             = toIslandState(machine.phase);
+  const collapsedAt       = useRef<number | null>(null);
 
   useEffect(() => {
-    resetRef.current = panel.reset;
-  }, [panel.reset]);
+    resetRef.current = panel.discardSelection;
+  }, [panel.discardSelection]);
 
   const { takeFocus, releaseFocus } = useIslandFocus();
   const { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving } = useIslandTimeline({ elements, mascotRef: panel.avatarRef });
@@ -44,7 +53,7 @@ export const useIsland = () => {
     if (machine.resets === 0) return;
 
     releaseFocus();
-    resetRef.current();
+    // resetRef.current();
     void hide();
   }, [machine.resets, releaseFocus, hide]);
 
@@ -59,14 +68,15 @@ export const useIsland = () => {
       void transitionTo('collapsed', machine.farewell).then((done) => {
         if (!done) return;
 
-        resetRef.current();
+        // resetRef.current();
+        collapsedAt.current = Date.now();
         send({ type: 'settled', phase: 'collapsed' });
       });
     }
 
     if (machine.phase === 'hidden') {
       releaseFocus();
-      resetRef.current();
+      // resetRef.current();
       void hide();
     }
   }, [machine.phase, machine.farewell, transitionTo, releaseFocus, hide, send]);
@@ -91,11 +101,27 @@ export const useIsland = () => {
     if (machine.phase === 'collapsed') hover(hovering);
   }, [machine.phase, hovering, hover]);
 
+  // What the person is in the middle of keeps it open (the machine decides, see isHeldOpen).
+  const dialogs = useIslandHolds();
+  const holds   = useMemo(() => {
+    const reasons: HoldReason[] = [];
+    if (dragging) reasons.push('drag');
+    if (panel.files.busy) reasons.push('step');
+    if (panel.signing) reasons.push('sign');
+    if (dialogs > 0) reasons.push('dialog');
+    return reasons;
+  }, [dragging, panel.files.busy, panel.signing, dialogs]);
+
+  useEffect(() => {
+    send({ type: 'holds', holds });
+  }, [holds, send]);
+
   useIslandAutoToggle({
     state,
     inside   : hovering,
     dragging,
-    blocked  : machine.pinned || dragging || panel.busy,
+    blocked  : isHeldOpen(machine),
+    // blocked  : machine.pinned || dragging || panel.busy,
     expand   : expandOnHover,
     collapse : collapseOnLeave,
   });
@@ -119,9 +145,65 @@ export const useIsland = () => {
   const tasks   = useTasks();
   const running = getRunningTask(tasks);
 
+  const phaseRef = useRef(machine.phase);
+
+  useEffect(() => {
+    phaseRef.current = machine.phase;
+  }, [machine.phase]);
+
+  // A task that ends with the island collapsed: the next opening (hovering its notice included) shows
+  // its owner screen.
   const onTaskFinish = useCallback((task: Task) => {
+    if (toIslandState(phaseRef.current) === 'collapsed') markForReveal(task.id);
+    // if (toIslandState(phaseRef.current) === 'collapsed' && isCleanupScanTask(task.id)) requestCleanupReveal();
     if (task.result) send({ type: 'notice', notice: { message: task.result.message, tone: task.result.tone } });
   }, [send]);
+
+  // Dropped files whose actions were not run wait while collapsed (a lilac dot on the pill), for
+  // ISLAND_TIMING.lastPageLifetime at most.
+  const pending = panel.files.selection !== null;
+
+  useEffect(() => {
+    if (state !== 'collapsed' || !pending) return;
+
+    const timer = window.setTimeout(() => resetRef.current(), ISLAND_TIMING.lastPageLifetime);
+    return () => window.clearTimeout(timer);
+  }, [state, pending]);
+
+  const pendingRef = useRef(pending);
+
+  useEffect(() => {
+    pendingRef.current = pending;
+  }, [pending]);
+
+  const navigate    = panel.navigate;
+  const pageRef     = useRef(panel.page);
+  const draggingRef = useRef(dragging);
+
+  useEffect(() => {
+    pageRef.current     = panel.page;
+    draggingRef.current = dragging;
+  }, [panel.page, dragging]);
+
+  // On opening, the screen that matters now (see pickOpenPage).
+  useEffect(() => {
+    if (machine.phase !== 'expanding') return;
+
+    const page = pickOpenPage({
+      dragging    : draggingRef.current,
+      reveals     : takeReveals(),
+      pending     : pendingRef.current,
+      tasks       : getTasks(),
+      current     : pageRef.current,
+      collapsedAt : collapsedAt.current,
+      now         : Date.now(),
+      lifetime    : ISLAND_TIMING.lastPageLifetime,
+    });
+
+    if (page !== pageRef.current) navigate(page);
+    // const page = takeRevealPage();
+    // if (page) navigate(page);
+  }, [machine.phase, navigate]);
 
   useTaskTransitions({ tasks, onFinish: onTaskFinish });
 
@@ -139,7 +221,7 @@ export const useIsland = () => {
     [machine.pinned, togglePin, collapseNow],
   );
 
-  return { state, elements, panel, controls, limbsVisible, notice, progress, onMascotClick, onPanelPointerDown };
+  return { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection: state === 'collapsed' && pending, onMascotClick, onPanelPointerDown };
 };
 
 // Previous version: state, pinned and locked as separate useState, transitions called directly from the

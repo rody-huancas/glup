@@ -32,7 +32,7 @@ src/
 ```
 
 Módulos actuales: `island` (la isla y su máquina de estados), `mascot` (Glup y sus animaciones),
-`main-window` (el layout del panel), `home`, `actions`, `tasks`, `pdf`, `sign`, `history`,
+`main-window` (el layout del panel), `home`, `actions`, `tasks`, `pdf`, `sign`, `cleanup`, `history`,
 `settings`, `tools`. Se crean **solo las subcarpetas que se usan**.
 
 ## Reglas obligatorias

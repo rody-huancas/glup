@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import { getIslandArea } from '@/modules/island/utils/islandArea';
 import { getToggleDelay } from '@/modules/island/utils/collapseDelay';
-import { areaKindFor, checkInvariants, INITIAL_MACHINE, islandReducer, toIslandState } from '@/modules/island/utils/islandMachine';
+import { areaKindFor, checkInvariants, INITIAL_MACHINE, isHeldOpen, islandReducer, toIslandState } from '@/modules/island/utils/islandMachine';
 
 const NOTICE = { message: 'Listo · contrato.pdf', tone: 'success' as const };
 
@@ -49,13 +49,32 @@ describe('island machine', () => {
   });
 
   it('closes after leaving the signing screen and still shows the queued task result', () => {
-    const signing = run([...OPEN, { type: 'expand', pin: true }, { type: 'pointer', inside: false }]);
-    // While signing the panel is busy: leaving does not close it.
-    expect(getToggleDelay({ state: toIslandState(signing.phase), inside: false, dragging: false, blocked: true })).toBeNull();
+    const signing = run([...OPEN, { type: 'holds', holds: ['sign'] }, { type: 'pointer', inside: false }]);
+    // While signing, leaving does not close it.
+    expect(isHeldOpen(signing)).toBe(true);
+    expect(getToggleDelay({ state: toIslandState(signing.phase), inside: false, dragging: false, blocked: isHeldOpen(signing) })).toBeNull();
 
-    const closed = run([{ type: 'collapse', farewell: false }, { type: 'settled', phase: 'collapsed' }, { type: 'notice', notice: NOTICE }], signing);
+    const left   = run([{ type: 'holds', holds: [] }], signing);
+    const closed = run([{ type: 'collapse', farewell: false }, { type: 'settled', phase: 'collapsed' }, { type: 'notice', notice: NOTICE }], left);
     expect(closed.phase).toBe('notice');
     expect(closed.pinned).toBe(false);
+  });
+
+  it('closes on leave while a task runs: only the person being in the middle of something holds it', () => {
+    const working = run([...OPEN, { type: 'pointer', inside: false }]);
+    expect(isHeldOpen(working)).toBe(false);
+    expect(getToggleDelay({ state: toIslandState(working.phase), inside: false, dragging: false, blocked: isHeldOpen(working) })).not.toBeNull();
+
+    for (const hold of ['drag', 'step', 'sign', 'dialog'] as const) {
+      expect(isHeldOpen(run([{ type: 'holds', holds: [hold] }], working))).toBe(true);
+    }
+
+    expect(isHeldOpen(run([{ type: 'pin-toggled' }], working))).toBe(true);
+  });
+
+  it('still closes on purpose (Esc, Recoger) while held', () => {
+    const held = run([...OPEN, { type: 'holds', holds: ['step'] }, { type: 'collapse', farewell: true }]);
+    expect(held.phase).toBe('collapsing');
   });
 
   it('drops a stale settle after a fullscreen app hides it mid-animation', () => {
@@ -106,6 +125,8 @@ describe('island machine', () => {
       { type: 'tray', hidden: true },
       { type: 'tray', hidden: false },
       { type: 'reset' },
+      { type: 'holds', holds: ['dialog'] },
+      { type: 'holds', holds: [] },
     ];
 
     let seed    = 7;
