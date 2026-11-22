@@ -3,22 +3,24 @@ import type { Dispatch, SetStateAction } from 'react';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import { usePointerDrag } from '@/modules/mascot/hooks/usePointerDrag';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
-import { getFileKind } from '@/modules/mascot/utils/fileKind';
+// import { getFileKind } from '@/modules/mascot/utils/fileKind';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 export const useMascotInteractions = (setState: Dispatch<SetStateAction<MascotState>>) => {
   const onClick = useCallback(() => setState({ type: 'happy' }), [setState]);
 
+  // The drop reaction (eating or confused) is decided by the island, which validates the files first.
   const dropHandlers = useMemo(
     () => ({
       onEnter : () => setState({ type: 'alert' }),
       onLeave : () => setState(IDLE_STATE),
-      onDrop  : (paths: string[]) => {
-        console.log('Dropped paths:', paths);
-
-        const kind = paths[0] ? getFileKind(paths[0]) : null;
-        setState(kind ? { type: 'eating', kind } : { type: 'confused' });
-      },
+      onDrop  : () => undefined,
+      // onDrop  : (paths: string[]) => {
+      //   console.log('Dropped paths:', paths);
+      //
+      //   const kind = paths[0] ? getFileKind(paths[0]) : null;
+      //   setState(kind ? { type: 'eating', kind } : { type: 'confused' });
+      // },
     }),
     [setState],
   );
