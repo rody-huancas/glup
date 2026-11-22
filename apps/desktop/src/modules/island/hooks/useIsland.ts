@@ -3,6 +3,7 @@ import { useIslandAutoToggle } from '@/modules/island/hooks/useIslandAutoToggle'
 import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
 import { useIslandMachine } from '@/modules/island/hooks/useIslandMachine';
 import { useIslandSignals } from '@/modules/island/hooks/useIslandSignals';
+import { useLaunchOpen } from '@/modules/island/hooks/useLaunchOpen';
 import { useIslandTimeline } from '@/modules/island/hooks/useIslandTimeline';
 import { useIslandHolds } from '@/modules/island/hooks/useIslandHolds';
 import { useIslandWatchdog } from '@/modules/island/hooks/useIslandWatchdog';
@@ -90,6 +91,8 @@ export const useIsland = () => {
   const onTrayVisibility  = useCallback((hidden: boolean) => send({ type: 'tray', hidden }), [send]);
 
   const { inside, dragging } = useIslandSignals({ onFullscreenEnter, onFullscreenExit, onOpenRequest: openPinned, onTrayVisibility });
+
+  useLaunchOpen({ onOpen: openPinned });
 
   useEffect(() => {
     send({ type: 'pointer', inside });
