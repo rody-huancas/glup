@@ -59,7 +59,11 @@ solo traduce cada fase en animación, región y foco.
   bandeja, siempre con el estado real del sistema): Windows lo abre con `--autostart` y Glup arranca
   como la pastilla recogida, sin desplegarse ni hacer ruido.
 - **Abierto a mano** (menú Inicio, acceso directo, sin `--autostart`; `useLaunchOpen`): la isla se
-  despliega fijada al arrancar, como «Abrir Glup», para que se note que se abrió.
+  despliega fijada al arrancar, como «Abrir Glup», para que se note que se abrió. Lo decide Rust una
+  sola vez por proceso (`take_launch_open` devuelve true solo la primera vez): el webview puede
+  recargarse (Vite en dev, una recuperación) y el frontend nunca decide por su cuenta que es el arranque.
+- **Instancia única:** solo despliega cuando de verdad se intenta abrir otro Glup, y no si ese segundo
+  arranque trae `--autostart`.
 - **Bienvenida, solo la primera vez** (sin `settings.json` previo y sin `--autostart`; lo decide
   `shouldShowWelcome` en `modules/welcome/utils/welcome.ts`): la isla se despliega sola y una pantalla
   cubre el panel con Glup grande saludando, «¡Hola! Soy Glup.» y la pregunta «¿Quieres que esté
