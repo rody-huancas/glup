@@ -11,5 +11,7 @@ export const createIslandElements = (): IslandElements => ({
   flyer        : createRef(),
   squash       : createRef(),
   pillAnchor   : createRef(),
+  noticeAnchor : createRef(),
+  noticeText   : createRef(),
   avatarAnchor : createRef(),
 });

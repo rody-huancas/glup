@@ -15,6 +15,9 @@ export const SETTLE_SHAPE: ShapeSize = { width: 155, height: 29 };
 // export const SETTLE_SHAPE: ShapeSize = { width: 126, height: 22 };
 
 // About 0.9 of the collapsed pill.
+// "Live activity" when a task ends with the island collapsed: a wider pill with Glup and the result.
+export const NOTICE_SHAPE: IslandShape = { width: 260, height: 40, earRadius: 12, bottomRadius: 16 };
+
 export const ANTICIPATION_SHAPE: ShapeSize = { width: 133, height: 29 };
 // export const ANTICIPATION_SHAPE: ShapeSize = { width: 108, height: 20 };
 

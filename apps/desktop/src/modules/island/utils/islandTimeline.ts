@@ -2,10 +2,11 @@ import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import { ISLAND_COLORS } from '@/modules/island/constants/island';
 import { MASCOT_MOTION } from '@/modules/island/constants/islandMascot';
-import { ANTICIPATION_SHAPE, HOVER_SHAPE, ISLAND_SHAPES, SETTLE_SHAPE } from '@/modules/island/constants/islandShape';
+import { ANTICIPATION_SHAPE, HOVER_SHAPE, ISLAND_SHAPES, NOTICE_SHAPE, SETTLE_SHAPE } from '@/modules/island/constants/islandShape';
 import {
   CLOSE_MOTION,
   HOVER_MOTION,
+  NOTICE_MOTION,
   OPEN_MOTION,
   REDUCED_MOTION,
   REVEAL_BLOCKS,
@@ -250,4 +251,19 @@ export const setCollapsedPose = ({ elements, shape, onRender }: IslandPoseParams
   gsap.set(targets.lift, { y: 0 });
   gsap.set(targets.squash, { scaleX: 1, scaleY: 1, rotation: 0 });
   gsap.set(targets.flyer, getFitVars(targets.flyer, targets.pillAnchor));
+};
+
+// Live notice: the pill grows (same elastic as the panel), Glup moves to its left end and the result shows.
+// Reversing it brings everything back to the pill.
+export const buildNoticeTimeline = ({ elements, shape, onRender }: IslandPoseParams): gsap.core.Timeline | null => {
+  const [flyer, anchor, text] = [elements.flyer.current, elements.noticeAnchor.current, elements.noticeText.current];
+  if (!flyer || !anchor || !text) return null;
+
+  const { grow, flight, text: reveal } = NOTICE_MOTION;
+
+  return gsap
+    .timeline({ paused: true, onUpdate: onRender })
+    .to(shape, { ...NOTICE_SHAPE, duration: grow.duration, ease: grow.ease }, 0)
+    .to(flyer, { ...getFitVars(flyer, anchor), duration: flight.duration, ease: flight.ease }, 0)
+    .fromTo(text, { opacity: 0, x: -6 }, { opacity: 1, x: 0, duration: reveal.duration, ease: reveal.ease }, reveal.delay);
 };
