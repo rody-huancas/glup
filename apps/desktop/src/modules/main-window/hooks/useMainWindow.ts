@@ -9,6 +9,7 @@ import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { useSignMode } from '@/modules/sign/hooks/useSignMode';
 import { useTaskMood } from '@/modules/tasks/hooks/useTaskMood';
+import { useWelcome } from '@/modules/welcome/hooks/useWelcome';
 
 export const useMainWindow = (): MainPanelState => {
   const [page, setPage]               = useState<PageId>(DEFAULT_PAGE);
@@ -22,6 +23,8 @@ export const useMainWindow = (): MainPanelState => {
   // const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome });
 
   useTaskMood(commandAvatar);
+
+  const welcome = useWelcome({ onDone: showHome });
 
   const avatarStatus  = useMemo(() => getMascotStatus(avatarState), [avatarState]);
   const filesClose    = files.close;
@@ -48,5 +51,6 @@ export const useMainWindow = (): MainPanelState => {
     discardSelection    : filesClose,
     signing             : signMode.target,
     stopSigning,
+    welcome,
   };
 };
