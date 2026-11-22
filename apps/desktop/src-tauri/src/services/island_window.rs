@@ -23,3 +23,14 @@ pub fn resize(window: &WebviewWindow, size: IslandSize) -> Result<()> {
     window.set_size(LogicalSize::new(size.width, size.height))?;
     center_top(window)
 }
+
+// The island never takes focus on its own; the actions panel borrows it so Esc can close it.
+pub fn set_focus(window: &WebviewWindow, focused: bool) -> Result<()> {
+    window.set_focusable(focused)?;
+
+    if focused {
+        window.set_focus()?;
+    }
+
+    Ok(())
+}
