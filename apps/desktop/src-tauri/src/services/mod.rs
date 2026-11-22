@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod archive;
+pub mod cleanup;
 pub mod cursor_tracker;
 pub mod destination;
 pub mod file_info;
