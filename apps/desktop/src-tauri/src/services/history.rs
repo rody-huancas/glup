@@ -39,6 +39,14 @@ pub struct NewEntryParams<'a> {
     pub detail: String,
 }
 
+// An entry with no file to open (Limpieza).
+pub struct FilelessEntryParams<'a> {
+    pub name: &'a str,
+    pub kind: &'a str,
+    pub action: &'a str,
+    pub detail: String,
+}
+
 // Serializes reads and writes of history.json.
 #[derive(Default)]
 pub struct HistoryStore(Mutex<()>);
@@ -109,6 +117,21 @@ pub fn new_entry(params: NewEntryParams) -> HistoryEntry {
         id,
         name   : params.output.file_name().map(|value| value.to_string_lossy().into_owned()).unwrap_or_default(),
         path   : params.output.to_string_lossy().into_owned(),
+        kind   : params.kind.to_string(),
+        action : params.action.to_string(),
+        detail : params.detail,
+        date   : now.to_rfc3339(),
+    }
+}
+
+pub fn fileless_entry(params: FilelessEntryParams) -> HistoryEntry {
+    let now = Local::now();
+    let id  = format!("{}-{}", now.timestamp_millis(), NEXT_ID.fetch_add(1, Ordering::Relaxed));
+
+    HistoryEntry {
+        id,
+        name   : params.name.to_string(),
+        path   : String::new(),
         kind   : params.kind.to_string(),
         action : params.action.to_string(),
         detail : params.detail,
