@@ -30,4 +30,6 @@ export interface ActionProgress {
   total   : number;
   name    : string;
   active  : number;
+  // Replaces "N de M" when the progress is not counted in files ("12 MB de 109 MB").
+  detail? : string | null;
 }
