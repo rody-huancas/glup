@@ -1,5 +1,7 @@
 import { createRef } from 'react';
-import type { MascotElements } from '@/modules/mascot/interfaces/elements';
+import type { LimbElements, MascotElements } from '@/modules/mascot/interfaces/elements';
+
+const createLimb = (): LimbElements => ({ sway: createRef(), move: createRef() });
 
 export const createMascotElements = (): MascotElements => ({
   breath   : createRef(),
@@ -17,5 +19,12 @@ export const createMascotElements = (): MascotElements => ({
   files: {
     pdf   : createRef(),
     image : createRef(),
+  },
+  limbs: {
+    'arm-left'   : createLimb(),
+    'arm-right'  : createLimb(),
+    'arm-wave'   : createLimb(),
+    'foot-left'  : createLimb(),
+    'foot-right' : createLimb(),
   },
 });
