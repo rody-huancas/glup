@@ -106,15 +106,21 @@ export const useIsland = () => {
   const holds   = useMemo(() => {
     const reasons: HoldReason[] = [];
     if (dragging) reasons.push('drag');
-    if (panel.files.busy) reasons.push('step');
+    // The welcome is a step too: it does not close on its own while on screen.
+    if (panel.files.busy || panel.welcome.visible) reasons.push('step');
     if (panel.signing) reasons.push('sign');
     if (dialogs > 0) reasons.push('dialog');
     return reasons;
-  }, [dragging, panel.files.busy, panel.signing, dialogs]);
+  }, [dragging, panel.files.busy, panel.welcome.visible, panel.signing, dialogs]);
 
   useEffect(() => {
     send({ type: 'holds', holds });
   }, [holds, send]);
+
+  // First run: the island opens by itself on the welcome.
+  useEffect(() => {
+    if (panel.welcome.visible) send({ type: 'expand', pin: false });
+  }, [panel.welcome.visible, send]);
 
   useIslandAutoToggle({
     state,
