@@ -30,6 +30,9 @@ export const ISLAND_COLORS: Record<VisibleIslandState, IslandColors> = {
   expanded  : { background: 'bg', border: 'line' },
 };
 
+// How often the machine is compared with the real window (ms).
+export const ISLAND_WATCHDOG_INTERVAL = 2000;
+
 export const ISLAND_TIMING = {
   dwell      : 120,
   dragDwell  : 0,
