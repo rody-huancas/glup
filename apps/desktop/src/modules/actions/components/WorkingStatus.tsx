@@ -11,10 +11,12 @@ interface WorkingStatusProps {
 }
 
 // One file: indeterminate bar. Several: the bar advances as files finish, with "N de M" and how many run at once
-// (or the current name when they go one by one).
+// (or the current name when they go one by one). A download shows "12 MB de 109 MB" instead.
 export const WorkingStatus = ({ progress, fileCount, cancelling, onCancel }: WorkingStatusProps) => {
   const several = fileCount > 1;
   const done    = progress?.current ?? 0;
+  const detail  = progress?.detail ?? null;
+  const value   = detail && progress && progress.total > 0 ? progress.current / progress.total : several ? done / fileCount : null;
   // const finished = progress ? progress.current - 1 : 0;
 
   return (
@@ -25,8 +27,10 @@ export const WorkingStatus = ({ progress, fileCount, cancelling, onCancel }: Wor
           {ACTIONS_TEXTS.cancel}
         </Button>
       </div>
-      <ProgressBar value={several ? done / fileCount : null} />
-      {several && progress && (
+      <ProgressBar value={value} />
+      {/* <ProgressBar value={several ? done / fileCount : null} /> */}
+      {detail && <span className="text-[11px] text-muted">{detail}</span>}
+      {several && progress && !detail && (
         <div className="flex items-center justify-between gap-3 text-[11px] text-muted">
           <span className="min-w-0 truncate">{progress.active > 1 ? ACTIONS_TEXTS.parallel(progress.active) : progress.name}</span>
           <span className="shrink-0">{ACTIONS_TEXTS.progressCount(progress.current, progress.total)}</span>
