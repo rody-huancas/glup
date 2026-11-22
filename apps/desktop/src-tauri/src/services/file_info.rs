@@ -3,6 +3,8 @@ use std::{fs::File, io::Read, path::Path};
 use rayon::prelude::*;
 use serde::Serialize;
 
+use crate::services::pdf::info;
+
 const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
 const IMAGE_EXTENSIONS: [&str; 9] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif"];
 // const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
@@ -25,6 +27,9 @@ pub struct FileInfo {
     pub extension: String,
     pub size: u64,
     pub kind: FileKind,
+    // PDFs only: page count and whether a password is needed to open it.
+    pub pages: Option<u32>,
+    pub protected: bool,
 }
 
 fn kind_of(extension: &str) -> FileKind {
@@ -83,12 +88,16 @@ pub fn read(path: &str) -> FileInfo {
     let expected = if is_file { kind_of(&extension) } else { FileKind::Other };
     let kind     = if expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected { expected } else { FileKind::Other };
 
+    let pdf = if kind == FileKind::Pdf { info::read(file_path) } else { None };
+
     FileInfo {
         path: path.to_string(),
         name,
         extension,
         size: metadata.map(|data| data.len()).unwrap_or(0),
         kind,
+        pages: pdf.as_ref().map(|data| data.pages).filter(|pages| *pages > 0),
+        protected: pdf.is_some_and(|data| data.protected),
     }
 }
 
