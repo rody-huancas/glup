@@ -25,6 +25,34 @@
   --radius-panel   : 26px;
 }
 
+@keyframes shimmer {
+  from { background-position : 100% 0; }
+  to   { background-position : -100% 0; }
+}
+
+@keyframes indeterminate {
+  from { transform : translateX(-100%); }
+  to   { transform : translateX(300%); }
+}
+
+/* Skeleton blocks: a soft light sweep from raised to line-strong. */
+@utility shimmer {
+  background-image : linear-gradient(90deg, var(--color-raised) 25%, var(--color-line-strong) 50%, var(--color-raised) 75%);
+  background-size  : 200% 100%;
+  animation        : shimmer 1.4s ease-in-out infinite;
+}
+
+@utility animate-indeterminate {
+  animation : indeterminate 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer,
+  .animate-indeterminate {
+    animation : none;
+  }
+}
+
 @utility scroll-thin {
   scrollbar-width : thin;
   scrollbar-color : var(--color-line-strong) transparent;
