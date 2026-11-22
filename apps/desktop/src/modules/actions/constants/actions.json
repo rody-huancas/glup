@@ -1,0 +1,11 @@
+[
+  { "id": "compress", "label": "Comprimir", "fileType": "pdf", "fileCount": "single", "primary": true },
+  { "id": "sign", "label": "Firmar", "fileType": "pdf", "fileCount": "single", "primary": false },
+  { "id": "split-pages", "label": "Separar páginas", "fileType": "pdf", "fileCount": "single", "primary": false },
+  { "id": "to-images", "label": "A imágenes", "fileType": "pdf", "fileCount": "single", "primary": false },
+  { "id": "merge", "label": "Unir", "fileType": "pdf", "fileCount": "multiple", "primary": true },
+  { "id": "compress", "label": "Comprimir", "fileType": "pdf", "fileCount": "multiple", "primary": false },
+  { "id": "convert", "label": "Convertir", "fileType": "image", "fileCount": "any", "primary": true },
+  { "id": "compress", "label": "Comprimir", "fileType": "image", "fileCount": "any", "primary": false },
+  { "id": "remove-background", "label": "Quitar fondo", "fileType": "image", "fileCount": "any", "primary": false }
+]
