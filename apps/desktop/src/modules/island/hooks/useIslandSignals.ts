@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FULLSCREEN_CHANGED_EVENT, ISLAND_ZONE_EVENT } from '@/shared/constants/events';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
@@ -6,12 +6,17 @@ import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
 interface UseIslandSignalsParams {
   onFullscreenEnter : () => void;
   onFullscreenExit  : () => void;
+  onDrop            : (paths: string[]) => void;
 }
 
-export const useIslandSignals = ({ onFullscreenEnter, onFullscreenExit }: UseIslandSignalsParams) => {
-  const [inside, setInside]           = useState(false);
-  const [dragging, setDragging]       = useState(false);
-  const [dropPending, setDropPending] = useState(false);
+export const useIslandSignals = ({ onFullscreenEnter, onFullscreenExit, onDrop }: UseIslandSignalsParams) => {
+  const [inside, setInside]     = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const dropRef                 = useRef(onDrop);
+
+  useEffect(() => {
+    dropRef.current = onDrop;
+  }, [onDrop]);
 
   useTauriEvent<boolean>(ISLAND_ZONE_EVENT, setInside);
 
@@ -26,9 +31,9 @@ export const useIslandSignals = ({ onFullscreenEnter, onFullscreenExit }: UseIsl
     () => ({
       onEnter : () => setDragging(true),
       onLeave : () => setDragging(false),
-      onDrop  : () => {
+      onDrop  : (paths: string[]) => {
         setDragging(false);
-        setDropPending(true);
+        dropRef.current(paths);
       },
     }),
     [],
@@ -36,7 +41,5 @@ export const useIslandSignals = ({ onFullscreenEnter, onFullscreenExit }: UseIsl
 
   useFileDrop(dropHandlers);
 
-  const clearDropPending = useCallback(() => setDropPending(false), []);
-
-  return { inside, dragging, dropPending, clearDropPending };
+  return { inside, dragging };
 };
