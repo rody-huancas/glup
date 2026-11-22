@@ -15,15 +15,12 @@ export interface MascotPose {
   scale : number;
 }
 
-export interface Insets {
-  top    : number;
-  right  : number;
-  bottom : number;
-  left   : number;
-}
-
 export interface IslandLayout {
   target : VisibleIslandState;
   size   : IslandSize;
-  pose   : MascotPose;
+}
+
+export interface IslandColors {
+  background : string;
+  border     : string;
 }
