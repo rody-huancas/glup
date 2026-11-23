@@ -8,12 +8,21 @@ interface NavItemProps {
   icon        : ComponentType<IconProps>;
   active      : boolean;
   onClick     : () => void;
-  // Something new waits there (a mint dot), with its text for screen readers.
+  // Something new waits there (a dot), with its text for screen readers.
   badge?      : boolean;
   badgeLabel? : string;
+  badgeTone?  : BadgeTone;
 }
 
-export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, badgeLabel }: NavItemProps) => (
+export type BadgeTone = 'mint' | 'lilac';
+
+const BADGE_CLASSES: Record<BadgeTone, string> = {
+  mint  : 'bg-mint',
+  lilac : 'bg-lilac',
+};
+
+export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, badgeLabel, badgeTone = 'mint' }: NavItemProps) => (
+// export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, badgeLabel }: NavItemProps) => (
   <button
     type="button"
     onClick={onClick}
@@ -26,6 +35,7 @@ export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, bad
   >
     <Icon />
     {label}
-    {badge && <span aria-label={badgeLabel} className="ml-auto size-2 shrink-0 rounded-full bg-mint" />}
+    {badge && <span aria-label={badgeLabel} className={cx('ml-auto size-2 shrink-0 rounded-full', BADGE_CLASSES[badgeTone])} />}
+    {/* {badge && <span aria-label={badgeLabel} className="ml-auto size-2 shrink-0 rounded-full bg-mint" />} */}
   </button>
 );
