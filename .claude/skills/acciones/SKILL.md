@@ -72,6 +72,11 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   `libx264`. Todo lo que decide (tamaño de imagen, tasas de bits, argumentos) es puro en
   `services/video/plan.rs`; el proceso se lanza en `encode.rs`, con progreso leído de `-progress` y
   Cancelar que lo detiene y borra el archivo a medias. Uno a la vez.
+- **Sacar texto**: el OCR de Windows (`Windows.Media.Ocr`, crate `windows`) desde Rust; nada que
+  descargar. En un PDF, las páginas con texto seleccionable las lee pdf.js tal cual y solo las
+  escaneadas se renderizan y pasan por el OCR. Rust arma el texto (`services/text/compose.rs`, por
+  archivo y «Página N») y lo guarda como `.txt`. Fuera de Windows la acción no aparece
+  (`PLATFORM_ACTIONS`).
 - **Texto sobre las páginas** (marca de agua, números): `services/pdf/stamp.rs` lo dibuja encima del
   contenido, derecho como se ve la página (respeta `/Rotate` y el recuadro), con Helvetica estándar
   (sin incrustar fuentes). La vista previa del paso usa los mismos números que Rust.
@@ -88,6 +93,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | PDF (2+) | Unir, Reducir peso, Poner contraseña, Marca de agua, Numerar páginas, Juntar en ZIP |
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
 | Video (1+) | Reducir peso (Para WhatsApp, Para correo, Lo más liviano o un peso máximo; la primera vez pide descargar FFmpeg) |
+| Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
 
 ## Checklist
