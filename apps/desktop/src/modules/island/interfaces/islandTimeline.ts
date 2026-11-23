@@ -1,6 +1,7 @@
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
 import type { MascotCues } from '@/modules/island/interfaces/islandMascot';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
+import type { NoticeStyle } from '@/modules/island/types/noticeStyle';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
 
 export interface IslandTimelineParams {
@@ -19,6 +20,10 @@ export interface IslandPoseParams {
   elements : IslandElements;
   shape    : IslandShape;
   onRender : () => void;
+}
+
+export interface NoticeTimelineParams extends IslandPoseParams {
+  style : NoticeStyle;
 }
 
 export interface HoverTweenParams {
