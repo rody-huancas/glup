@@ -2,6 +2,7 @@
   { "id": "compress", "label": "Reducir peso", "fileType": "pdf", "fileCount": "single", "primary": true },
   { "id": "sign", "label": "Firmar", "fileType": "pdf", "fileCount": "single", "primary": false },
   { "id": "split-pages", "label": "Separar páginas", "fileType": "pdf", "fileCount": "single", "primary": false },
+  { "id": "organize-pages", "label": "Organizar páginas", "fileType": "pdf", "fileCount": "single", "primary": false },
   { "id": "to-images", "label": "A imágenes", "fileType": "pdf", "fileCount": "single", "primary": false },
   { "id": "merge", "label": "Unir", "fileType": "pdf", "fileCount": "multiple", "primary": true },
   { "id": "compress", "label": "Reducir peso", "fileType": "pdf", "fileCount": "multiple", "primary": false },

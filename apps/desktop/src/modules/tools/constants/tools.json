@@ -1,6 +1,7 @@
 [
   { "id": "merge-pdf", "kind": "action", "section": "pdf", "icon": "pdf", "actionId": "merge", "fileType": "pdf", "multiple": true, "title": "Unir", "description": "Varios en uno solo", "quickTitle": "Unir PDFs" },
   { "id": "split-pdf", "kind": "action", "section": "pdf", "icon": "pdf", "actionId": "split-pages", "fileType": "pdf", "multiple": false, "title": "Separar", "description": "Todas o solo algunas páginas", "quickTitle": "Separar PDF" },
+  { "id": "organize-pdf", "kind": "action", "section": "pdf", "icon": "pdf", "actionId": "organize-pages", "fileType": "pdf", "multiple": false, "title": "Organizar páginas", "description": "Gira, quita o cambia el orden" },
   { "id": "compress-pdf", "kind": "action", "section": "pdf", "icon": "pdf", "actionId": "compress", "fileType": "pdf", "multiple": false, "title": "Reducir peso", "description": "Que pese menos", "quickTitle": "Reducir peso de PDF" },
   { "id": "sign-pdf", "kind": "action", "section": "pdf", "icon": "pdf", "actionId": "sign", "fileType": "pdf", "multiple": false, "title": "Firmar", "description": "Pon tu firma donde quieras", "quickTitle": "Firmar PDF" },
   { "id": "pdf-to-images", "kind": "action", "section": "pdf", "icon": "pdf", "actionId": "to-images", "fileType": "pdf", "multiple": false, "title": "A imágenes", "description": "Cada página en JPG o PNG", "quickTitle": "PDF a imágenes" },
