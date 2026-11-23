@@ -1,8 +1,6 @@
-// import { ActionResultView } from '@/modules/actions/components/ActionResultView';
 import { ActionsGrid } from '@/modules/actions/components/ActionsGrid';
 import { CloseButton } from '@/modules/actions/components/CloseButton';
 import { FormatPicker } from '@/modules/actions/components/FormatPicker';
-// import { WorkingStatus } from '@/modules/actions/components/WorkingStatus';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ActionFlow } from '@/modules/actions/interfaces/actionFlow';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
@@ -37,12 +35,10 @@ interface ActionsPanelProps {
 
 // Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
 const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock', 'id-format', 'id-preview', 'transcribe'];
-// const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model'];
 
 // The shortest PDF chosen, when every page count is known (numbering cannot start past it).
 const shortestPdf = (selection: FileSelection): number | null =>
   selection.files.every((file) => file.pages !== null) ? Math.min(...selection.files.map((file) => file.pages ?? 0)) : null;
-// const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result'];
 
 const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
   if (flow.phase === 'formats') {
@@ -86,7 +82,6 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
     return (
       <LearnModelStep
         learnable={LEARNABLES[flow.learnable]}
-        // learnable={LEARNABLES[selection.type === 'video' ? 'video' : 'background']}
         downloading={flow.phase === 'learning-model'}
         onStarted={flow.modelStarted}
         onStopped={flow.modelStopped}
@@ -133,11 +128,6 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
     return <NumberingStep path={selection.paths[0]} total={shortestPdf(selection)} onConfirm={flow.numberPages} onBack={flow.back} />;
   }
 
-  // Results now show in the task card.
-  // if (flow.phase === 'result' && flow.result) {
-  //   return <ActionResultView result={flow.result} onOpen={flow.openOutput} onReveal={flow.revealOutput} />;
-  // }
-
   return (
     <>
       <h2 className="mt-3 text-[15px] font-semibold text-text">{getActionsTitle(selection)}</h2>
@@ -167,11 +157,6 @@ export const ActionsPanel = ({ selection, flow }: ActionsPanelProps) => {
         </div>
       )}
       <ActionsStep selection={selection} flow={flow} />
-      {/* {flow.phase !== 'result' && (
-        <div className="mt-2.5">
-          <SaveLocationPicker location={flow.saveLocation} disabled={flow.phase === 'working' || flow.phase === 'learning'} />
-        </div>
-      )} */}
     </div>
   );
 };

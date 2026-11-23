@@ -21,7 +21,6 @@ export const WorkingStatus = ({ progress, fileCount, actionId, cancelling, onCan
   const several  = fileCount > 1;
   const detail   = progressDetail(progress);
   const counting = progress?.stage === 'working' && progress.total > 1 && progress.current < progress.total;
-  // const value   = detail && progress && progress.total > 0 ? progress.current / progress.total : several ? done / fileCount : null;
 
   return (
     <div className="flex min-h-[88px] flex-col justify-center gap-2 rounded-control border border-dashed border-line-dashed px-3 py-2.5">

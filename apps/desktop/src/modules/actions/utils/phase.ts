@@ -31,11 +31,3 @@ export const getPhaseMessage = (phase: ActionsPhase, progress: ActionProgress | 
   if (phase === 'working' && progress && progress.total > 1) return ACTIONS_TEXTS.progress(progress.current, progress.total);
   return PHASE_MESSAGES[phase];
 };
-
-// const PHASE_MESSAGES: Record<ActionsPhase, string | null> = {
-//   choosing : null,
-//   working  : ACTIONS_TEXTS.working,
-//   learning : ACTIONS_TEXTS.learning,
-// };
-//
-// export const getPhaseMessage = (phase: ActionsPhase): string | null => PHASE_MESSAGES[phase];
