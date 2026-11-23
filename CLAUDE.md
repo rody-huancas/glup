@@ -33,6 +33,7 @@ de la parte que toques:
 pnpm install
 pnpm dev                                   # tauri dev (la primera compilación de Rust tarda)
 pnpm build                                 # instalador
+pnpm version:set 0.2.0                     # versión (Cargo.toml manda; package.json la sigue)
 
 pnpm --filter desktop typecheck            # tsc
 pnpm --filter desktop test                 # vitest
@@ -46,7 +47,7 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - El código que se reemplaza se deja comentado junto al nuevo, para comparar fácilmente.
 - Nunca se modifican ni se borran los archivos originales de la persona.
 - No inventes funciones del producto: si algo no está claro, pregunta.
-- No hagas commits ni push salvo que se pidan.
+- No hagas commits ni push salvo que se pidan. Tampoco tags: un tag `v*.*.*` dispara la publicación.
 - Antes de terminar: typecheck, vitest, cargo check y cargo test en verde.
 - Cuidar el disco: después de compilar en release para medir o probar algo, correr
   `cargo clean --release` en `apps/desktop/src-tauri`. Al terminar una tarea no quedan copias del
