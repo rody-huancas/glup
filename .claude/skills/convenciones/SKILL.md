@@ -78,7 +78,8 @@ lado. Si dos reglas parecen chocar, se pregunta.
     - Siempre **con permiso**: la primera vez que hace falta, Glup pregunta y dice **cuánto pesa** y
       que es **una sola vez**; «Ahora no» siempre es una opción. Nada se descarga en segundo plano
       sin que la persona lo pida.
-    - **Fuera del instalador**, en la carpeta de datos de la app (`models/`).
+    - **Fuera del instalador**, en la carpeta de datos de la app (`models/` para modelos, `tools/`
+      para programas como FFmpeg).
     - **Desde una URL fija a una versión exacta** (nunca «la última») y **verificada con su
       SHA-256** al terminar; si no coincide se borra y se avisa. La URL y el hash viven en una
       constante, para poder moverlos a una copia propia en los Releases del repo.
@@ -97,6 +98,13 @@ lado. Si dos reglas parecen chocar, se pregunta.
     Apache-2.0, BSD, ISC, Zlib, Unicode; fuentes con OFL. **Prohibidas** GPL, AGPL y LGPL enlazada
     estáticamente (por ejemplo Ghostscript o MuPDF). Una dependencia nueva se justifica en el PR:
     qué resuelve, su licencia y si complica la compilación en Windows.
+    **Excepción: programas LGPL que se ejecutan aparte** (por ejemplo `ffmpeg.exe`). Se permiten si:
+    - corren como **otro proceso** que Glup lanza; nunca se enlazan dentro de Glup;
+    - **no van en el instalador**: se descargan bajo demanda, con las reglas de la regla 11;
+    - son una compilación **sin partes GPL ni nonfree** (verificado con `-version`: sin
+      `--enable-gpl` ni `--enable-nonfree`; en FFmpeg, nada de `libx264` ni `libx265`);
+    - su licencia y un **enlace a su código fuente** (la versión exacta) van en
+      `THIRD_PARTY_NOTICES.md`.
 13. **Accesibilidad y movimiento.** Todo lo interactivo es un `<button>`, `<a>` o `<input>` real,
     usable con teclado y con foco visible (`:focus-visible`). Toda animación respeta
     `prefers-reduced-motion`.
