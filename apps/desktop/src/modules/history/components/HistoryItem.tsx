@@ -5,7 +5,7 @@ import { HISTORY_TEXTS } from '@/modules/history/constants/history';
 import type { HistoryEntry } from '@/modules/history/interfaces/historyEntry';
 import type { HistoryItemSelection } from '@/modules/history/interfaces/historyItemSelection';
 import { getHistoryDetail, historyEntryElementId } from '@/modules/history/utils/historyEntry';
-import { textPreview } from '@/modules/history/utils/historySelection';
+import { textPreview } from '@/modules/history/utils/textPreview';
 import { Checkbox } from '@/shared/components/Checkbox';
 import { REVEAL_PROPS } from '@/shared/constants/reveal';
 import { CleanupIcon } from '@/shared/icons/CleanupIcon';

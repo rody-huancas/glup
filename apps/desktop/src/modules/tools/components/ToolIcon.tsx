@@ -2,6 +2,7 @@ import { getFileIcon } from '@/modules/actions/utils/fileIcon';
 import type { ToolIcon as ToolIconName } from '@/modules/tools/types/toolIcon';
 import { AudioTextIcon } from '@/shared/icons/AudioTextIcon';
 import { CleanupIcon } from '@/shared/icons/CleanupIcon';
+import { ClipboardIcon } from '@/shared/icons/ClipboardIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 import { TextIcon } from '@/shared/icons/TextIcon';
 import { VideoIcon } from '@/shared/icons/VideoIcon';
@@ -11,7 +12,7 @@ interface ToolIconProps {
   icon: ToolIconName;
 }
 
-const STROKE_ICONS = { zip: ZipIcon, video: VideoIcon, text: TextIcon, 'screen-text': ScreenTextIcon, 'audio-text': AudioTextIcon, cleanup: CleanupIcon };
+const STROKE_ICONS = { zip: ZipIcon, video: VideoIcon, text: TextIcon, 'screen-text': ScreenTextIcon, 'audio-text': AudioTextIcon, cleanup: CleanupIcon, clipboard: ClipboardIcon };
 
 // PDFs and images use Glup's file artwork; the rest a stroke icon in a tile of the same size.
 export const ToolIcon = ({ icon }: ToolIconProps) => {

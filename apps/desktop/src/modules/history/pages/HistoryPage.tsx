@@ -1,20 +1,22 @@
+import { useMemo } from 'react';
 import { HistoryList } from '@/modules/history/components/HistoryList';
-import { HistorySelectAll } from '@/modules/history/components/HistorySelectAll';
 import { HISTORY_TEXTS } from '@/modules/history/constants/history';
 import { useClearHistory } from '@/modules/history/hooks/useClearHistory';
 import { useExpandedEntry } from '@/modules/history/hooks/useExpandedEntry';
 import { useHistory } from '@/modules/history/hooks/useHistory';
-import { useHistorySelection } from '@/modules/history/hooks/useHistorySelection';
 import { useOpenEntry } from '@/modules/history/hooks/useOpenEntry';
 import { Button } from '@/shared/components/Button';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { SelectAll } from '@/shared/components/SelectAll';
+import { useCheckSelection } from '@/shared/hooks/useCheckSelection';
 
 // With nothing marked the button empties the whole list; with lines marked it removes only those.
 export const HistoryPage = () => {
   const { entries, now }    = useHistory();
   const { open, missingId } = useOpenEntry();
-  const selection           = useHistorySelection(entries);
+  const ids                 = useMemo(() => entries.map((entry) => entry.id), [entries]);
+  const selection           = useCheckSelection(ids);
   const expanded            = useExpandedEntry({ entries, reveal: true });
   const clearing            = useClearHistory({ selected: selection.selected, onRemoved: selection.clear });
   const count               = selection.selected.length;
@@ -29,7 +31,7 @@ export const HistoryPage = () => {
       </div>
       {clearing.failed && <p role="alert" className="text-[13px] text-lilac-soft">{HISTORY_TEXTS.clearFailed}</p>}
       <div className="flex flex-col gap-3">
-        {entries.length > 0 && <HistorySelectAll state={selection.state} onToggle={selection.toggleAll} />}
+        {entries.length > 0 && <SelectAll label={HISTORY_TEXTS.selectAll} state={selection.state} onToggle={selection.toggleAll} />}
         <HistoryList
           entries={entries}
           now={now}

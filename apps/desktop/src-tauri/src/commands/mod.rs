@@ -1,6 +1,7 @@
 pub mod actions;
 pub mod background;
 pub mod cleanup;
+pub mod clipboard;
 pub mod cursor;
 pub mod files;
 pub mod history;
@@ -10,6 +11,7 @@ pub mod links;
 pub mod notify;
 pub mod screen_text;
 pub mod settings;
+pub mod shortcuts;
 pub mod signatures;
 pub mod startup;
 pub mod text;

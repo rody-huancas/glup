@@ -1,12 +1,13 @@
 import { LearnedSection } from '@/modules/background/components/LearnedSection';
+import { ClipboardSettings } from '@/modules/clipboard/components/ClipboardSettings';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { ScreenTextHistoryToggle } from '@/modules/screen-text/components/ScreenTextHistoryToggle';
-import { ShortcutSetting } from '@/modules/screen-text/components/ShortcutSetting';
 import { AutostartToggle } from '@/modules/settings/components/AutostartToggle';
 import { NotificationsToggle } from '@/modules/settings/components/NotificationsToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
 import { GENERAL_TEXTS } from '@/modules/settings/constants/general';
 import { SAVE_TEXTS, SETTINGS_TEXTS } from '@/modules/settings/constants/saveLocation';
+import { ShortcutSetting } from '@/modules/shortcuts/components/ShortcutSetting';
 import { Card } from '@/shared/components/Card';
 import { UpdateCard } from '@/modules/updates/components/UpdateCard';
 import { VersionRow } from '@/modules/updates/components/VersionRow';
@@ -15,7 +16,7 @@ import { SectionLabel } from '@/shared/components/SectionLabel';
 
 // A newer version first (if any), then General (starting with the computer, the notifications, the
 // shortcut of "Copiar texto de la pantalla" and whether its texts stay in the history, the version),
-// where results are saved and what Glup downloaded.
+// the Portapapeles, where results are saved and what Glup downloaded.
 export const SettingsPage = ({ files }: PageProps) => (
   <div className="flex flex-col gap-6">
     <PageHeader title={SETTINGS_TEXTS.title} subtitle={SETTINGS_TEXTS.subtitle} />
@@ -27,12 +28,13 @@ export const SettingsPage = ({ files }: PageProps) => (
         <div className="border-t border-line" />
         <NotificationsToggle />
         <div className="border-t border-line" />
-        <ShortcutSetting />
+        <ShortcutSetting target="screen-text" />
         <ScreenTextHistoryToggle />
         <div className="border-t border-line" />
         <VersionRow />
       </Card>
     </section>
+    <ClipboardSettings />
     <section className="flex flex-col gap-2.5">
       <SectionLabel>{SAVE_TEXTS.defaultTitle}</SectionLabel>
       <Card className="p-3.5">

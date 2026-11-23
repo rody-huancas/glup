@@ -94,13 +94,25 @@ src-tauri/
     (`services/id_photo/face.rs`). Notificaciones con `tauri-winrt-notification` (el plugin de
     notificaciones no avisa del clic en escritorio): `services/notify.rs`.
     «Copiar texto de la pantalla» (`services/screen_text/`): la captura por monitor con GDI
-    (`BitBlt`) y el portapapeles con `windows-sys`, solo en memoria; el atajo global con
-    `tauri-plugin-global-shortcut` (Apache-2.0 o MIT), registrado y cambiado solo desde Rust
-    (`shortcut.rs`, por defecto Ctrl+Alt+Shift+T); si al arrancar otro programa lo tiene, una
-    notificación (`notify::alert`, aunque las de tareas estén apagadas) lleva a Ajustes. El texto
+    (`BitBlt`), solo en memoria. El texto
     copiado va a `history.json` como línea con `text` (`history::text_entry`), salvo que
     `screen_text_history_off` lo apague. Lo que decide (recorte, monitor bajo el cursor,
     palabras) es puro en `region.rs` y `mod.rs`, con pruebas.
+    **Atajos globales** (`services/shortcuts.rs`): `tauri-plugin-global-shortcut` (Apache-2.0 o MIT),
+    registrados y cambiados solo desde Rust, uno por `ShortcutTarget` («Copiar texto de la
+    pantalla» Ctrl+Alt+Shift+T, «Portapapeles» Ctrl+Alt+Shift+H); `dispatch` sabe cuál se presionó.
+    Dos atajos de Glup nunca comparten teclas (`clash`). Si al arrancar otro programa tiene uno, una
+    notificación (`notify::alert`, aunque las de tareas estén apagadas) lleva a Ajustes.
+    **Portapapeles** (`services/clipboard/`): apagado hasta que la persona lo activa. Escucha con
+    `AddClipboardFormatListener` en una ventana solo de mensajes (`watcher.rs`), nunca con un
+    temporizador. Antes de leer el contenido decide si lo guarda (`privacy::keep`): no si Windows lo
+    marca como privado (`ExcludeClipboardContentFromMonitorProcessing`, `CanIncludeInClipboardHistory`
+    = 0, `CanUploadToCloudClipboard` = 0), si viene de un programa excluido en Ajustes o si lo copió
+    Glup mismo (el dueño del portapapeles es su proceso). Todo se cifra con DPAPI de la cuenta de
+    Windows (`crypt.rs`) en `clipboard/` de la carpeta de datos: la lista en un archivo y cada imagen
+    y su miniatura en otro (`storage.rs`). La lista es pura (`store.rs`: repetidos suben arriba,
+    límite con los fijados a salvo, búsqueda sin tildes) y la imagen va y vuelve como DIB
+    (`dib.rs`), con un tamaño máximo. Escribir el portapapeles (texto, imagen) es `clipboard/write.rs`.
     «Pasar audio a texto»: whisper.cpp enlazado con `whisper-rs` (solo procesador: Vulkan obligaría a
     tener su SDK para compilar y haría que Glup no abra sin `vulkan-1.dll`). Compilarlo pide CMake y
     LLVM (libclang). La sesión del modelo vive en `services/transcribe/engine.rs`, se libera tras 5

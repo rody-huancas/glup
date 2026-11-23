@@ -1,10 +1,6 @@
 use tauri::{ipc::Response, AppHandle, WebviewWindow};
 
-use crate::services::screen_text::{
-    self,
-    shortcut::{self, ShortcutRequest, ShortcutView},
-    ReadZoneRequest,
-};
+use crate::services::screen_text::{self, ReadZoneRequest};
 
 // Herramientas › "Copiar texto de la pantalla" (the shortcut and the tray start it from Rust).
 #[tauri::command]
@@ -45,19 +41,4 @@ pub fn cancel_screen_text(app: AppHandle) {
 #[tauri::command]
 pub fn copy_screen_text(app: AppHandle, text: String) -> Result<(), String> {
     screen_text::copy_again(&app, &text)
-}
-
-#[tauri::command]
-pub fn get_screen_text_shortcut(app: AppHandle) -> ShortcutView {
-    shortcut::view(&app)
-}
-
-#[tauri::command]
-pub fn set_screen_text_shortcut(app: AppHandle, request: ShortcutRequest) -> Result<ShortcutView, String> {
-    shortcut::change(&app, request)
-}
-
-#[tauri::command]
-pub fn pause_screen_text_shortcut(app: AppHandle, paused: bool) {
-    shortcut::pause(&app, paused);
 }

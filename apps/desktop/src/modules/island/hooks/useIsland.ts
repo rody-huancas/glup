@@ -144,7 +144,7 @@ export const useIsland = () => {
   // While signing or organizing, Esc belongs to that screen (it asks before leaving).
   useKeyDown({ key: 'Escape', enabled: state === 'expanded' && !panel.fullScreen, handler: collapseNow });
 
-  const actionsVisible = state === 'expanded' && panel.files.selection !== null;
+  const actionsVisible = state === 'expanded' && (panel.files.selection !== null || panel.page === 'clipboard');
 
   useEffect(() => {
     if (actionsVisible) takeFocus();

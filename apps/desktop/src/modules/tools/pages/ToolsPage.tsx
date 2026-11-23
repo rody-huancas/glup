@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
-import { requestShortcutFocus } from '@/modules/screen-text/store/shortcutFocus';
+import { requestShortcutFocus } from '@/modules/shortcuts/store/shortcutFocus';
+import type { ShortcutTarget } from '@/modules/shortcuts/types/shortcutTarget';
 import { ToolGroupSection } from '@/modules/tools/components/ToolGroupSection';
 import { ToolSearchField } from '@/modules/tools/components/ToolSearchField';
 import { ToolsEmpty } from '@/modules/tools/components/ToolsEmpty';
@@ -15,8 +16,8 @@ export const ToolsPage = ({ files, onNavigate }: PageProps) => {
   const runTool                     = useToolRunner({ runTool: files.runTool, onNavigate });
 
   // Straight to the shortcut in Ajustes, in view and focused.
-  const changeShortcut = useCallback(() => {
-    requestShortcutFocus();
+  const changeShortcut = useCallback((target: ShortcutTarget) => {
+    requestShortcutFocus(target);
     onNavigate('settings');
   }, [onNavigate]);
 

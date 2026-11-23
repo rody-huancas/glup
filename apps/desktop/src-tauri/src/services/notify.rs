@@ -40,7 +40,8 @@ fn icon_path(app: &AppHandle) -> Option<std::path::PathBuf> {
     Some(path)
 }
 
-fn open_on(app: &AppHandle, page: &str) {
+// Opens the island on a screen of the panel (a notification's click, the Portapapeles shortcut).
+pub fn open_page(app: &AppHandle, page: &str) {
     crate::services::island_window::request_open(app);
     let _ = app.emit_to(crate::ISLAND_WINDOW_LABEL, NOTIFICATION_OPEN_EVENT, page.to_string());
 }
@@ -67,7 +68,7 @@ fn show(app: &AppHandle, request: NotifyRequest) -> bool {
     let handle    = app.clone();
     let page      = request.page.clone();
     let mut toast = Toast::new(&id).title(NOTIFY_TITLE).text1(&request.body).on_activated(move |_| {
-        open_on(&handle, &page);
+        open_page(&handle, &page);
         Ok(())
     });
 
