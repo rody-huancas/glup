@@ -12,6 +12,7 @@ export const INITIAL_MACHINE: IslandMachine = {
   locked     : false,
   fullscreen : false,
   trayHidden : false,
+  capturing  : false,
   notice     : null,
   resets     : 0,
   holds      : [],
@@ -20,7 +21,7 @@ export const INITIAL_MACHINE: IslandMachine = {
 const OPEN_PHASES: IslandPhase[]   = ['expanding', 'expanded'];
 const CLOSED_PHASES: IslandPhase[] = ['collapsed', 'collapsing', 'notice'];
 
-const isHiddenBy = (machine: IslandMachine): boolean => machine.fullscreen || machine.trayHidden;
+const isHiddenBy = (machine: IslandMachine): boolean => machine.fullscreen || machine.trayHidden || machine.capturing;
 
 // Leaving the hidden state always lands on a clean pill.
 const revealed = (machine: IslandMachine): IslandMachine =>
@@ -72,6 +73,13 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
       return revealed(next);
     }
 
+    // "Copiar texto de la pantalla": out of the still while the zone is chosen, a clean pill after.
+    case 'capture': {
+      const next = { ...machine, capturing: event.on };
+      if (isHiddenBy(next)) return hidden(next);
+      return phase === 'hidden' ? revealed(next) : next;
+    }
+
     case 'reset':
       return isHiddenBy(machine) ? hidden(machine) : revealed(machine);
 
@@ -80,8 +88,8 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
   }
 };
 
-// Keeps the invariants whatever the event: hidden only for fullscreen or the tray, a notice only on the
-// wide pill, pinned only while open.
+// Keeps the invariants whatever the event: hidden only for fullscreen, the tray or a capture of the
+// screen, a notice only on the wide pill, pinned only while open.
 const normalize = (machine: IslandMachine): IslandMachine => {
   if (isHiddenBy(machine) && machine.phase !== 'hidden') return hidden(machine);
   if (!isHiddenBy(machine) && machine.phase === 'hidden') return revealed(machine);
@@ -125,7 +133,7 @@ export const checkInvariants = (machine: IslandMachine): string[] => {
   const pill             = getIslandArea('collapsed');
   const area             = getIslandArea(areaKindFor(machine.phase));
 
-  if ((machine.phase === 'hidden') !== isHiddenBy(machine)) broken.push('hidden sin pantalla completa ni bandeja (o al revés)');
+  if ((machine.phase === 'hidden') !== isHiddenBy(machine)) broken.push('hidden sin pantalla completa, bandeja ni captura (o al revés)');
   if (machine.phase !== 'hidden' && (area.width < pill.width || area.height < pill.height)) broken.push('región menor que la pastilla');
   if ((machine.notice !== null) !== (machine.phase === 'notice')) broken.push('aviso fuera de la pastilla ancha');
   if (machine.pinned && !OPEN_PHASES.includes(machine.phase)) broken.push('fijada estando cerrada');
@@ -140,6 +148,7 @@ export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'settled') return `settled(${event.phase})`;
   if (event.type === 'fullscreen') return `fullscreen(${event.on})`;
   if (event.type === 'tray') return `tray(${event.hidden ? 'oculta' : 'visible'})`;
+  if (event.type === 'capture') return `capture(${event.on ? 'eligiendo zona' : 'terminó'})`;
   if (event.type === 'holds') return `holds(${event.holds.join(', ') || 'ninguno'})`;
   return event.type;
 };

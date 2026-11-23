@@ -5,17 +5,20 @@ use tauri::{AppHandle, Emitter, Manager};
 use crate::{services::island_window, ISLAND_WINDOW_LABEL};
 
 pub const TRAY_VISIBILITY_EVENT: &str = "island-tray-visibility";
+pub const SCREEN_CAPTURE_EVENT: &str  = "island-screen-capture";
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct VisibilityFlags {
     pub user_hidden: bool,
     pub fullscreen: bool,
+    // "Copiar texto de la pantalla": the person is choosing a zone over a still of the screen.
+    pub capturing: bool,
 }
 
 impl VisibilityFlags {
-    // The island is hidden only for a fullscreen app or from the tray.
+    // The island is hidden only for a fullscreen app, from the tray or while a zone of the screen is chosen.
     pub fn should_show(&self) -> bool {
-        !self.user_hidden && !self.fullscreen
+        !self.user_hidden && !self.fullscreen && !self.capturing
     }
 }
 
@@ -40,6 +43,19 @@ pub fn show_for_user(app: &AppHandle) {
 
 pub fn set_fullscreen(app: &AppHandle, fullscreen: bool) {
     update(app, |flags| flags.fullscreen = fullscreen);
+}
+
+// Hidden while the zone is chosen (so it is not in the still); back as a clean pill afterwards.
+pub fn set_capturing(app: &AppHandle, capturing: bool) {
+    let flags = update(app, |flags| flags.capturing = capturing);
+
+    if flags.should_show() {
+        if let Some(window) = app.get_webview_window(ISLAND_WINDOW_LABEL) {
+            island_window::recover(&window);
+        }
+    }
+
+    let _ = app.emit_to(ISLAND_WINDOW_LABEL, SCREEN_CAPTURE_EVENT, capturing);
 }
 
 pub fn apply(app: &AppHandle) {
@@ -86,9 +102,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn hides_only_for_fullscreen_or_the_tray() {
+    fn hides_only_for_fullscreen_the_tray_or_a_capture() {
         assert!(VisibilityFlags::default().should_show());
-        assert!(!VisibilityFlags { user_hidden: true, fullscreen: false }.should_show());
-        assert!(!VisibilityFlags { user_hidden: false, fullscreen: true }.should_show());
+        assert!(!VisibilityFlags { user_hidden: true, ..Default::default() }.should_show());
+        assert!(!VisibilityFlags { fullscreen: true, ..Default::default() }.should_show());
+        assert!(!VisibilityFlags { capturing: true, ..Default::default() }.should_show());
     }
 }

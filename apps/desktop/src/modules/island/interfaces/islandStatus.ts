@@ -5,5 +5,6 @@ export interface IslandStatus {
   visible    : boolean;
   fullscreen : boolean;
   trayHidden : boolean;
+  capturing  : boolean;
   area       : WindowSize;
 }

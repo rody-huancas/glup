@@ -45,6 +45,12 @@ export const useIslandWatchdog = ({ machine, send, isMoving }: UseIslandWatchdog
         return;
       }
 
+      if (now.capturing !== status.capturing) {
+        logIsland(`vigilante: captura desincronizada (${now.capturing} ≠ ${status.capturing})`);
+        emit({ type: 'capture', on: status.capturing });
+        return;
+      }
+
       // An animated phase with nothing animating (a lost settle): twice in a row means it is stuck.
       const animated = now.phase === 'expanding' || now.phase === 'collapsing' || now.phase === 'notice';
       stalled.current = animated && !moving() ? stalled.current + 1 : 0;

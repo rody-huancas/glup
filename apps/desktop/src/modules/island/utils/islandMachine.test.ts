@@ -101,6 +101,23 @@ describe('island machine', () => {
     expect(run([{ type: 'tray', hidden: false }], both).phase).toBe('collapsed');
   });
 
+  it('hides from an open panel while a zone of the screen is chosen and comes back as a pill with room for the notice', () => {
+    const choosing = run([...OPEN, { type: 'capture', on: true }]);
+    expect(choosing.phase).toBe('hidden');
+    expect(run([{ type: 'expand', pin: true }], choosing).phase).toBe('hidden');
+
+    const back = run([{ type: 'capture', on: false }], choosing);
+    expect(back.phase).toBe('collapsed');
+    expect(back.resets).toBe(choosing.resets + 1);
+    expect(run([{ type: 'notice', notice: NOTICE }], back).phase).toBe('notice');
+  });
+
+  it('a capture that ends during a fullscreen app keeps it hidden', () => {
+    const both = run([{ type: 'capture', on: true }, { type: 'fullscreen', on: true }, { type: 'capture', on: false }]);
+    expect(both.phase).toBe('hidden');
+    expect(run([{ type: 'fullscreen', on: false }], both).phase).toBe('collapsed');
+  });
+
   it('locks hover after closing with the cursor inside until it leaves', () => {
     const closed = run([...OPEN, { type: 'collapse', farewell: true }, { type: 'settled', phase: 'collapsed' }]);
     expect(closed.locked).toBe(true);
@@ -124,6 +141,8 @@ describe('island machine', () => {
       { type: 'fullscreen', on: false },
       { type: 'tray', hidden: true },
       { type: 'tray', hidden: false },
+      { type: 'capture', on: true },
+      { type: 'capture', on: false },
       { type: 'reset' },
       { type: 'holds', holds: ['dialog'] },
       { type: 'holds', holds: [] },
