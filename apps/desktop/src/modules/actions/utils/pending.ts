@@ -2,7 +2,7 @@ import { DEFAULT_SKELETON_ACTIONS } from '@/modules/actions/constants/loading';
 import { ACTIONS_TEXTS } from '@/modules/actions/constants/texts';
 import type { PendingSelection } from '@/modules/actions/interfaces/pendingSelection';
 import type { SelectionType } from '@/modules/actions/types/fileType';
-import { VIDEO_EXTENSIONS } from '@/modules/actions/constants/video';
+import { AUDIO_EXTENSIONS, VIDEO_EXTENSIONS } from '@/modules/actions/constants/video';
 import { getExtension, getFileName } from '@/modules/actions/utils/paths';
 import { getActionsFor } from '@/modules/actions/utils/selection';
 import { getFileKind } from '@/modules/mascot/utils/fileKind';
@@ -13,6 +13,7 @@ const guessType = (paths: string[]): SelectionType | null => {
   const first = kinds[0] ?? null;
 
   if (paths.every((path) => VIDEO_EXTENSIONS.includes(getExtension(path)))) return 'video';
+  if (paths.every((path) => AUDIO_EXTENSIONS.includes(getExtension(path)))) return 'audio';
   if (first && kinds.every((kind) => kind === first)) return first;
   if (paths.length < 2) return null;
   return kinds.every((kind) => kind !== null) ? 'pdf-mixed' : 'mixed';
