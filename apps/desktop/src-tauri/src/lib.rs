@@ -34,6 +34,7 @@ pub fn run() {
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
         .manage(UpdateState::default())
+        .manage(services::id_photo::IdPhotoSessions::default())
         .manage(LaunchOpen::new(services::startup::launch_open_pending()))
         // .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
         .invoke_handler(tauri::generate_handler![
@@ -73,6 +74,11 @@ pub fn run() {
             commands::text::read_page_text,
             commands::text::finish_text,
             commands::text::save_text,
+            commands::notify::notify_task,
+            commands::notify::is_glup_in_front,
+            commands::id_photo::prepare_id_photo,
+            commands::id_photo::id_photo_preview,
+            commands::id_photo::save_id_photo,
             commands::startup::get_launch_info,
             commands::startup::take_launch_open,
             commands::startup::get_autostart,

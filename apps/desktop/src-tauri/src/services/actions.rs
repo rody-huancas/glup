@@ -1394,3 +1394,55 @@ fn run_reduce_video(run: &Run, options: VideoOptions) -> Collected {
     Collected { outcomes, entries, batch: None, cancelled }
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IdPhotoSaveRequest {
+    #[serde(flatten)]
+    pub save: crate::services::id_photo::SaveRequest,
+    pub task_id: Option<String>,
+}
+
+// "Foto tamaño carnet": foto-carnet.jpg and foto-carnet-hoja.jpg (never over another file), as a task.
+pub fn save_id_photo(app: &AppHandle, request: IdPhotoSaveRequest) -> Result<ActionReport, String> {
+    use crate::services::id_photo;
+
+    let control = app.state::<ActionControl>();
+    let run     = Run {
+        app,
+        paths       : Vec::new(),
+        destination : Destination::default(),
+        cancel      : &control.cancelled,
+        reserved    : Mutex::new(HashSet::new()),
+        task        : request.task_id.clone(),
+    };
+    run.progress(ProgressParams { current: 0, total: 1, name: "", active: 1 });
+
+    let name  = |folder: &Path, source: &Path, suffix: &str| run.reserve(&OutputNameParams { folder, source, kind: OutputKind::Suffixed { suffix, extension: "jpg" } });
+    let saved = id_photo::save(app, id_photo::SaveParams { request: request.save, name: &name });
+    run.progress(ProgressParams { current: 1, total: 1, name: "", active: 1 });
+
+    let saved = saved?;
+    let first = saved.files.first().cloned().ok_or(SAVE_ERROR)?;
+    let size  = saved.files.iter().map(|path| file_size(path)).sum();
+    let entry = history::new_entry(NewEntryParams { output: &first, kind: IMAGE_KIND, action: id_photo::ID_ACTION, detail: saved.detail.clone() });
+    let _     = history::append(app, vec![entry]);
+
+    let item = FileOutcome { note: saved.note.clone(), ..saved_outcome(&saved.source, &first, size) };
+    Ok(ActionReport {
+        action_id        : id_photo::ID_ACTION.to_string(),
+        outcomes         : vec![item],
+        output           : Some(first.to_string_lossy().into_owned()),
+        output_size      : Some(size),
+        total            : 1,
+        cancelled        : false,
+        bundled          : false,
+        output_is_folder : false,
+        pages_done       : None,
+        pages_total      : None,
+    })
+}
+
+fn saved_outcome(source: &Path, output: &Path, size: u64) -> FileOutcome {
+    saved(source, &Saved { output: output.to_path_buf(), size })
+}
+
