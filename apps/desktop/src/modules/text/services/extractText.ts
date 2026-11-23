@@ -59,7 +59,7 @@ export const extractText = async ({ files, destination, onProgress, isCancelled 
   let done               = 0;
 
   const step = (name: string) => {
-    onProgress({ current: done, total: Math.max(total, 1), name, active: 1, detail: name });
+    onProgress({ current: done, total: Math.max(total, 1), name, active: 1, detail: name, stage: 'working' });
     done += 1;
   };
 
@@ -78,7 +78,8 @@ export const extractText = async ({ files, destination, onProgress, isCancelled 
     paths.push(file.path);
   }
 
-  onProgress({ current: total, total: Math.max(total, 1), name: '', active: 1 });
+  onProgress({ current: 0, total: 0, name: '', active: 1, stage: 'saving' });
+  // onProgress({ current: total, total: Math.max(total, 1), name: '', active: 1 });
 
   const report = await finishText({ paths, files: read });
   return toTextResult({ report, paths, destination, cancelled: isCancelled() });

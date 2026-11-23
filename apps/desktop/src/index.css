@@ -39,6 +39,12 @@
   to   { transform : translateX(300%); }
 }
 
+/* With reduced motion the indeterminate bar does not travel: it sits in the middle and breathes. */
+@keyframes indeterminate-calm {
+  0%, 100% { opacity : 0.35; }
+  50%      { opacity : 1; }
+}
+
 /* The toast that says a task ended: it slides down a little while it appears. */
 @keyframes toast-in {
   from { opacity : 0; transform : translateY(-8px); }
@@ -62,9 +68,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .shimmer,
-  .animate-indeterminate,
   .animate-toast-in {
     animation : none;
+  }
+
+  .animate-indeterminate {
+    left      : 33.333%;
+    animation : indeterminate-calm 2.4s ease-in-out infinite;
   }
 }
 

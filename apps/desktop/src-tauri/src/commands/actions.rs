@@ -107,8 +107,8 @@ pub fn dismiss_task(app: AppHandle, id: String) {
 
 // The file in progress finishes; the next ones are not started.
 #[tauri::command]
-pub fn cancel_action(app: AppHandle) {
-    actions::cancel(&app);
+pub fn cancel_action(app: AppHandle, task_id: Option<String>) {
+    actions::cancel(&app, task_id);
 }
 
 #[tauri::command]

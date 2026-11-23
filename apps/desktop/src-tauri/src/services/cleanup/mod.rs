@@ -24,6 +24,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::services::{
     actions::{ActionControl, ActionProgress, ACTION_PROGRESS_EVENT},
+    progress::Stage,
     cleanup::{
         browsers::BrowsersParams,
         downloads::DownloadsParams,
@@ -205,7 +206,7 @@ struct ProgressParams<'a> {
 }
 
 fn emit_progress(params: ProgressParams) {
-    let progress = ActionProgress { task_id: params.task.clone(), current: params.current, total: params.total, name: params.name.to_string(), active: 1, detail: None };
+    let progress = ActionProgress { task_id: params.task.clone(), current: params.current, total: params.total, name: params.name.to_string(), active: 1, detail: None, stage: Stage::Working };
 
     if let Some(task) = params.task {
         crate::services::tasks::progress(params.app, task, &progress);
@@ -319,7 +320,8 @@ fn scan_summary(categories: &[CategoryReport], cancelled: bool) -> TaskSummary {
 pub fn scan(app: &AppHandle, task: &Option<String>) -> CleanupScan {
     let control = app.state::<ActionControl>();
     let cancel  = &control.cancelled;
-    cancel.store(false, Ordering::SeqCst);
+    control.begin(task);
+    // cancel.store(false, Ordering::SeqCst);
 
     let folders  = folders::user_folders();
     let now      = walk::millis(SystemTime::now());
@@ -530,7 +532,8 @@ pub fn clean_summary(tally: &CleanTally) -> TaskSummary {
 pub fn clean(app: &AppHandle, request: &CleanRequest) -> CleanReport {
     let control = app.state::<ActionControl>();
     let cancel  = &control.cancelled;
-    cancel.store(false, Ordering::SeqCst);
+    control.begin(&request.task_id);
+    // cancel.store(false, Ordering::SeqCst);
 
     let known = app.state::<CleanupState>().0.lock().map(|state| state.clone()).unwrap_or_default();
     let paths: Vec<PathBuf> = request.paths.iter().map(PathBuf::from).collect();

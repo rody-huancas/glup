@@ -45,7 +45,7 @@ export const TaskCard = ({ task, queued }: TaskCardProps) => {
           <ActionResultView result={result} onOpen={() => openResult(result)} onReveal={() => revealResult(result)} />
         ) : (
           <div className="mt-3">
-            <WorkingStatus progress={task.progress} fileCount={task.fileCount} cancelling={task.cancelling} onCancel={() => cancelTask(task.id)} />
+            <WorkingStatus progress={task.progress} fileCount={task.fileCount} actionId={task.actionId} cancelling={task.cancelling} onCancel={() => cancelTask(task.id)} />
           </div>
         )}
         {queued > 0 && <p className="mt-2 text-[11px] text-muted">{TASK_TEXTS.waiting(queued)}</p>}

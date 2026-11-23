@@ -3,20 +3,23 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { DROP_ZONE_MOTION, DROP_ZONE_SIZES } from '@/modules/home/constants/dropZone';
 
-// Big drop zone that fills Home; compact (shorter, smaller Glup, no hint) while the actions panel shows.
-// The first layout is applied without animation.
+// Big drop zone that fills Home, or a one-line bar while files are chosen or a task shows: the zone gets
+// short, Glup small, and the big text gives way to the bar's line. The first layout is applied without
+// animation, and so is every change with reduced motion.
 export const useDropZoneLayout = (compact: boolean) => {
   const zone   = useRef<HTMLElement | null>(null);
   const mascot = useRef<HTMLDivElement | null>(null);
-  const hint   = useRef<HTMLParagraphElement | null>(null);
+  const full   = useRef<HTMLDivElement | null>(null);
+  const bar    = useRef<HTMLDivElement | null>(null);
   const first  = useRef(true);
 
   useGSAP(
     () => {
-      const [box, glup, text] = [zone.current, mascot.current, hint.current];
-      if (!box || !glup || !text) return;
+      const [box, glup, big, line] = [zone.current, mascot.current, full.current, bar.current];
+      if (!box || !glup || !big || !line) return;
 
-      const duration = first.current ? 0 : DROP_ZONE_MOTION.duration;
+      const still    = first.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const duration = still ? 0 : DROP_ZONE_MOTION.duration;
       const ease     = DROP_ZONE_MOTION.ease;
       const from     = box.getBoundingClientRect().height;
       const sizes    = DROP_ZONE_SIZES;
@@ -24,30 +27,57 @@ export const useDropZoneLayout = (compact: boolean) => {
 
       if (compact) {
         gsap.set(box, { flexGrow: 0, minHeight: sizes.compactHeight, height: from });
-        gsap.to(box, { height: sizes.compactHeight, paddingTop: sizes.compactPadding, paddingBottom: sizes.compactPadding, duration, ease });
+        gsap.to(box, {
+          height        : sizes.compactHeight,
+          paddingTop    : sizes.compactPadding,
+          paddingBottom : sizes.compactPadding,
+          paddingLeft   : sizes.compactSide,
+          paddingRight  : sizes.compactSide,
+          columnGap     : sizes.compactGap,
+          duration,
+          ease,
+        });
         gsap.to(glup, { width: sizes.compactMascot, duration, ease });
-        gsap.to(text, { height: 0, marginTop: 0, opacity: 0, duration, ease });
+        gsap.to(big, { opacity: 0, duration: duration / 2, ease, onComplete: () => void gsap.set(big, { display: 'none' }) });
+        gsap.set(line, { display: 'flex' });
+        gsap.fromTo(line, { opacity: 0 }, { opacity: 1, duration, delay: duration / 2, ease });
         return;
       }
 
       // Measure the height the zone would take filling the column, then animate there and hand back to flex.
-      gsap.set(box, { flexGrow: 1, height: 'auto', minHeight: sizes.minHeight, paddingTop: sizes.padding, paddingBottom: sizes.padding });
+      gsap.set(line, { display: 'none' });
+      gsap.set(big, { display: 'flex', opacity: 0 });
+      gsap.set(box, { flexGrow: 1, height: 'auto', minHeight: sizes.minHeight, paddingTop: sizes.padding, paddingBottom: sizes.padding, paddingLeft: sizes.padding, paddingRight: sizes.padding, columnGap: sizes.gap });
       const to = box.getBoundingClientRect().height;
 
-      gsap.set(box, { flexGrow: 0, minHeight: sizes.compactHeight, height: from, paddingTop: sizes.compactPadding, paddingBottom: sizes.compactPadding });
+      gsap.set(box, {
+        flexGrow      : 0,
+        minHeight     : sizes.compactHeight,
+        height        : from,
+        paddingTop    : sizes.compactPadding,
+        paddingBottom : sizes.compactPadding,
+        paddingLeft   : sizes.compactSide,
+        paddingRight  : sizes.compactSide,
+        columnGap     : sizes.compactGap,
+      });
       gsap.to(box, {
         height        : to,
         paddingTop    : sizes.padding,
         paddingBottom : sizes.padding,
+        paddingLeft   : sizes.padding,
+        paddingRight  : sizes.padding,
+        columnGap     : sizes.gap,
         duration,
         ease,
-        onComplete    : () => void gsap.set(box, { flexGrow: 1, clearProps: 'height,minHeight,paddingTop,paddingBottom' }),
+        onComplete    : () => void gsap.set(box, { flexGrow: 1, clearProps: 'height,minHeight,paddingTop,paddingBottom,paddingLeft,paddingRight,columnGap' }),
       });
       gsap.to(glup, { width: sizes.mascot, duration, ease });
-      gsap.to(text, { height: 'auto', marginTop: sizes.hintGap, opacity: 1, duration, ease });
+      gsap.to(big, { opacity: 1, duration, delay: duration / 2, ease });
     },
     { dependencies: [compact] },
   );
 
-  return { zone, mascot, hint };
+  // Before, only the hint folded away (height and opacity) and the title and button stayed:
+  // gsap.to(text, { height: 0, marginTop: 0, opacity: 0, duration, ease });
+  return { zone, mascot, full, bar };
 };

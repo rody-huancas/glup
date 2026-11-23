@@ -8,7 +8,9 @@ export const runAction = ({ actionId, paths, options, taskId }: RunActionParams)
   invoke<ActionReport>(RUN_ACTION, { request: { actionId, paths, options: options ?? null, taskId: taskId ?? null } });
 
 // The file in progress finishes; the rest are skipped and the report comes back cancelled.
-export const cancelAction = (): Promise<void> => invoke(CANCEL_ACTION);
+// Only that task: a task made of a download and then the action stays cancelled through both.
+export const cancelAction = (taskId: string): Promise<void> => invoke(CANCEL_ACTION, { taskId });
+// export const cancelAction = (): Promise<void> => invoke(CANCEL_ACTION);
 
 // Placeholder until actions are executed in Rust.
 // export const runAction = async ({ actionId, paths }: RunActionParams): Promise<void> => {

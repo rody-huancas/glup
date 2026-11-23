@@ -99,3 +99,21 @@ opt-level = 3
 # The Rust side of ONNX Runtime (the runtime itself comes prebuilt).
 [profile.dev.package.ort]
 opt-level = 3
+
+# Downloads (models, FFmpeg): the hash of every byte and the TLS of the connection. Unoptimized,
+# checking a 539 MB model took 13,5 s on its own.
+[profile.dev.package.sha2]
+opt-level = 3
+
+[profile.dev.package.rustls]
+opt-level = 3
+
+[profile.dev.package.ring]
+opt-level = 3
+
+# Unpacking ffmpeg.exe from the FFmpeg zip.
+[profile.dev.package.flate2]
+opt-level = 3
+
+[profile.dev.package.zlib-rs]
+opt-level = 3

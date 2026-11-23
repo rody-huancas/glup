@@ -1,3 +1,4 @@
+import { progressFraction } from '@/modules/actions/utils/progressView';
 import type { Task } from '@/modules/tasks/interfaces/task';
 
 // The task the panel shows: the one running, otherwise the oldest result not closed yet.
@@ -8,9 +9,11 @@ export const getRunningTask = (tasks: Task[]): Task | null => tasks.find((task) 
 
 export const getQueuedCount = (tasks: Task[]): number => tasks.filter((task) => task.status === 'queued').length;
 
-// 0 to 1 by finished files or pages; null when it cannot be told (one file).
-export const getTaskFraction = (task: Task): number | null => {
-  const progress = task.progress;
-  if (!progress || progress.total <= 1) return null;
-  return progress.current / progress.total;
-};
+// 0 to 1 while something is counted; null (a moving bar) otherwise, as in the task card.
+export const getTaskFraction = (task: Task): number | null => progressFraction(task.progress);
+
+// export const getTaskFraction = (task: Task): number | null => {
+//   const progress = task.progress;
+//   if (!progress || progress.total <= 1) return null;
+//   return progress.current / progress.total;
+// };

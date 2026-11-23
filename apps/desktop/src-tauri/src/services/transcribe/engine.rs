@@ -61,6 +61,16 @@ fn threads() -> i32 {
 }
 
 impl TranscribeSession {
+    // Whether this model is in memory already (another audio a moment ago): nothing to prepare.
+    pub fn is_loaded(&self, model: &Path) -> bool {
+        self.loaded.lock().map(|loaded| loaded.as_ref().is_some_and(|current| current.path == model)).unwrap_or(false)
+    }
+
+    // Loads the model ahead of the first audio, so the wait shows as "Preparándome…".
+    pub fn prepare(self: &Arc<Self>, model: &Path) -> Result<(), String> {
+        self.context(model).map(|_| ())
+    }
+
     // The model for this path, loading it (or swapping the other level) only when needed.
     fn context(self: &Arc<Self>, model: &Path) -> Result<Arc<WhisperContext>, String> {
         let mut loaded = self.loaded.lock().map_err(|_| MODEL_ERROR.to_string())?;

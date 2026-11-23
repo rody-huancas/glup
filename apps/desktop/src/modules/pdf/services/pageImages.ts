@@ -34,7 +34,7 @@ export const exportPdfPages = async ({ path, format, destination, bundle, onProg
         break;
       }
 
-      onProgress({ current: page - 1, total, name: PDF_TEXTS.pageProgress(page, total), active: 1 });
+      onProgress({ current: page - 1, total, name: PDF_TEXTS.pageProgress(page, total), active: 1, stage: 'working' });
 
       const canvas = await renderPage({ document, page, scale: PAGE_RENDER_SCALE });
       const bytes  = await canvasToBytes({ canvas, mime, quality: JPEG_QUALITY });
@@ -44,7 +44,9 @@ export const exportPdfPages = async ({ path, format, destination, bundle, onProg
       canvas.width = 0;
     }
   } finally {
-    onProgress({ current: total, total, name: '', active: 1 });
+    // The pages are written; the ZIP and the history come next.
+    onProgress({ current: 0, total: 0, name: '', active: 1, stage: 'saving' });
+    // onProgress({ current: total, total, name: '', active: 1 });
   }
 
   return invoke<ActionReport>(FINISH_PAGE_IMAGES, { request: { session, cancelled, taskId } });

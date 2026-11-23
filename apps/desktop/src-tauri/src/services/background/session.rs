@@ -140,6 +140,25 @@ impl BackgroundSession {
         Ok(Loaded { session, device: Device::Cpu, path: path.to_path_buf(), last_used: Instant::now() })
     }
 
+    // Whether the model at this path is already in memory (so there is nothing to prepare).
+    pub fn is_loaded(&self, path: &Path) -> bool {
+        self.0.loaded.lock().map(|slot| slot.as_ref().is_some_and(|loaded| loaded.path == path)).unwrap_or(false)
+    }
+
+    // Loads the model before the first image, so that wait is shown as its own stage.
+    pub fn prepare(&self, path: &Path) -> Result<(), String> {
+        let mut slot = self.0.loaded.lock().map_err(|_| RUN_ERROR.to_string())?;
+        if slot.as_ref().is_some_and(|loaded| loaded.path == path) {
+            return Ok(());
+        }
+
+        *slot = Some(self.load(path)?);
+        log(&format!("modelo cargado en {:?}", slot.as_ref().map(|loaded| loaded.device)));
+        drop(slot);
+        self.watch();
+        Ok(())
+    }
+
     // The 1024x1024 logits for one preprocessed image. If the graphics card fails while running
     // (not enough memory, a driver), the same image is tried again on the CPU.
     pub fn run(&self, path: &Path, input: &[f32]) -> Result<Vec<f32>, String> {

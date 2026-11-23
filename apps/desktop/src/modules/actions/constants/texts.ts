@@ -1,3 +1,6 @@
+import type { ActionId } from '@/modules/actions/types/actionId';
+import type { ProgressStage } from '@/modules/actions/types/progressStage';
+
 export const ACTIONS_TEXTS = {
   titleSingle   : '¿Qué hago con él?',
   titleMultiple : '¿Qué hago con ellos?',
@@ -41,4 +44,34 @@ export const RESULT_TEXTS = {
   cancelled      : (done: number, total: number) => `${done} de ${total} listas · cancelado`,
   cancelledPages : (done: number, total: number) => `${done} de ${total} páginas · cancelado`,
   skipped        : (count: number) => `${count} ya ${count === 1 ? 'estaba bien' : 'estaban bien'}`,
+};
+
+// The stages around the work itself: the same words for every action.
+export const STAGE_TEXTS: Record<Exclude<ProgressStage, 'working'>, string> = {
+  downloading : 'Descargando lo que necesito…',
+  verifying   : 'Comprobando la descarga…',
+  preparing   : 'Preparándome…',
+  saving      : 'Guardando…',
+};
+
+// The work itself, in the words of each action (ACTIONS_TEXTS.working when it has none).
+export const WORKING_TEXTS: Record<ActionId, string> = {
+  'compress'          : 'Reduciendo el peso…',
+  'convert'           : 'Convirtiendo…',
+  'to-pdf'            : 'Armando el PDF…',
+  'remove-background' : 'Quitando el fondo…',
+  'zip'               : 'Juntando en un ZIP…',
+  'merge'             : 'Uniendo…',
+  'split-pages'       : 'Separando las páginas…',
+  'organize-pages'    : 'Ordenando las páginas…',
+  'to-images'         : 'Pasando a imágenes…',
+  'protect'           : 'Poniendo la contraseña…',
+  'unlock'            : 'Quitando la contraseña…',
+  'watermark'         : 'Poniendo la marca de agua…',
+  'page-numbers'      : 'Numerando las páginas…',
+  'extract-images'    : 'Sacando las imágenes…',
+  'extract-text'      : 'Leyendo el texto…',
+  'transcribe'        : 'Pasando a texto…',
+  'id-photo'          : 'Guardando tu foto…',
+  'sign'              : 'Firmando…',
 };

@@ -6,29 +6,29 @@ pub mod session;
 #[cfg(test)]
 mod tests;
 
-use std::{io::Cursor, path::Path, sync::atomic::Ordering};
+use std::{io::Cursor, path::Path};
 
 use image::{
     codecs::png::{CompressionType, FilterType, PngEncoder},
     DynamicImage, ImageEncoder, RgbaImage,
 };
 use serde::Deserialize;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
 use crate::services::{
-    actions::{ActionControl, ActionProgress, ACTION_PROGRESS_EVENT},
+    actions::{ActionControl, ActionProgress},
     background::{
         download::{fetch_http, DownloadEnd, DownloadParams},
         mask::{apply_mask, mask_from_logits, on_white, preprocess, resize_mask, MODEL_SIDE},
         model::{model_path, models_folder, BACKGROUND_MODEL},
         session::BackgroundSession,
     },
-    history::format_size,
     image::{
         convert::encode_jpeg,
         decode::decode,
     },
-    tasks::{self, TaskSummary},
+    progress::{self, DownloadSpan, Stage},
+    tasks::TaskSummary,
 };
 
 pub const DOWNLOAD_ACTION_ID: &str = "download-background-model";
@@ -111,47 +111,46 @@ pub fn remove(app: &AppHandle, source: &Path, kind: BackgroundKind) -> Result<Re
     cutout(CutoutParams { image: &image, logits: &logits, kind })
 }
 
-// "12,4 MB de 109,2 MB"
-pub fn download_detail(done: u64, total: u64) -> String {
-    format!("{} de {}", format_size(done), format_size(total))
-}
+// "12,4 MB de 109,2 MB": now progress::download_detail.
+// pub fn download_detail(done: u64, total: u64) -> String {
+//     format!("{} de {}", format_size(done), format_size(total))
+// }
 
-fn emit_download(app: &AppHandle, task: &Option<String>, done: u64) {
-    let total    = BACKGROUND_MODEL.size;
-    let progress = ActionProgress {
-        task_id : task.clone(),
-        current : done as usize,
-        total   : total as usize,
-        name    : String::new(),
-        active  : 1,
-        detail  : Some(download_detail(done, total)),
-    };
-
-    if let Some(task) = task {
-        tasks::progress(app, task, &progress);
-    }
-
-    let _ = app.emit(ACTION_PROGRESS_EVENT, progress);
-}
+// fn emit_download(app: &AppHandle, task: &Option<String>, done: u64) { … }: now DownloadSpan.
 
 // The one-time download, as a task: progress in MB, Cancelar keeps the part to resume later.
 pub fn download_model(app: &AppHandle, task: &Option<String>) -> Result<TaskSummary, String> {
     let control = app.state::<ActionControl>();
-    control.cancelled.store(false, Ordering::SeqCst);
+    control.begin(task);
+    // control.cancelled.store(false, Ordering::SeqCst);
 
     let folder = models_folder(app)?;
+    let span   = DownloadSpan::single(task, BACKGROUND_MODEL.size);
     let end    = download::download(DownloadParams {
-        folder      : &folder,
-        model       : &BACKGROUND_MODEL,
-        cancel      : &control.cancelled,
-        on_progress : &|done| emit_download(app, task, done),
-        fetch       : &|start| fetch_http(BACKGROUND_MODEL.url, start),
+        folder       : &folder,
+        model        : &BACKGROUND_MODEL,
+        cancel       : &control.cancelled,
+        on_progress  : &|done| progress::emit(app, span.downloading(done)),
+        on_verifying : &|| progress::emit(app, span.verifying()),
+        fetch        : &|start| fetch_http(BACKGROUND_MODEL.url, start),
     })?;
 
     Ok(match end {
         DownloadEnd::Installed => TaskSummary::success(LEARNED_MESSAGE.to_string()),
         DownloadEnd::Cancelled => TaskSummary::calm(CANCELLED_MESSAGE.to_string()),
     })
+}
+
+// The first image waits for the model to load: shown as "Preparándome…" (a failure shows on each file).
+pub fn prepare(app: &AppHandle, task: &Option<String>) {
+    let Ok(folder) = models_folder(app) else { return };
+    let path       = model_path(&folder, &BACKGROUND_MODEL);
+    let session    = app.state::<BackgroundSession>();
+
+    if path.exists() && !session.is_loaded(&path) {
+        progress::emit(app, ActionProgress::at(task, Stage::Preparing));
+        let _ = session.prepare(&path);
+    }
 }
 
 // "Borrar" in Ajustes: the session lets go of the file first.

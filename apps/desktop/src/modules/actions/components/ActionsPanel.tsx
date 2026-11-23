@@ -92,6 +92,7 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
         onStopped={flow.modelStopped}
         onReady={flow.modelReady}
         onBack={flow.back}
+        onAccept={flow.chained ? flow.acceptLearning : undefined}
       />
     );
   }

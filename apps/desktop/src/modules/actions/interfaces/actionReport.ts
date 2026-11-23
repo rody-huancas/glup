@@ -1,4 +1,5 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
+import type { ProgressStage } from '@/modules/actions/types/progressStage';
 
 export interface FileOutcome {
   source     : string;
@@ -32,4 +33,6 @@ export interface ActionProgress {
   active  : number;
   // Replaces "N de M" when the progress is not counted in files ("12 MB de 109 MB").
   detail? : string | null;
+  // What the task is doing now (downloading, checking, preparing, working, saving).
+  stage   : ProgressStage;
 }

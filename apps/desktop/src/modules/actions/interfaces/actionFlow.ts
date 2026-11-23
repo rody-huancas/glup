@@ -40,6 +40,9 @@ export interface ActionFlow {
   startTranscribe  : (options: TranscribeOptions) => void;
   // What the learning step downloads now.
   learnable        : LearnableId;
+  // The learning step was opened by an action that runs right after the download (one task).
+  chained          : boolean;
+  acceptLearning   : () => void;
   // The learning step ("Quitar fondo" or videos): download started, stopped (cancel or error), finished.
   modelStarted     : () => void;
   modelStopped     : () => void;
