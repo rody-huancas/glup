@@ -17,8 +17,9 @@
   { "id": "images-to-pdf", "kind": "action", "section": "images", "icon": "image", "actionId": "to-pdf", "fileType": "image", "multiple": true, "title": "A PDF", "description": "Tus imágenes en un solo PDF" },
   { "id": "compress-video", "kind": "action", "section": "videos", "icon": "video", "actionId": "compress", "fileType": "video", "multiple": true, "title": "Reducir peso de video", "description": "Para mandarlo por WhatsApp o correo" },
   { "id": "extract-text", "kind": "action", "section": "text", "icon": "text", "actionId": "extract-text", "fileType": "any", "multiple": true, "title": "Sacar texto", "description": "De una foto, una captura o un PDF escaneado" },
-  { "id": "screen-text", "kind": "command", "section": "text", "icon": "screen-text", "command": "copy-screen-text", "title": "Copiar texto de la pantalla", "description": "Elige una parte de la pantalla y copio lo que dice" },
+  { "id": "screen-text", "kind": "command", "section": "text", "icon": "screen-text", "command": "copy-screen-text", "shortcut": "screen-text", "title": "Copiar texto de la pantalla", "description": "Elige una parte de la pantalla y copio lo que dice" },
   { "id": "transcribe", "kind": "action", "section": "text", "icon": "audio-text", "actionId": "transcribe", "fileType": "audio", "multiple": true, "title": "Pasar audio a texto", "description": "Notas de voz, reuniones o clases" },
   { "id": "zip-files", "kind": "action", "section": "files", "icon": "zip", "actionId": "zip", "fileType": "files", "multiple": true, "title": "Juntar en ZIP", "description": "Muchos archivos en uno solo" },
+  { "id": "clipboard", "kind": "page", "section": "pc", "icon": "clipboard", "page": "clipboard", "shortcut": "clipboard", "title": "Portapapeles", "description": "Lo que copiaste, para buscarlo y copiarlo de nuevo" },
   { "id": "cleanup", "kind": "page", "section": "pc", "icon": "cleanup", "page": "cleanup", "title": "Limpieza", "description": "Haz espacio en tu PC" }
 ]
