@@ -45,6 +45,14 @@ export const CLIPBOARD_INTRO_TEXTS = {
   later  : 'Ahora no',
 };
 
+// Turning it off with something kept.
+export const CLIPBOARD_OFF_TEXTS = {
+  title     : '¿También borrar lo que guardé?',
+  body      : (count: number) => (count === 1 ? 'Es 1 elemento. Se queda solo en tu PC.' : `Son ${count} elementos. Se quedan solo en tu PC.`),
+  keep      : 'Conservar',
+  deleteAll : 'Borrar todo',
+};
+
 export const CLIPBOARD_SETTINGS_TEXTS = {
   title         : 'Portapapeles',
   enabled       : 'Recordar lo que copio',
