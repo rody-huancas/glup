@@ -22,7 +22,6 @@ const BADGE_CLASSES: Record<BadgeTone, string> = {
 };
 
 export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, badgeLabel, badgeTone = 'mint' }: NavItemProps) => (
-// export const NavItem = ({ label, icon: Icon, active, onClick, badge = false, badgeLabel }: NavItemProps) => (
   <button
     type="button"
     onClick={onClick}
