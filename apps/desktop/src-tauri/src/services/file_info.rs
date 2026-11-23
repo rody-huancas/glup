@@ -3,10 +3,11 @@ use std::{fs::File, io::Read, path::Path};
 use rayon::prelude::*;
 use serde::Serialize;
 
-use crate::services::pdf::info;
+use crate::services::{pdf::info, video::{self, probe::VideoInfo}};
 
 const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
 const IMAGE_EXTENSIONS: [&str; 9] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif"];
+const VIDEO_EXTENSIONS: [&str; 7] = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
 // const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
 
 // Enough bytes to recognize every supported signature; the file is never decoded.
@@ -17,6 +18,7 @@ const SNIFF_BYTES: usize = 16;
 pub enum FileKind {
     Pdf,
     Image,
+    Video,
     Other,
 }
 
@@ -30,6 +32,10 @@ pub struct FileInfo {
     // PDFs only: page count and whether a password is needed to open it.
     pub pages: Option<u32>,
     pub protected: bool,
+    // Videos only, once ffmpeg is here: seconds, and the picture as shown.
+    pub duration: Option<f64>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
 }
 
 fn kind_of(extension: &str) -> FileKind {
@@ -37,6 +43,8 @@ fn kind_of(extension: &str) -> FileKind {
         FileKind::Pdf
     } else if IMAGE_EXTENSIONS.contains(&extension) {
         FileKind::Image
+    } else if VIDEO_EXTENSIONS.contains(&extension) {
+        FileKind::Video
     } else {
         FileKind::Other
     }
@@ -47,6 +55,10 @@ pub fn sniff_kind(head: &[u8]) -> FileKind {
     let starts = |signature: &[u8]| head.starts_with(signature);
     let ftyp   = head.get(4..8) == Some(b"ftyp") && matches!(head.get(8..12), Some(b"avif" | b"avis"));
     let webp   = starts(b"RIFF") && head.get(8..12) == Some(b"WEBP");
+    // MP4, MOV, 3GP and M4V share the ISO box format ("ftyp", or "moov"/"wide"/"mdat" in old QuickTime);
+    // MKV and WebM start with EBML; AVI is RIFF.
+    let boxed  = matches!(head.get(4..8), Some(b"ftyp" | b"moov" | b"wide" | b"mdat" | b"free" | b"skip"));
+    let video  = boxed || starts(&[0x1A, 0x45, 0xDF, 0xA3]) || (starts(b"RIFF") && head.get(8..12) == Some(b"AVI "));
 
     if starts(b"%PDF") {
         FileKind::Pdf
@@ -54,6 +66,8 @@ pub fn sniff_kind(head: &[u8]) -> FileKind {
         || starts(b"II*\0") || starts(b"MM\0*") || webp || ftyp
     {
         FileKind::Image
+    } else if video {
+        FileKind::Video
     } else {
         FileKind::Other
     }
@@ -70,7 +84,8 @@ fn read_head(path: &Path) -> Vec<u8> {
 }
 
 // Metadata plus the first bytes: the extension says what it should be, the signature confirms it.
-pub fn read(path: &str) -> FileInfo {
+// ffmpeg, when it is already here, reads a video's length and picture size.
+pub fn read(path: &str, ffmpeg: Option<&Path>) -> FileInfo {
     let file_path = Path::new(path);
     let metadata  = file_path.metadata().ok();
     let is_file   = metadata.as_ref().is_some_and(|data| data.is_file());
@@ -88,7 +103,8 @@ pub fn read(path: &str) -> FileInfo {
     let expected = if is_file { kind_of(&extension) } else { FileKind::Other };
     let kind     = if expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected { expected } else { FileKind::Other };
 
-    let pdf = if kind == FileKind::Pdf { info::read(file_path) } else { None };
+    let pdf   = if kind == FileKind::Pdf { info::read(file_path) } else { None };
+    let video = if kind == FileKind::Video { video::probe_if_ready(ffmpeg, file_path) } else { None };
 
     FileInfo {
         path: path.to_string(),
@@ -98,12 +114,15 @@ pub fn read(path: &str) -> FileInfo {
         kind,
         pages: pdf.as_ref().map(|data| data.pages).filter(|pages| *pages > 0),
         protected: pdf.is_some_and(|data| data.protected),
+        duration: video.map(|data: VideoInfo| data.duration),
+        width: video.map(|data| data.width),
+        height: video.map(|data| data.height),
     }
 }
 
 // Many files are read in parallel; the order of `paths` is kept.
-pub fn read_all(paths: &[String]) -> Vec<FileInfo> {
-    paths.par_iter().map(|path| read(path)).collect()
+pub fn read_all(paths: &[String], ffmpeg: Option<&Path>) -> Vec<FileInfo> {
+    paths.par_iter().map(|path| read(path, ffmpeg)).collect()
 }
 
 #[cfg(test)]
@@ -138,6 +157,10 @@ mod tests {
         assert_eq!(sniff_kind(&[0xFF, 0xD8, 0xFF, 0xE0]), FileKind::Image);
         assert_eq!(sniff_kind(b"RIFF\0\0\0\0WEBPVP8 "), FileKind::Image);
         assert_eq!(sniff_kind(b"\0\0\0\x1cftypavif"), FileKind::Image);
+        assert_eq!(sniff_kind(b"\0\0\0\x18ftypmp42"), FileKind::Video);
+        assert_eq!(sniff_kind(b"\0\0\0\x14ftypqt  "), FileKind::Video);
+        assert_eq!(sniff_kind(&[0x1A, 0x45, 0xDF, 0xA3, 0x9F]), FileKind::Video);
+        assert_eq!(sniff_kind(b"RIFF\0\0\0\0AVI LIST"), FileKind::Video);
         assert_eq!(sniff_kind(b"hola"), FileKind::Other);
     }
 
@@ -149,7 +172,7 @@ mod tests {
         let fake = folder.join("no-soy-imagen.png");
         fs::write(&fake, "texto").unwrap();
 
-        assert_eq!(read(fake.to_str().unwrap()).kind, FileKind::Other);
+        assert_eq!(read(fake.to_str().unwrap(), None).kind, FileKind::Other);
         let _ = fs::remove_dir_all(&folder);
     }
 
@@ -171,11 +194,11 @@ mod tests {
             let _ = paths.iter().map(|path| read_by_extension(path)).collect::<Vec<_>>();
         });
         let after = best_of(5, || {
-            let _ = read_all(&paths);
+            let _ = read_all(&paths, None);
         });
 
         println!("\n[get_files_info] 50 imágenes · antes {before:.2} ms (secuencial) · ahora {after:.2} ms (paralelo, con firma)");
-        assert!(read_all(&paths).iter().all(|info| info.kind == FileKind::Image));
+        assert!(read_all(&paths, None).iter().all(|info| info.kind == FileKind::Image));
 
         let _ = fs::remove_dir_all(&folder);
     }
