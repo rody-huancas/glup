@@ -8,6 +8,7 @@ export type ActionId =
   | 'watermark'
   | 'page-numbers'
   | 'extract-images'
+  | 'extract-text'
   | 'to-images'
   | 'merge'
   | 'convert'
