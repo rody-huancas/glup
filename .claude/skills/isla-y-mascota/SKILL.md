@@ -24,7 +24,8 @@ solo traduce cada fase en animación, región y foco.
   `islandMachine.test.ts`. Nada de banderas sueltas en componentes.
 - **Invariantes** (`checkInvariants`), que ningún cambio puede romper:
   - fuera de `hidden`, la región visible incluye siempre la pastilla y la ventana es visible;
-  - `hidden` solo por pantalla completa o por la bandeja;
+  - `hidden` solo por pantalla completa, por la bandeja o mientras se elige una zona en «Copiar texto
+    de la pantalla» (`capturing`);
   - el aviso (`notice`) solo existe con la pastilla ancha;
   - fijada solo estando abierta.
 - Los temporizadores (abrir, recoger) usan callbacks estables: un render no los reinicia.
@@ -39,11 +40,12 @@ solo traduce cada fase en animación, región y foco.
 | Cursor sobre la pastilla 120 ms | Se infla y se despliega el panel |
 | Archivo arrastrado hacia la pastilla | Se despliega al instante, zona de soltar en mint |
 | Cursor fuera del panel 350 ms | Se recoge, aunque haya una tarea en curso (la pastilla muestra su progreso) |
-| La persona está en medio de algo | No se recoge al salir el cursor: fijada, archivo arrastrándose encima, paso con lista o cuadrícula (ordenar, páginas, formato, nivel), pantalla de firma o un diálogo abierto (confirmación de Limpieza, crear firma, selector de archivos o carpetas) |
+| La persona está en medio de algo | No se recoge al salir el cursor: fijada, archivo arrastrándose encima, paso con lista o cuadrícula (ordenar, páginas, formato, nivel), pantalla de firma o un diálogo abierto (confirmación de Limpieza o de «Limpiar historial», crear firma, selector de archivos o carpetas, escuchar un atajo nuevo en Ajustes) |
 | Recoger o Esc | Se recoge con despedida de Glup |
 | Tarea termina con la isla recogida | Aviso ancho 4 s con el resultado |
 | Tarea termina (cualquiera) | Toast arriba del contenido del panel o notificación de Windows, nunca los dos (`decideNotice`) |
 | Pantalla completa en el monitor principal | `hidden` |
+| «Copiar texto de la pantalla» (atajo, bandeja o Herramientas) | `hidden` mientras se elige la zona; vuelve como pastilla limpia y muestra el aviso («Copié 42 palabras» con «Ver», que abre esa línea del Historial, Glup feliz; «No encontré texto ahí», confundido). Con Glup oculto (bandeja, pantalla completa), una notificación de Windows con las mismas palabras |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
   `drag`, `step`, `sign` (una pantalla entera: Firmar u Organizar páginas), `dialog`), que `useIsland`
