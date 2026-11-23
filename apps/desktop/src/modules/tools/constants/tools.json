@@ -17,6 +17,7 @@
   { "id": "images-to-pdf", "kind": "action", "section": "images", "icon": "image", "actionId": "to-pdf", "fileType": "image", "multiple": true, "title": "A PDF", "description": "Tus imágenes en un solo PDF" },
   { "id": "compress-video", "kind": "action", "section": "videos", "icon": "video", "actionId": "compress", "fileType": "video", "multiple": true, "title": "Reducir peso de video", "description": "Para mandarlo por WhatsApp o correo" },
   { "id": "extract-text", "kind": "action", "section": "text", "icon": "text", "actionId": "extract-text", "fileType": "any", "multiple": true, "title": "Sacar texto", "description": "De una foto, una captura o un PDF escaneado" },
+  { "id": "transcribe", "kind": "action", "section": "text", "icon": "text", "actionId": "transcribe", "fileType": "audio", "multiple": true, "title": "Pasar audio a texto", "description": "Notas de voz, reuniones o clases" },
   { "id": "zip-files", "kind": "action", "section": "files", "icon": "zip", "actionId": "zip", "fileType": "files", "multiple": true, "title": "Juntar en ZIP", "description": "Muchos archivos en uno solo" },
   { "id": "cleanup", "kind": "page", "section": "pc", "icon": "cleanup", "page": "cleanup", "title": "Limpieza", "description": "Haz espacio en tu PC" }
 ]
