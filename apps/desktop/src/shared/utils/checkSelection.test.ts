@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { keepPresent, selectionState, textPreview, toggleAll, toggleId } from '@/modules/history/utils/historySelection';
+import { keepPresent, selectionState, toggleAll, toggleId } from '@/shared/utils/checkSelection';
 
 const IDS = ['a', 'b', 'c'];
 
-describe('history selection', () => {
+describe('check selection', () => {
   it('marks and unmarks one line', () => {
     expect(toggleId([], 'a')).toEqual(['a']);
     expect(toggleId(['a', 'b'], 'a')).toEqual(['b']);
@@ -24,15 +24,5 @@ describe('history selection', () => {
 
   it('forgets lines that are no longer in the list', () => {
     expect(keepPresent(['a', 'x'], IDS)).toEqual(['a']);
-  });
-});
-
-describe('textPreview', () => {
-  it('puts the start of the text on one line', () => {
-    expect(textPreview('Hola\n\nmundo  feliz', 40)).toBe('Hola mundo feliz');
-  });
-
-  it('cuts a long text with "…"', () => {
-    expect(textPreview('Una frase bastante larga para la fila', 16)).toBe('Una frase bastan…');
   });
 });

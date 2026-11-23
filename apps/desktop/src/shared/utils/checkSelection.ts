@@ -1,5 +1,4 @@
-import { TEXT_PREVIEW_LENGTH } from '@/modules/history/constants/history';
-import type { SelectionState } from '@/modules/history/types/selectionState';
+import type { SelectionState } from '@/shared/types/selectionState';
 
 // The check of one line, on or off.
 export const toggleId = (selected: string[], id: string): string[] =>
@@ -17,9 +16,3 @@ export const selectionState = (selected: string[], ids: string[]): SelectionStat
 
 // Lines that left the list (removed, or pushed out past the limit) are no longer selected.
 export const keepPresent = (selected: string[], ids: string[]): string[] => selected.filter((id) => ids.includes(id));
-
-// The start of a copied text, on one line: "Hola, te escribo para…".
-export const textPreview = (text: string, length: number = TEXT_PREVIEW_LENGTH): string => {
-  const line = text.replace(/\s+/g, ' ').trim();
-  return line.length > length ? `${line.slice(0, length).trimEnd()}…` : line;
-};

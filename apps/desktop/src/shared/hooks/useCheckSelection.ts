@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { HistoryEntry } from '@/modules/history/interfaces/historyEntry';
-import { keepPresent, selectionState, toggleAll, toggleId } from '@/modules/history/utils/historySelection';
+import { useCallback, useEffect, useState } from 'react';
+import { keepPresent, selectionState, toggleAll, toggleId } from '@/shared/utils/checkSelection';
 
-// The checks of Historial: one per line and "Seleccionar todo".
-export const useHistorySelection = (entries: HistoryEntry[]) => {
+// The checks of a list (Historial, Portapapeles): one per line and "Seleccionar todo". ids must be stable
+// (memoized) between renders.
+export const useCheckSelection = (ids: string[]) => {
   const [selected, setSelected] = useState<string[]>([]);
-  const ids                     = useMemo(() => entries.map((entry) => entry.id), [entries]);
 
   // Lines that left the list (removed, cleared) are no longer marked.
   useEffect(() => {
