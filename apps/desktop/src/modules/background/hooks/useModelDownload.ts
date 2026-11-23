@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { Learnable } from '@/modules/background/interfaces/learnable';
 import type { ModelStatus } from '@/modules/background/interfaces/modelStatus';
-import { getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import { getModelDownloadId, startModelDownload } from '@/modules/background/store/modelDownload';
 import { useTasks } from '@/modules/tasks/hooks/useTasks';
 import { cancelTask, dismissTaskResult } from '@/modules/tasks/store/taskStore';
 
 interface UseModelDownloadParams {
+  learnable   : Learnable;
   // The step shows the download (true) or the question.
   downloading : boolean;
   onStarted   : () => void;
@@ -14,17 +15,18 @@ interface UseModelDownloadParams {
   onReady     : () => void;
 }
 
-// The "learn to remove backgrounds" step: the size to ask with, and the download task while it runs.
+// The "learn something new" step: the size to ask with, and the download task while it runs.
 // When it ends, the step takes its result (the task card would repeat it).
-export const useModelDownload = ({ downloading, onStarted, onStopped, onReady }: UseModelDownloadParams) => {
+export const useModelDownload = ({ learnable, downloading, onStarted, onStopped, onReady }: UseModelDownloadParams) => {
   const [status, setStatus] = useState<ModelStatus | null>(null);
   const [error, setError]   = useState<string | null>(null);
   const tasks               = useTasks();
-  const task                = tasks.find((item) => item.id === getModelDownloadId()) ?? null;
+  const task                = tasks.find((item) => item.id === getModelDownloadId(learnable.id)) ?? null;
+  const getStatus           = learnable.getStatus;
 
   useEffect(() => {
-    void getBackgroundModel().then(setStatus).catch(() => setStatus(null));
-  }, []);
+    void getStatus().then(setStatus).catch(() => setStatus(null));
+  }, [getStatus]);
 
   const finishedResult = task?.status === 'done' ? task.result : null;
 
@@ -33,14 +35,14 @@ export const useModelDownload = ({ downloading, onStarted, onStopped, onReady }:
 
     // Back on the step after the download already ended (or never started here): ask Rust.
     if (!task) {
-      void getBackgroundModel().then((next) => (next.installed ? onReady() : onStopped())).catch(onStopped);
+      void getStatus().then((next) => (next.installed ? onReady() : onStopped())).catch(onStopped);
       return;
     }
 
     if (!finishedResult) return;
 
     dismissTaskResult(task.id);
-    void getBackgroundModel()
+    void getStatus()
       .then((next) => {
         setStatus(next);
         if (next.installed) return onReady();
@@ -49,13 +51,13 @@ export const useModelDownload = ({ downloading, onStarted, onStopped, onReady }:
         onStopped();
       })
       .catch(onStopped);
-  }, [downloading, task, finishedResult, onReady, onStopped]);
+  }, [downloading, task, finishedResult, getStatus, onReady, onStopped]);
 
   const start = useCallback(() => {
     setError(null);
-    startModelDownload();
+    startModelDownload(learnable);
     onStarted();
-  }, [onStarted]);
+  }, [learnable, onStarted]);
 
   const cancel = useCallback(() => {
     if (task) cancelTask(task.id);

@@ -3,6 +3,7 @@ import { LEARN_MASCOT_WIDTH } from '@/modules/background/constants/background';
 import { BACKGROUND_TEXTS } from '@/modules/background/constants/texts';
 import { useAttentiveMascot } from '@/modules/background/hooks/useAttentiveMascot';
 import { useModelDownload } from '@/modules/background/hooks/useModelDownload';
+import type { Learnable } from '@/modules/background/interfaces/learnable';
 import { downloadFraction } from '@/modules/background/utils/learnStep';
 import { Mascot } from '@/modules/mascot/components/Mascot';
 import { StepHeader } from '@/modules/pdf/components/StepHeader';
@@ -11,6 +12,8 @@ import { ProgressBar } from '@/shared/components/ProgressBar';
 import { Skeleton } from '@/shared/components/Skeleton';
 
 interface LearnModelStepProps {
+  // What Glup has to learn: the background model or the video program.
+  learnable   : Learnable;
   downloading : boolean;
   onStarted   : () => void;
   onStopped   : () => void;
@@ -18,9 +21,9 @@ interface LearnModelStepProps {
   onBack      : () => void;
 }
 
-// The first "Quitar fondo": Glup asks before downloading, with the size, and shows the download.
-export const LearnModelStep = ({ downloading, onStarted, onStopped, onReady, onBack }: LearnModelStepProps) => {
-  const model         = useModelDownload({ downloading, onStarted, onStopped, onReady });
+// The first "Quitar fondo" or video: Glup asks before downloading, with the size, and shows the download.
+export const LearnModelStep = ({ learnable, downloading, onStarted, onStopped, onReady, onBack }: LearnModelStepProps) => {
+  const model         = useModelDownload({ learnable, downloading, onStarted, onStopped, onReady });
   const controllerRef = useAttentiveMascot(downloading);
   const progress      = model.task?.progress ?? null;
   const fraction      = progress ? downloadFraction(progress.current, progress.total) : null;
@@ -35,7 +38,7 @@ export const LearnModelStep = ({ downloading, onStarted, onStopped, onReady, onB
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
           {model.status ? (
-            <p className="text-[13px] text-text">{BACKGROUND_TEXTS.learnBody(formatFileSize(model.status.size))}</p>
+            <p className="text-[13px] text-text">{learnable.texts.body(formatFileSize(model.status.size))}</p>
           ) : (
             <Skeleton className="h-9 w-full" />
           )}
@@ -43,7 +46,7 @@ export const LearnModelStep = ({ downloading, onStarted, onStopped, onReady, onB
             <div className="flex flex-col gap-2">
               <ProgressBar value={fraction} />
               <div className="flex items-center justify-between gap-3 text-[11px] text-muted">
-                <span className="min-w-0 truncate">{progress?.detail ?? BACKGROUND_TEXTS.learning}</span>
+                <span className="min-w-0 truncate">{progress?.detail ?? learnable.texts.learning}</span>
                 <Button variant="secondary" onClick={model.cancel} disabled={cancelling} className="h-8 px-3 text-xs">
                   {cancelling ? BACKGROUND_TEXTS.cancelling : BACKGROUND_TEXTS.cancel}
                 </Button>
