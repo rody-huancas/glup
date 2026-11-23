@@ -8,6 +8,7 @@ const task = (id: string, owner: Task['owner'], status: Task['status'], createdA
   owner,
   status,
   title      : id,
+  actionId   : null,
   type       : null,
   fileCount  : 1,
   progress   : null,

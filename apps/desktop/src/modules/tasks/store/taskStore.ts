@@ -89,6 +89,7 @@ const restore = async () => {
     ...missing.map((record): Task => ({
       id         : record.id,
       title      : titleOf(record),
+      actionId   : ACTIONS.find((action) => action.id === record.actionId)?.id ?? null,
       type       : null,
       fileCount  : record.report?.total ?? 1,
       status     : record.finished ? 'done' : 'running',
@@ -133,7 +134,7 @@ export const enqueueTask = (spec: TaskSpec): string => {
   specs.set(id, spec);
   setTasks([
     ...tasks,
-    { id, title: spec.title, type: spec.type, fileCount: spec.fileCount, status: 'queued', progress: null, result: null, cancelling: false, owner: spec.owner, finishedAt: null, createdAt: Date.now() },
+    { id, title: spec.title, actionId: spec.actionId ?? null, type: spec.type, fileCount: spec.fileCount, status: 'queued', progress: null, result: null, cancelling: false, owner: spec.owner, finishedAt: null, createdAt: Date.now() },
   ]);
 
   pump();
@@ -154,7 +155,8 @@ export const cancelTask = (id: string) => {
   if (task.status === 'running' && !task.cancelling) {
     cancelled.add(id);
     update(id, { cancelling: true });
-    void cancelAction();
+    void cancelAction(id);
+    // void cancelAction();
   }
 };
 
