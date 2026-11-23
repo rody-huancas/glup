@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { TurnOffDialog } from '@/modules/clipboard/components/TurnOffDialog';
 import { LIMIT_OPTIONS } from '@/modules/clipboard/constants/clipboard';
 import { CLIPBOARD_SETTINGS_TEXTS } from '@/modules/clipboard/constants/texts';
 import { useClipboardSettings } from '@/modules/clipboard/hooks/useClipboardSettings';
@@ -30,7 +31,7 @@ export const ClipboardSettings = () => {
               hint={status.enabled ? CLIPBOARD_SETTINGS_TEXTS.enabledHint : CLIPBOARD_SETTINGS_TEXTS.disabledHint}
               checked={status.enabled}
               disabled={!status.supported}
-              onChange={settings.setEnabled}
+              onChange={settings.turnOff.setEnabled}
             />
             <div className="border-t border-line" />
             <div className="flex items-center justify-between gap-4">
@@ -75,6 +76,7 @@ export const ClipboardSettings = () => {
         )}
         {settings.failed && <p role="alert" className="text-[11px] text-lilac-soft">{CLIPBOARD_SETTINGS_TEXTS.failed}</p>}
       </Card>
+      {settings.turnOff.asking && <TurnOffDialog count={settings.turnOff.count} onKeep={settings.turnOff.keep} onDeleteAll={settings.turnOff.deleteAll} onDismiss={settings.turnOff.dismiss} />}
     </section>
   );
 };
