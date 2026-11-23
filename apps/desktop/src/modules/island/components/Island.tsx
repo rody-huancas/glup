@@ -38,7 +38,7 @@ export const Island = () => {
         <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={notice} />
         <IslandPillProgress visible={progress.visible} fraction={progress.fraction} />
         <IslandPillDot visible={pendingSelection && notice === null} />
-        <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash} hidden={panel.signing !== null || panel.welcome.visible}>
+        <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash} hidden={panel.fullScreen || panel.welcome.visible}>
           <Mascot
             controllerRef={panel.avatarRef}
             onStateChange={panel.onAvatarStateChange}

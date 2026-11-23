@@ -111,10 +111,11 @@ export const useIsland = () => {
     if (dragging) reasons.push('drag');
     // The welcome is a step too: it does not close on its own while on screen.
     if (panel.files.busy || panel.welcome.visible) reasons.push('step');
-    if (panel.signing) reasons.push('sign');
+    if (panel.fullScreen) reasons.push('sign');
+    // if (panel.signing) reasons.push('sign');
     if (dialogs > 0) reasons.push('dialog');
     return reasons;
-  }, [dragging, panel.files.busy, panel.welcome.visible, panel.signing, dialogs]);
+  }, [dragging, panel.files.busy, panel.welcome.visible, panel.fullScreen, dialogs]);
 
   useEffect(() => {
     send({ type: 'holds', holds });
@@ -137,8 +138,9 @@ export const useIsland = () => {
 
   useIslandWatchdog({ machine, send, isMoving });
 
-  // While signing, Esc belongs to the signing screen (it asks before leaving).
-  useKeyDown({ key: 'Escape', enabled: state === 'expanded' && panel.signing === null, handler: collapseNow });
+  // While signing or organizing, Esc belongs to that screen (it asks before leaving).
+  useKeyDown({ key: 'Escape', enabled: state === 'expanded' && !panel.fullScreen, handler: collapseNow });
+  // useKeyDown({ key: 'Escape', enabled: state === 'expanded' && panel.signing === null, handler: collapseNow });
 
   const actionsVisible = state === 'expanded' && panel.files.selection !== null;
 
