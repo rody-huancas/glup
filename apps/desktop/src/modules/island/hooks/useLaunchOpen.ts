@@ -26,26 +26,3 @@ export const useLaunchOpen = ({ onOpen }: UseLaunchOpenParams) => {
     });
   }, []);
 };
-
-// Previous version: every mount took itself for the launch (Vite reloads, webview recoveries).
-// export const useLaunchOpen = ({ onOpen }: UseLaunchOpenParams) => {
-//   const openRef = useRef(onOpen);
-//
-//   useEffect(() => {
-//     openRef.current = onOpen;
-//   }, [onOpen]);
-//
-//   useEffect(() => {
-//     let active = true;
-//
-//     void getLaunchInfo()
-//       .then((info) => {
-//         if (active && !info.autostart) openRef.current();
-//       })
-//       .catch(() => undefined);
-//
-//     return () => {
-//       active = false;
-//     };
-//   }, []);
-// };

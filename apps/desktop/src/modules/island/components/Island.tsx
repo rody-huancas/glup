@@ -8,13 +8,9 @@ import { IslandSilhouette } from '@/modules/island/components/IslandSilhouette';
 import { ISLAND_SHAPES } from '@/modules/island/constants/islandShape';
 import { useIsland } from '@/modules/island/hooks/useIsland';
 import { getShapeStyle } from '@/modules/island/utils/islandShape';
-// import { getIslandLayout } from '@/modules/island/utils/islandLayout';
-// import { getPanelStyle } from '@/modules/island/utils/islandStyles';
 import { MainPanel } from '@/modules/main-window/components/MainPanel';
 import { Mascot } from '@/modules/mascot/components/Mascot';
 import { preventSelectionStart } from '@/shared/utils/selection';
-
-// const INITIAL_LAYOUT = getIslandLayout('collapsed');
 
 // The panel is clipped to the SVG silhouette, so the content and Glup never spill past its outline.
 export const Island = () => {
@@ -29,7 +25,6 @@ export const Island = () => {
         style={getShapeStyle(ISLAND_SHAPES.collapsed)}
         onPointerDownCapture={onPanelPointerDown}
       >
-        {/* style={getPanelStyle(INITIAL_LAYOUT)} */}
         <IslandSilhouette fillRef={elements.fill} outlineRef={elements.outline} />
         <IslandContent contentRef={elements.content} interactive={expanded}>
           <MainPanel panel={panel} controls={controls} avatarAnchorRef={elements.avatarAnchor} />

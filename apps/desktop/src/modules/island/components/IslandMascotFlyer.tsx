@@ -22,11 +22,3 @@ export const IslandMascotFlyer = ({ liftRef, flyerRef, squashRef, children, hidd
     </div>
   </div>
 );
-
-// export const IslandMascotFlyer = ({ flyerRef, squashRef, children }: IslandMascotFlyerProps) => (
-//   <div ref={flyerRef} className="absolute left-1/2 top-0 z-20" style={getFlyerStyle()}>
-//     <div ref={squashRef} className="origin-bottom">
-//       {children}
-//     </div>
-//   </div>
-// );

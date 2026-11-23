@@ -20,14 +20,11 @@ export const MASCOT_MOTION = {
   celebrate : { hold: 0.6 },
   // lead: flight start after the goodbye wave (Recoger, Esc) · leaveLead: when the cursor left, no wave.
   farewell  : { hold: 0.15, lead: 0.28, leaveLead: 0 },
-  // farewell  : { hold: 0.15, lead: 0.28 },
-  // farewell  : { hold: 0.15, lead: 0.1 },
 };
 
 const LOOK_LEFT: Point           = { x: -1, y: 0 };
 const LOOK_RIGHT: Point          = { x: 1, y: 0 };
 const IDLE_MOVES: IdleMoveKind[] = ['look', 'sway', 'hop', 'stretch', 'tap-dance'];
-// const IDLE_MOVES: IdleMoveKind[] = ['look', 'sway', 'hop'];
 
 // Short idle moves while the panel is open and still, one picked at random every few seconds.
 export const MASCOT_IDLE = {

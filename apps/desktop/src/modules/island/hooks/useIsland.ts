@@ -33,7 +33,6 @@ export const useIsland = () => {
   // Collapsing, hiding or a reset keep everything, even a file selection not run yet (it waits as
   // pending and expires after a while); resetRef only drops that selection.
   const resetRef          = useRef(panel.discardSelection);
-  // const resetRef          = useRef(panel.reset);
   const state             = toIslandState(machine.phase);
   const collapsedAt       = useRef<number | null>(null);
 
@@ -56,7 +55,6 @@ export const useIsland = () => {
     if (machine.resets === 0) return;
 
     releaseFocus();
-    // resetRef.current();
     void hide();
   }, [machine.resets, releaseFocus, hide]);
 
@@ -71,7 +69,6 @@ export const useIsland = () => {
       void transitionTo('collapsed', machine.farewell).then((done) => {
         if (!done) return;
 
-        // resetRef.current();
         collapsedAt.current = Date.now();
         send({ type: 'settled', phase: 'collapsed' });
       });
@@ -79,7 +76,6 @@ export const useIsland = () => {
 
     if (machine.phase === 'hidden') {
       releaseFocus();
-      // resetRef.current();
       void hide();
     }
   }, [machine.phase, machine.farewell, transitionTo, releaseFocus, hide, send]);
@@ -114,7 +110,6 @@ export const useIsland = () => {
     // The welcome is a step too: it does not close on its own while on screen.
     if (panel.files.busy || panel.welcome.visible) reasons.push('step');
     if (panel.fullScreen) reasons.push('sign');
-    // if (panel.signing) reasons.push('sign');
     if (dialogs > 0) reasons.push('dialog');
     return reasons;
   }, [dragging, panel.files.busy, panel.welcome.visible, panel.fullScreen, dialogs]);
@@ -133,7 +128,6 @@ export const useIsland = () => {
     inside   : hovering,
     dragging,
     blocked  : isHeldOpen(machine),
-    // blocked  : machine.pinned || dragging || panel.busy,
     expand   : expandOnHover,
     collapse : collapseOnLeave,
   });
@@ -142,7 +136,6 @@ export const useIsland = () => {
 
   // While signing or organizing, Esc belongs to that screen (it asks before leaving).
   useKeyDown({ key: 'Escape', enabled: state === 'expanded' && !panel.fullScreen, handler: collapseNow });
-  // useKeyDown({ key: 'Escape', enabled: state === 'expanded' && panel.signing === null, handler: collapseNow });
 
   const actionsVisible = state === 'expanded' && panel.files.selection !== null;
 
@@ -173,7 +166,6 @@ export const useIsland = () => {
   // its owner screen.
   const onTaskFinish = useCallback((task: Task) => {
     if (toIslandState(phaseRef.current) === 'collapsed') markForReveal(task.id);
-    // if (toIslandState(phaseRef.current) === 'collapsed' && isCleanupScanTask(task.id)) requestCleanupReveal();
     if (task.result) send({ type: 'notice', notice: { message: task.result.message, tone: task.result.tone } });
     notices.onFinish(task);
   }, [send, notices]);
@@ -222,12 +214,9 @@ export const useIsland = () => {
     if (page !== pageRef.current) navigate(page);
     // A toast that waited for the panel shows now (unless a Windows notification already told it).
     panelOpened();
-    // const page = takeRevealPage();
-    // if (page) navigate(page);
   }, [machine.phase, navigate]);
 
   useTaskTransitions({ tasks, onStart: notices.onStart, onFinish: onTaskFinish });
-  // useTaskTransitions({ tasks, onFinish: onTaskFinish });
 
   const progress = useMemo(
     () => ({ visible: state === 'collapsed' && running !== null && notice === null, fraction: running ? getTaskFraction(running) : null }),
@@ -245,135 +234,3 @@ export const useIsland = () => {
 
   return { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection: state === 'collapsed' && pending, onMascotClick, onPanelPointerDown };
 };
-
-// Previous version: state, pinned and locked as separate useState, transitions called directly from the
-// handlers, and the timeline hook setting the state itself.
-// import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-// import { useIslandAutoToggle } from '@/modules/island/hooks/useIslandAutoToggle';
-// import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
-// import { useIslandSignals } from '@/modules/island/hooks/useIslandSignals';
-// import { useIslandTimeline } from '@/modules/island/hooks/useIslandTimeline';
-// // import { useIslandTransitions } from '@/modules/island/hooks/useIslandTransitions';
-// import type { IslandState } from '@/modules/island/types/islandState';
-// import { createIslandElements } from '@/modules/island/utils/elements';
-// import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
-// import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
-// import { useTaskTransitions } from '@/modules/tasks/hooks/useTaskTransitions';
-// import { useTasks } from '@/modules/tasks/hooks/useTasks';
-// import type { Task } from '@/modules/tasks/interfaces/task';
-// import { getRunningTask, getTaskFraction } from '@/modules/tasks/utils/taskView';
-// import { useKeyDown } from '@/shared/hooks/useKeyDown';
-//
-// export const useIsland = () => {
-//   const [state, setState]   = useState<IslandState>('collapsed');
-//   const [pinned, setPinned] = useState(false);
-//   const [locked, setLocked] = useState(false);
-//   const insideRef           = useRef(false);
-//   const elements            = useMemo(createIslandElements, []);
-//   const panel               = useMainWindow();
-//   const resetPanel          = panel.reset;
-//
-//   const { takeFocus, releaseFocus }    = useIslandFocus();
-//   const { transitionTo, hide, reveal, hover, limbsVisible, notice, notify } = useIslandTimeline({ elements, setState, mascotRef: panel.avatarRef });
-//   // const { transitionTo, hide, reveal } = useIslandTransitions({ elements, setState });
-//
-//   const expand = useCallback((pin: boolean) => {
-//     if (pin) setPinned(true);
-//     void transitionTo('expanded');
-//   }, [transitionTo]);
-//
-//   // Collapsing always unpins, gives the focus back and leaves the panel on a clean home page.
-//   // If the cursor is still over the island, hover stays locked until it leaves, so it does not reopen.
-//   // farewell: closed on purpose (Recoger, Esc) rather than because the cursor left.
-//   const collapse = useCallback(async (farewell: boolean) => {
-//     setPinned(false);
-//     setLocked(insideRef.current);
-//     releaseFocus();
-//     if (await transitionTo('collapsed', farewell)) resetPanel();
-//   }, [releaseFocus, transitionTo, resetPanel]);
-//
-//   const expandOnHover   = useCallback(() => expand(false), [expand]);
-//   const openPinned      = useCallback(() => expand(true), [expand]);
-//   const collapseNow     = useCallback(() => void collapse(true), [collapse]);
-//   const collapseOnLeave = useCallback(() => void collapse(false), [collapse]);
-//   // const collapseNow   = useCallback(() => void collapse(), [collapse]);
-//   const togglePin       = useCallback(() => setPinned((previous) => !previous), []);
-//
-//   const onFullscreenEnter = useCallback(() => {
-//     setPinned(false);
-//     releaseFocus();
-//     resetPanel();
-//     void hide();
-//   }, [releaseFocus, resetPanel, hide]);
-//
-//   const { inside, dragging } = useIslandSignals({
-//     onFullscreenEnter,
-//     onFullscreenExit : reveal,
-//     onOpenRequest    : openPinned,
-//   });
-//
-//   useEffect(() => {
-//     insideRef.current = inside;
-//     if (!inside) setLocked(false);
-//   }, [inside]);
-//
-//   const hovering = inside && !locked;
-//
-//   useEffect(() => {
-//     if (state === 'collapsed') hover(hovering);
-//   }, [state, hovering, hover]);
-//
-//   useIslandAutoToggle({
-//     state,
-//     inside   : hovering,
-//     dragging,
-//     blocked  : pinned || dragging || panel.busy,
-//     expand   : expandOnHover,
-//     collapse : collapseOnLeave,
-//   });
-//
-//   // While signing, Esc belongs to the signing screen (it asks before leaving).
-//   useKeyDown({ key: 'Escape', enabled: state === 'expanded' && panel.signing === null, handler: collapseNow });
-//   // useKeyDown({ key: 'Escape', enabled: state === 'expanded', handler: collapseNow });
-//
-//   const actionsVisible = state === 'expanded' && panel.files.selection !== null;
-//
-//   useEffect(() => {
-//     if (actionsVisible) takeFocus();
-//   }, [actionsVisible, takeFocus]);
-//
-//   const onPanelPointerDown = useCallback(() => {
-//     if (state === 'expanded') takeFocus();
-//   }, [state, takeFocus]);
-//
-//   // Tasks run on their own; with the island collapsed the pill shows progress and a notice at the end.
-//   const tasks    = useTasks();
-//   const running  = getRunningTask(tasks);
-//   const stateRef = useRef(state);
-//
-//   useEffect(() => {
-//     stateRef.current = state;
-//   }, [state]);
-//
-//   const onTaskFinish = useCallback((task: Task) => {
-//     if (stateRef.current === 'collapsed' && task.result) notify({ message: task.result.message, tone: task.result.tone });
-//   }, [notify]);
-//
-//   useTaskTransitions({ tasks, onFinish: onTaskFinish });
-//
-//   const progress = useMemo(
-//     () => ({ visible: state === 'collapsed' && running !== null && notice === null, fraction: running ? getTaskFraction(running) : null }),
-//     [state, running, notice],
-//   );
-//
-//   const onMascotClick = useCallback(() => {
-//     if (state === 'collapsed') openPinned();
-//   }, [state, openPinned]);
-//
-//   const controls = useMemo<PanelControlsProps>(
-//     () => ({ pinned, onTogglePin: togglePin, onCollapse: collapseNow }),
-//     [pinned, togglePin, collapseNow],
-//   );
-//
-//   return { state, elements, panel, controls, limbsVisible, notice, progress, onMascotClick, onPanelPointerDown };
-// };

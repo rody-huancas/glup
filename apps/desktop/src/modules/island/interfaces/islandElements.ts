@@ -2,7 +2,6 @@ import type { RefObject } from 'react';
 
 export interface IslandElements {
   panel        : RefObject<HTMLDivElement | null>;
-  // peek         : RefObject<HTMLDivElement | null>;
   fill         : RefObject<SVGPathElement | null>;
   outline      : RefObject<SVGPathElement | null>;
   content      : RefObject<HTMLDivElement | null>;

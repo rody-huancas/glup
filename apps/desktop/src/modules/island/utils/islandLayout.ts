@@ -12,8 +12,6 @@ export const getIslandLayout = (target: VisibleIslandState): IslandLayout => ({
 export const getContentSize = (): WindowSize => ({
   width  : ISLAND_SHAPES.expanded.width - PANEL_BORDER * 2,
   height : ISLAND_SHAPES.expanded.height - PANEL_BORDER,
-  // width  : ISLAND_SIZES.expanded.width - PANEL_BORDER * 2,
-  // height : ISLAND_SIZES.expanded.height - PANEL_BORDER,
 });
 
 export const getBoundingSize = (a: WindowSize, b: WindowSize): WindowSize => ({
