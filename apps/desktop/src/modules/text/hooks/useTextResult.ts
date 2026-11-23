@@ -3,6 +3,7 @@ import { revealFile } from '@/modules/actions/services/files';
 import { COPIED_TIME } from '@/modules/text/constants/text';
 import type { ExtractedText } from '@/modules/text/interfaces/extractedText';
 import { saveText } from '@/modules/text/services/text';
+import { saveSubtitles } from '@/modules/transcribe/services/transcribe';
 
 // "Copiar todo" (with a moment of "Copiado") and "Guardar como .txt" (then "Ver en carpeta").
 export const useTextResult = (extracted: ExtractedText) => {
@@ -11,6 +12,7 @@ export const useTextResult = (extracted: ExtractedText) => {
   const [saving, setSaving]       = useState(false);
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [saveFailed, setSaveFail] = useState(false);
+  const [srtPath, setSrtPath]     = useState<string | null>(null);
   const timer                     = useRef(0);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -38,9 +40,18 @@ export const useTextResult = (extracted: ExtractedText) => {
       .finally(() => setSaving(false));
   }, [extracted, saving, savedPath]);
 
+  const saveSrt = useCallback(() => {
+    if (!extracted.subtitles || srtPath) return;
+
+    setSaveFail(false);
+    void saveSubtitles({ paths: extracted.paths, subtitles: extracted.subtitles, destination: extracted.destination })
+      .then(setSrtPath)
+      .catch(() => setSaveFail(true));
+  }, [extracted, srtPath]);
+
   const reveal = useCallback(() => {
     if (savedPath) void revealFile(savedPath);
   }, [savedPath]);
 
-  return { copied, copyFailed, copy, saving, savedPath, saveFailed, save, reveal };
+  return { copied, copyFailed, copy, saving, savedPath, saveFailed, save, reveal, srtPath, saveSrt };
 };
