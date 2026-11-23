@@ -18,6 +18,8 @@ const PHASE_MESSAGES: Record<ActionsPhase, string | null> = {
   watermark        : null,
   numbering        : null,
   video            : null,
+  'id-format'      : null,
+  'id-preview'     : null,
   working          : ACTIONS_TEXTS.working,
   learning         : ACTIONS_TEXTS.learning,
   result           : null,

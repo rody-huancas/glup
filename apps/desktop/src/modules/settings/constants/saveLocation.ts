@@ -15,13 +15,14 @@ export const SAVE_OPTIONS: SaveOption[] = [
 ];
 
 export const DEFAULT_SETTINGS: SettingsView = {
-  saveMode      : 'same',
-  customFolder  : null,
-  bundleZip     : false,
-  reduceLevel   : 'normal',
+  saveMode         : 'same',
+  customFolder     : null,
+  bundleZip        : false,
+  reduceLevel      : 'normal',
   // Seen until the real settings say otherwise, so the welcome never flashes.
-  welcomeSeen   : true,
-  folderMissing : false,
+  welcomeSeen      : true,
+  notificationsOff : false,
+  folderMissing    : false,
 };
 
 export const SETTINGS_TEXTS = {

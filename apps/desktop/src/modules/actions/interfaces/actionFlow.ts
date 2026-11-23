@@ -1,6 +1,8 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ImageFormat } from '@/modules/actions/types/imageFormat';
+import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
+import type { IdCrop } from '@/modules/id-photo/interfaces/idCrop';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
@@ -29,6 +31,10 @@ export interface ActionFlow {
   watermarkPdf     : (options: WatermarkOptions) => void;
   numberPages      : (options: NumberingOptions) => void;
   reduceVideo      : (options: VideoOptions) => void;
+  // "Foto tamaño carnet": the size chosen (what the preview frames) and the framing once "Listo".
+  idChoice         : IdChoice | null;
+  chooseIdFormat   : (choice: IdChoice) => void;
+  saveIdPhoto      : (session: number, crop: IdCrop) => void;
   // The learning step ("Quitar fondo" or videos): download started, stopped (cancel or error), finished.
   modelStarted     : () => void;
   modelStopped     : () => void;

@@ -39,6 +39,12 @@
   to   { transform : translateX(300%); }
 }
 
+/* The toast that says a task ended: it slides down a little while it appears. */
+@keyframes toast-in {
+  from { opacity : 0; transform : translateY(-8px); }
+  to   { opacity : 1; transform : translateY(0); }
+}
+
 /* Skeleton blocks: a soft light sweep from raised to line-strong. */
 @utility shimmer {
   background-image : linear-gradient(90deg, var(--color-raised) 25%, var(--color-line-strong) 50%, var(--color-raised) 75%);
@@ -50,9 +56,14 @@
   animation : indeterminate 1.2s ease-in-out infinite;
 }
 
+@utility animate-toast-in {
+  animation : toast-in 220ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shimmer,
-  .animate-indeterminate {
+  .animate-indeterminate,
+  .animate-toast-in {
     animation : none;
   }
 }

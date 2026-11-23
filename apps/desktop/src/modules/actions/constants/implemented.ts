@@ -4,7 +4,7 @@ import { isWindows } from '@/shared/utils/platform';
 
 // Actions that really run; the rest still answer "Esto lo aprendo pronto".
 export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
-  image       : ['convert', 'compress', 'to-pdf', 'remove-background', 'extract-text', 'zip'],
+  image       : ['convert', 'compress', 'to-pdf', 'remove-background', 'extract-text', 'id-photo', 'zip'],
   // image       : ['convert', 'compress', 'to-pdf', 'remove-background', 'zip'],
   // image       : ['convert', 'compress', 'to-pdf', 'zip'],
   pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'zip'],
@@ -35,4 +35,6 @@ export const PAGE_BUNDLE_ACTIONS: ActionId[] = ['split-pages', 'to-images', 'ext
 // Actions that only exist on some systems: "Sacar texto" uses the OCR that comes with Windows.
 export const PLATFORM_ACTIONS: Partial<Record<ActionId, () => boolean>> = {
   'extract-text': () => isWindows(),
+  // The face detector of Windows.
+  'id-photo'    : () => isWindows(),
 };

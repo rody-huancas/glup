@@ -26,7 +26,8 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
    «Entregar todo en un ZIP».
 5. **Trabajar**: tarea en segundo plano con progreso («N de M»), barra y Cancelar. La isla puede
    recogerse; la tarea sigue y avisa al terminar.
-6. **Resultado**: Glup feliz, «Listo · de 2,4 MB a 680 KB», con Abrir y Ver en carpeta. Errores
+6. **Resultado**: al terminar avisa una sola vez (toast en el panel o notificación de Windows, ver
+   `isla-y-mascota`). Glup feliz, «Listo · de 2,4 MB a 680 KB», con Abrir y Ver en carpeta. Errores
    parciales con Glup confundido y los nombres que fallaron. Se guarda en el historial.
 
 ## Agregar una acción, paso a paso
@@ -93,6 +94,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | PDF (2+) | Unir, Reducir peso, Poner contraseña, Marca de agua, Numerar páginas, Juntar en ZIP |
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
 | Video (1+) | Reducir peso (Para WhatsApp, Para correo, Lo más liviano o un peso máximo; la primera vez pide descargar FFmpeg) |
+| Imagen (1) | Foto tamaño carnet (pasaporte 3,5 × 4,5, cuadrada 5 × 5 o a medida; foto y hoja 10 × 15 a 300 ppp; usa el modelo de Quitar fondo y el detector de rostros de Windows) |
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
 
