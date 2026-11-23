@@ -8,9 +8,7 @@ import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import { useChewing } from '@/modules/home/hooks/useChewing';
 import { useDropZoneGestures } from '@/modules/home/hooks/useDropZoneGestures';
-// import { useEatingSequence } from '@/modules/home/hooks/useEatingSequence';
 import type { HomeFiles } from '@/modules/home/interfaces/homeFiles';
-// import type { QuickTool } from '@/modules/home/interfaces/quickTool';
 import { holdWhile } from '@/modules/island/store/islandHolds';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
@@ -22,8 +20,6 @@ import { useFileDrop } from '@/shared/hooks/useFileDrop';
 // Steps with a list, a grid or a choice: the person is in the middle of them.
 // Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
 const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering', 'video', 'id-format', 'id-preview', 'transcribe'];
-// const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background'];
-// const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce'];
 
 interface UseHomeFilesParams {
   commandAvatar   : (state: MascotState) => void;
@@ -35,10 +31,8 @@ interface UseHomeFilesParams {
 export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
-  // const [showActions, setShowActions] = useState(false);
   // Glup eating no longer keeps the island open, so only the setter is used.
   const [, setDropState]              = useState<MascotState>(IDLE_STATE);
-  // const [dropState, setDropState]     = useState<MascotState>(IDLE_STATE);
   const dropMascotRef                 = useRef<MascotController | null>(null);
   const noticeTimer                   = useRef(0);
   const discardRef                    = useRef<() => void>(() => undefined);
@@ -52,7 +46,6 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
   const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize });
-  // const eating     = useEatingSequence({ mascotState: dropState, onDone: () => setShowActions(true) });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });
@@ -76,13 +69,10 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     dropMascotRef.current?.setState(IDLE_STATE);
 
     const { selection, notice: refusal } = await actions.load(paths).catch(() => ({ selection: null, notice: null }));
-    // const selection = await actions.load(paths).catch(() => null);
 
     // The actions show right away; Glup keeps eating in parallel.
     if (selection) {
       dropMascotRef.current?.setState({ type: 'eating', kind: ['pdf', 'pdf-mixed', 'pdf-locked'].includes(selection.type) ? 'pdf' : 'image' });
-      // dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'pdf' || selection.type === 'pdf-mixed' ? 'pdf' : 'image' });
-      // dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'mixed' ? 'image' : selection.type });
       return;
     }
 
@@ -127,18 +117,8 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     return true;
   }, [handlePaths]);
 
-  // const runTool = useCallback((tool: QuickTool) => {
-  //   void holdWhile(() => openFileDialog({ type: tool.fileType, multiple: tool.multiple })).then((paths) => {
-  //     if (paths.length === 0) return;
-  //
-  //     pendingAction.current = tool.actionId;
-  //     void handlePaths(paths);
-  //   });
-  // }, [handlePaths]);
-
   const choose  = actions.choose;
   const visible = actions.selection;
-  // const visible = showActions ? actions.selection : null;
 
   useEffect(() => {
     const pending = pendingAction.current;
@@ -147,24 +127,12 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     pendingAction.current = null;
     // Files that do not fit the tool (one PDF for "Unir") just show what can be done with them, like a drop.
     if (visible.actions.some((action) => action.id === pending)) choose(pending);
-    // choose(pending);
   }, [visible, choose]);
 
   // Real runs set Glup's mood from the task store (useTaskMood); here only the "learning" answer.
   useEffect(() => {
     if (actions.phase === 'learning') commandAvatar({ type: 'confused' });
   }, [actions.phase, commandAvatar]);
-
-  // useEffect(() => {
-  //   if (actions.phase === 'working')                   commandAvatar({ type: 'working' });
-  //   if (actions.phase === 'learning')                  commandAvatar({ type: 'confused' });
-  //   if (actions.phase === 'result' && actions.result) commandAvatar(RESULT_MOODS[actions.result.tone]);
-  // }, [actions.phase, actions.result, commandAvatar]);
-
-  // useEffect(() => {
-  //   if (actions.phase === 'working')  commandAvatar({ type: 'working' });
-  //   if (actions.phase === 'learning') commandAvatar({ type: 'confused' });
-  // }, [actions.phase, commandAvatar]);
 
   const flow = useMemo<ActionFlow>(
     () => ({
@@ -214,9 +182,6 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     // The order list and the page grid keep the island open while the cursor moves around.
     // Needs the person: a step with a list or a choice, or the folder picker. Glup eating or working no longer holds it.
     busy                    : STEP_PHASES.includes(actions.phase) || saveLocation.picking,
-    // busy                    : dropState.type === 'eating' || ['working', 'order', 'pages'].includes(actions.phase) || actions.pending !== null || saveLocation.picking,
-    // busy                    : dropState.type === 'eating' || actions.phase === 'working' || actions.pending !== null || saveLocation.picking,
-    // busy                    : dropState.type === 'eating' || actions.phase === 'working',
     dropMascotRef,
     onDropMascotStateChange : setDropState,
     choose                  : actions.choose,

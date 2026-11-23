@@ -14,7 +14,6 @@ import { PageHeader } from '@/shared/components/PageHeader';
 export const HomePage = ({ files }: PageProps) => {
   // Only the tasks Inicio owns (actions on files); others show on their own screen.
   const tasks       = tasksForPage(useTasks(), 'home');
-  // const tasks       = useTasks();
   const task        = getVisibleTask(tasks);
   const actionsOpen = Boolean(files.selection || files.loading);
   const showTask    = !actionsOpen && task !== null;
@@ -29,15 +28,3 @@ export const HomePage = ({ files }: PageProps) => {
     </div>
   );
 };
-
-// export const HomePage = ({ files }: PageProps) => {
-//   const actionsOpen = Boolean(files.selection || files.loading);
-//
-//   return (
-//     <div className="flex h-full flex-col gap-3">
-//       <PageHeader title={HOME_TEXTS.title} subtitle={HOME_TEXTS.subtitle} />
-//       <DropZone files={files} compact={actionsOpen} />
-//       {actionsOpen ? <HomeActionsCard files={files} /> : <QuickTools onRun={files.runTool} />}
-//     </div>
-//   );
-// };

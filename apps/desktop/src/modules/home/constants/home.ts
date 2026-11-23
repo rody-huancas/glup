@@ -5,8 +5,6 @@ export const HOME_TEXTS = {
   title       : '¿Qué le damos de comer hoy?',
   subtitle    : 'Suelta un archivo o elige una herramienta.',
   dropTitle   : 'Suelta aquí tus archivos',
-  // dropTitle   : 'Suelta aquí tus PDFs o imágenes',
-  // dropHint    : 'Varios a la vez también vale.',
   // With files chosen, the zone is a one-line bar.
   dropMore    : 'Suelta más archivos o elige',
   chooseFiles : 'Elegir archivos',
