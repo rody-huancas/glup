@@ -85,6 +85,12 @@ lado. Si dos reglas parecen chocar, se pregunta.
     - La descarga es una tarea con progreso y Cancelar, y se reanuda si se corta.
     - En Ajustes › «Lo que aprendí» se ve cuánto ocupa y se puede borrar.
     - Su licencia también cumple la regla 12 y va en `THIRD_PARTY_NOTICES.md`.
+    **Actualizaciones**: Glup revisa si hay una versión nueva **solo en su propio repo de GitHub**
+    (el `latest.json` del último Release, `plugins.updater` de `tauri.conf.json`), al arrancar y cada
+    6 horas, sin enviar nada de la persona. Sin internet o si falla, no muestra errores y vuelve a
+    intentar más tarde. Avisa con un puntito en Ajustes y **solo instala cuando la persona toca
+    «Actualizar ahora»**; la descarga se verifica con la firma del Release (clave pública en
+    `tauri.conf.json`; la privada nunca entra al repo, vive en los secretos de GitHub).
     Las funciones con IA en línea (futuras) son opcionales, usan la clave de la propia persona y lo
     dicen claramente.
 12. **Licencias.** Glup es MIT. Solo se agregan dependencias con licencias permisivas: MIT,
