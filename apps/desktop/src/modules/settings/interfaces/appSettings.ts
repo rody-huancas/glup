@@ -1,5 +1,6 @@
 import type { ReduceLevel } from '@/modules/pdf/types/reduceLevel';
 import type { SaveMode } from '@/modules/settings/types/saveMode';
+import type { TranscribeLevel } from '@/modules/transcribe/types/transcribeLevel';
 
 export interface AppSettings {
   saveMode         : SaveMode;
@@ -10,6 +11,8 @@ export interface AppSettings {
   welcomeSeen      : boolean;
   // "Avisarme con notificaciones de Windows" turned off (on by default).
   notificationsOff : boolean;
+  // "Pasar audio a texto": the last level chosen.
+  transcribeLevel  : TranscribeLevel;
 }
 
 export interface SettingsView extends AppSettings {

@@ -43,6 +43,8 @@ sha2                         = "0.11"
 getrandom                    = "0.3"
 # Unpacks ffmpeg.exe, downloaded on its own out of the FFmpeg zip (see services/video/tool.rs).
 flate2                       = { version = "1", default-features = false, features = ["zlib-rs"] }
+# "Pasar audio a texto": whisper.cpp (MIT) through whisper-rs (Unlicense), on the processor. Building it needs CMake.
+whisper-rs                   = "0.16"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_System_Com"] }
@@ -88,6 +90,10 @@ opt-level = 3
 opt-level = 3
 
 [profile.dev.package.jpeg-encoder]
+opt-level = 3
+
+# whisper.cpp (built by CMake): unoptimized it is far too slow to listen to anything.
+[profile.dev.package.whisper-rs-sys]
 opt-level = 3
 
 # The Rust side of ONNX Runtime (the runtime itself comes prebuilt).

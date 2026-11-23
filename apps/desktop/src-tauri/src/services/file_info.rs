@@ -8,6 +8,7 @@ use crate::services::{pdf::info, video::{self, probe::VideoInfo}};
 const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
 const IMAGE_EXTENSIONS: [&str; 9] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif"];
 const VIDEO_EXTENSIONS: [&str; 7] = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
+const AUDIO_EXTENSIONS: [&str; 9] = ["mp3", "m4a", "wav", "ogg", "opus", "aac", "flac", "wma", "amr"];
 // const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
 
 // Enough bytes to recognize every supported signature; the file is never decoded.
@@ -19,6 +20,7 @@ pub enum FileKind {
     Pdf,
     Image,
     Video,
+    Audio,
     Other,
 }
 
@@ -45,6 +47,8 @@ fn kind_of(extension: &str) -> FileKind {
         FileKind::Image
     } else if VIDEO_EXTENSIONS.contains(&extension) {
         FileKind::Video
+    } else if AUDIO_EXTENSIONS.contains(&extension) {
+        FileKind::Audio
     } else {
         FileKind::Other
     }
@@ -101,10 +105,13 @@ pub fn read(path: &str, ffmpeg: Option<&Path>) -> FileInfo {
         .unwrap_or_default();
 
     let expected = if is_file { kind_of(&extension) } else { FileKind::Other };
-    let kind     = if expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected { expected } else { FileKind::Other };
+    // Audio formats are too varied to check by their first bytes (an MP3 without tags, raw AAC…): FFmpeg reads them later.
+    let kind     = if expected == FileKind::Audio || (expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected) { expected } else { FileKind::Other };
+    // let kind     = if expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected { expected } else { FileKind::Other };
 
     let pdf   = if kind == FileKind::Pdf { info::read(file_path) } else { None };
     let video = if kind == FileKind::Video { video::probe_if_ready(ffmpeg, file_path) } else { None };
+    let audio = if kind == FileKind::Audio { ffmpeg.and_then(|ffmpeg| video::probe::probe_duration(ffmpeg, file_path)) } else { None };
 
     FileInfo {
         path: path.to_string(),
@@ -114,7 +121,7 @@ pub fn read(path: &str, ffmpeg: Option<&Path>) -> FileInfo {
         kind,
         pages: pdf.as_ref().map(|data| data.pages).filter(|pages| *pages > 0),
         protected: pdf.is_some_and(|data| data.protected),
-        duration: video.map(|data: VideoInfo| data.duration),
+        duration: video.map(|data: VideoInfo| data.duration).or(audio),
         width: video.map(|data| data.width),
         height: video.map(|data| data.height),
     }

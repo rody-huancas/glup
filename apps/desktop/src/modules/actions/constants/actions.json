@@ -21,5 +21,7 @@
   { "id": "extract-text", "label": "Sacar texto", "fileType": "pdf-mixed", "fileCount": "multiple", "primary": false },
   { "id": "merge", "label": "Unir en un PDF", "fileType": "pdf-mixed", "fileCount": "multiple", "primary": true },
   { "id": "compress", "label": "Reducir peso", "fileType": "video", "fileCount": "any", "primary": true },
+  { "id": "transcribe", "label": "Pasar audio a texto", "fileType": "video", "fileCount": "any", "primary": false },
+  { "id": "transcribe", "label": "Pasar a texto", "fileType": "audio", "fileCount": "any", "primary": true },
   { "id": "zip", "label": "Juntar en ZIP", "fileType": "any", "fileCount": "multiple", "primary": false }
 ]

@@ -2,6 +2,7 @@ import { getFileName } from '@/modules/actions/utils/paths';
 import { TEXT_TEXTS } from '@/modules/text/constants/texts';
 import { useTextResult } from '@/modules/text/hooks/useTextResult';
 import type { ExtractedText } from '@/modules/text/interfaces/extractedText';
+import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
 import { Button } from '@/shared/components/Button';
 
 interface TextResultViewProps {
@@ -40,10 +41,16 @@ export const TextResultView = ({ message, extracted, onBack }: TextResultViewPro
             {result.saving ? TEXT_TEXTS.saving : TEXT_TEXTS.save}
           </Button>
         )}
+        {extracted.subtitles && !result.srtPath && (
+          <Button variant="secondary" onClick={result.saveSrt} className="h-10">
+            {TRANSCRIBE_TEXTS.saveSrt}
+          </Button>
+        )}
         <Button variant="secondary" onClick={onBack} className="h-10">
           {TEXT_TEXTS.back}
         </Button>
         {result.savedPath && <span className="min-w-0 truncate text-[12px] text-muted">{TEXT_TEXTS.saved(getFileName(result.savedPath))}</span>}
+        {result.srtPath && <span className="min-w-0 truncate text-[12px] text-muted">{TRANSCRIBE_TEXTS.savedSrt(getFileName(result.srtPath))}</span>}
       </div>
     </div>
   );

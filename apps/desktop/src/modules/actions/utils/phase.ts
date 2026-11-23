@@ -20,6 +20,7 @@ const PHASE_MESSAGES: Record<ActionsPhase, string | null> = {
   video            : null,
   'id-format'      : null,
   'id-preview'     : null,
+  transcribe       : null,
   working          : ACTIONS_TEXTS.working,
   learning         : ACTIONS_TEXTS.learning,
   result           : null,

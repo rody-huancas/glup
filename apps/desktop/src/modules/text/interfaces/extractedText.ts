@@ -6,4 +6,6 @@ export interface ExtractedText {
   paths       : string[];
   destination : SaveDestination;
   entryId     : string | null;
+  // "Pasar audio a texto": the same words with their times, for "Guardar subtítulos (.srt)".
+  subtitles?  : string;
 }

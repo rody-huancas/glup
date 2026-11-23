@@ -13,7 +13,8 @@ export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
   // pdf         : ['merge', 'compress', 'split-pages', 'to-images', 'zip'],
   'pdf-mixed' : ['merge', 'extract-text', 'zip'],
   'pdf-locked': ['unlock'],
-  video       : ['compress', 'zip'],
+  video       : ['compress', 'transcribe', 'zip'],
+  audio       : ['transcribe', 'zip'],
   mixed       : ['zip'],
 };
 

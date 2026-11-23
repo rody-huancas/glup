@@ -18,7 +18,7 @@ export const startModelDownload = (learnable: Learnable): string => {
 
   const downloadId = enqueueTask({
     title     : learnable.texts.taskTitle,
-    type      : learnable.id === 'video' ? 'video' : 'image',
+    type      : learnable.id === 'video' ? 'video' : learnable.id.startsWith('transcribe') ? 'audio' : 'image',
     fileCount : 1,
     owner     : 'home',
     run       : ({ taskId }) => learnable.download(taskId).then(summaryToResult),

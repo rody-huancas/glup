@@ -26,6 +26,7 @@ import { UnlockStep } from '@/modules/pdf/components/UnlockStep';
 import { WatermarkStep } from '@/modules/pdf/components/WatermarkStep';
 import { BundleZipToggle } from '@/modules/settings/components/BundleZipToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
+import { TranscribeStep } from '@/modules/transcribe/components/TranscribeStep';
 import { VideoGoalStep } from '@/modules/video/components/VideoGoalStep';
 import { FileChip } from '@/shared/components/FileChip';
 
@@ -35,7 +36,7 @@ interface ActionsPanelProps {
 }
 
 // Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
-const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock', 'id-format', 'id-preview'];
+const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock', 'id-format', 'id-preview', 'transcribe'];
 // const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model'];
 
 // The shortest PDF chosen, when every page count is known (numbering cannot start past it).
@@ -84,7 +85,8 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
   if (flow.phase === 'learn-model' || flow.phase === 'learning-model') {
     return (
       <LearnModelStep
-        learnable={LEARNABLES[selection.type === 'video' ? 'video' : 'background']}
+        learnable={LEARNABLES[flow.learnable]}
+        // learnable={LEARNABLES[selection.type === 'video' ? 'video' : 'background']}
         downloading={flow.phase === 'learning-model'}
         onStarted={flow.modelStarted}
         onStopped={flow.modelStopped}
@@ -96,6 +98,10 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
 
   if (flow.phase === 'background') {
     return <BackgroundStep onChoose={flow.chooseBackground} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'transcribe') {
+    return <TranscribeStep files={selection.files} onStart={flow.startTranscribe} onBack={flow.back} />;
   }
 
   if (flow.phase === 'id-format') {

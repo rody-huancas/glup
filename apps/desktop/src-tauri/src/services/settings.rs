@@ -39,6 +39,8 @@ pub struct Settings {
     // "Avisarme con notificaciones de Windows" turned off. Kept in the negative so a missing value
     // (and a first run) means they are on.
     pub notifications_off: bool,
+    // "Pasar audio a texto": the last level chosen (Rápido or Más preciso).
+    pub transcribe_level: crate::services::transcribe::model::Level,
 }
 
 fn already_seen() -> bool {
@@ -123,7 +125,7 @@ mod tests {
     use super::*;
 
     fn settings(mode: SaveMode, folder: Option<&str>) -> Settings {
-        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false }
+        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false, transcribe_level: Default::default() }
     }
 
     #[test]

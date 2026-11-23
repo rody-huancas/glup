@@ -35,6 +35,7 @@ pub fn run() {
         .manage(BackgroundSession::default())
         .manage(UpdateState::default())
         .manage(services::id_photo::IdPhotoSessions::default())
+        .manage(std::sync::Arc::new(services::transcribe::engine::TranscribeSession::default()))
         .manage(LaunchOpen::new(services::startup::launch_open_pending()))
         // .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
         .invoke_handler(tauri::generate_handler![
@@ -79,6 +80,12 @@ pub fn run() {
             commands::id_photo::prepare_id_photo,
             commands::id_photo::id_photo_preview,
             commands::id_photo::save_id_photo,
+            commands::transcribe::get_transcribe_model,
+            commands::transcribe::download_transcribe_model,
+            commands::transcribe::delete_transcribe_model,
+            commands::transcribe::transcribe_audio,
+            commands::transcribe::estimate_transcription,
+            commands::transcribe::save_subtitles,
             commands::startup::get_launch_info,
             commands::startup::take_launch_open,
             commands::startup::get_autostart,
