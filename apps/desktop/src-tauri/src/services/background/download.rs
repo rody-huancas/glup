@@ -42,6 +42,8 @@ pub struct CopyParams<'a> {
     pub start: u64,
     pub cancel: &'a AtomicBool,
     pub on_progress: &'a dyn Fn(u64),
+    // Fed with every byte written, so the hash is ready when the last chunk lands.
+    pub hasher: &'a mut Sha256,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -70,6 +72,7 @@ pub fn copy_chunks(params: CopyParams) -> io::Result<Copied> {
         }
 
         params.file.write_all(&buffer[..read])?;
+        params.hasher.update(&buffer[..read]);
         written += read as u64;
 
         if written - reported >= PROGRESS_STEP {
@@ -83,22 +86,59 @@ fn to_hex(bytes: &[u8]) -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
-pub fn sha256_of(path: &Path) -> io::Result<String> {
-    let mut reader = BufReader::new(File::open(path)?);
-    let mut hasher = Sha256::new();
+// Feeds the hasher with the first `limit` bytes of a file (all of it with u64::MAX).
+fn hash_from_disk(path: &Path, limit: u64, hasher: &mut Sha256) -> io::Result<u64> {
+    let mut reader = BufReader::new(File::open(path)?).take(limit);
     let mut buffer = vec![0u8; CHUNK_SIZE];
+    let mut read   = 0;
 
     loop {
-        let read = reader.read(&mut buffer)?;
-        if read == 0 {
-            break;
+        let count = reader.read(&mut buffer)?;
+        if count == 0 {
+            return Ok(read);
         }
-        hasher.update(&buffer[..read]);
+        hasher.update(&buffer[..count]);
+        read += count as u64;
     }
+}
 
+// Downloads hash while they arrive; reading a whole file again is left for the tests.
+#[cfg(test)]
+pub fn sha256_of(path: &Path) -> io::Result<String> {
+    let mut hasher = Sha256::new();
+    hash_from_disk(path, u64::MAX, &mut hasher)?;
     Ok(to_hex(&hasher.finalize()))
 }
 
+// Hashes what goes through it (an unpacked file), so it needs no second read to be checked.
+pub struct HashWriter<W: Write> {
+    pub inner  : W,
+    pub hasher : Sha256,
+}
+
+impl<W: Write> HashWriter<W> {
+    pub fn new(inner: W) -> Self {
+        Self { inner, hasher: Sha256::new() }
+    }
+
+    pub fn matches(self, expected: &str) -> bool {
+        to_hex(&self.hasher.finalize()).eq_ignore_ascii_case(expected)
+    }
+}
+
+impl<W: Write> Write for HashWriter<W> {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        let written = self.inner.write(bytes)?;
+        self.hasher.update(&bytes[..written]);
+        Ok(written)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.inner.flush()
+    }
+}
+
+#[cfg(test)]
 pub fn matches_hash(path: &Path, expected: &str) -> bool {
     sha256_of(path).is_ok_and(|hash| hash.eq_ignore_ascii_case(expected))
 }
@@ -109,6 +149,8 @@ pub struct DownloadParams<'a> {
     pub cancel: &'a AtomicBool,
     // Bytes downloaded so far (out of model.size).
     pub on_progress: &'a dyn Fn(u64),
+    // The bytes are all here; checking and installing comes next.
+    pub on_verifying: &'a dyn Fn(),
     // The network, injected so the whole flow can be tested without it.
     pub fetch: &'a dyn Fn(u64) -> Result<Fetched, String>,
 }
@@ -118,11 +160,11 @@ fn size_of(path: &Path) -> u64 {
 }
 
 // The hash decides: a good file becomes the model, a bad one is removed.
-fn verify_and_install(params: &DownloadParams) -> Result<DownloadEnd, String> {
+fn install(params: &DownloadParams, hash: &str) -> Result<DownloadEnd, String> {
     let part       = part_path(params.folder, params.model);
     let final_path = model_path(params.folder, params.model);
 
-    if !matches_hash(&part, params.model.sha256) {
+    if !hash.eq_ignore_ascii_case(params.model.sha256) {
         let _ = fs::remove_file(&part);
         return Err(CORRUPT_ERROR.to_string());
     }
@@ -131,53 +173,83 @@ fn verify_and_install(params: &DownloadParams) -> Result<DownloadEnd, String> {
     Ok(DownloadEnd::Installed)
 }
 
-// Resumes a cut download from where the .part ended (if the server allows it) and checks the hash.
+// fn verify_and_install(params: &DownloadParams) -> Result<DownloadEnd, String> {
+//     let part       = part_path(params.folder, params.model);
+//     let final_path = model_path(params.folder, params.model);
+//
+//     if !matches_hash(&part, params.model.sha256) {
+//         let _ = fs::remove_file(&part);
+//         return Err(CORRUPT_ERROR.to_string());
+//     }
+//
+//     fs::rename(&part, &final_path).map_err(|_| WRITE_ERROR.to_string())?;
+//     Ok(DownloadEnd::Installed)
+// }
+
+// Resumes a cut download from where the .part ended (if the server allows it). The hash is computed
+// while the bytes arrive; on a resume, the part already on disk is read once first, so the hash still
+// covers exactly the bytes of the file.
 pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
     if model_path(params.folder, params.model).exists() {
         return Ok(DownloadEnd::Installed);
     }
 
-    let part      = part_path(params.folder, params.model);
-    let mut start = size_of(&part);
+    let part       = part_path(params.folder, params.model);
+    let mut start  = size_of(&part);
+    let mut hasher = Sha256::new();
 
     if start > params.model.size {
         let _ = fs::remove_file(&part);
         start = 0;
     }
 
-    if start < params.model.size {
-        let mut fetched = (params.fetch)(start)?;
-        if !fetched.resumed {
-            start = 0;
-        }
-
-        let mut file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .append(start > 0)
-            .truncate(start == 0)
-            .open(&part)
-            .map_err(|_| WRITE_ERROR.to_string())?;
-
-        (params.on_progress)(start);
-
-        let copied = copy_chunks(CopyParams { reader: fetched.reader.as_mut(), file: &mut file, start, cancel: params.cancel, on_progress: params.on_progress });
-
-        match copied {
-            Ok(Copied::Cancelled(_)) => return Ok(DownloadEnd::Cancelled),
-            Ok(Copied::Complete(_))  => {}
-            Err(_)                   => return Err(NETWORK_ERROR.to_string()),
-        }
-
-        // A shorter file is a cut download (kept to resume); a longer one cannot be right.
-        let size = size_of(&part);
-        if size < params.model.size {
-            return Err(NETWORK_ERROR.to_string());
-        }
+    // A whole part left by an earlier run that stopped before installing: only the check is missing.
+    if start == params.model.size {
+        (params.on_verifying)();
+        hash_from_disk(&part, u64::MAX, &mut hasher).map_err(|_| WRITE_ERROR.to_string())?;
+        return install(&params, &to_hex(&hasher.finalize()));
     }
 
-    verify_and_install(&params)
+    let mut fetched = (params.fetch)(start)?;
+    if !fetched.resumed {
+        start = 0;
+    }
+
+    if start > 0 && hash_from_disk(&part, start, &mut hasher).map_err(|_| WRITE_ERROR.to_string())? != start {
+        return Err(WRITE_ERROR.to_string());
+    }
+
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(start > 0)
+        .truncate(start == 0)
+        .open(&part)
+        .map_err(|_| WRITE_ERROR.to_string())?;
+
+    (params.on_progress)(start);
+
+    let copied = copy_chunks(CopyParams { reader: fetched.reader.as_mut(), file: &mut file, start, cancel: params.cancel, on_progress: params.on_progress, hasher: &mut hasher });
+    drop(file);
+
+    match copied {
+        Ok(Copied::Cancelled(_)) => return Ok(DownloadEnd::Cancelled),
+        Ok(Copied::Complete(_))  => {}
+        Err(_)                   => return Err(NETWORK_ERROR.to_string()),
+    }
+
+    // A shorter file is a cut download (kept to resume); a longer one fails the hash.
+    if size_of(&part) < params.model.size {
+        return Err(NETWORK_ERROR.to_string());
+    }
+
+    (params.on_verifying)();
+    install(&params, &to_hex(&hasher.finalize()))
 }
+
+// pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
+//     ... read the whole .part again with matches_hash at the end (verify_and_install).
+// }
 
 // The real network: the fixed url, asking for the rest of the file when part of it is already here.
 pub fn fetch_http(url: &str, start: u64) -> Result<Fetched, String> {
