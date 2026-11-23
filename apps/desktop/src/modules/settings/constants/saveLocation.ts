@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: SettingsView = {
   // Seen until the real settings say otherwise, so the welcome never flashes.
   welcomeSeen      : true,
   notificationsOff : false,
+  transcribeLevel  : 'fast',
   folderMissing    : false,
 };
 
