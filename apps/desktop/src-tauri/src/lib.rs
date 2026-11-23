@@ -6,7 +6,8 @@ use tauri_plugin_autostart::MacosLauncher;
 
 use services::{
     actions::ActionControl, background::session::BackgroundSession, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
-    settings::SettingsStore, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, updates::UpdateState, visibility::Visibility,
+    screen_text::{shortcut::ShortcutStatus, ScreenTextState}, settings::SettingsStore, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, updates::UpdateState,
+    visibility::Visibility,
 };
 
 pub const ISLAND_WINDOW_LABEL: &str = "island";
@@ -20,6 +21,16 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        // Only one shortcut is ever registered: "Copiar texto de la pantalla".
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                        services::screen_text::start(app);
+                    }
+                })
+                .build(),
+        )
         .manage(Visibility::default())
         .manage(IslandArea::default())
         .manage(IslandFrame::default())
@@ -32,6 +43,8 @@ pub fn run() {
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
         .manage(UpdateState::default())
+        .manage(ScreenTextState::default())
+        .manage(ShortcutStatus::default())
         .manage(services::id_photo::IdPhotoSessions::default())
         .manage(std::sync::Arc::new(services::transcribe::engine::TranscribeSession::default()))
         .manage(LaunchOpen::new(services::startup::launch_open_pending()))
@@ -74,6 +87,15 @@ pub fn run() {
             commands::text::save_text,
             commands::notify::notify_task,
             commands::notify::is_glup_in_front,
+            commands::screen_text::start_screen_text,
+            commands::screen_text::get_capture_image,
+            commands::screen_text::capture_ready,
+            commands::screen_text::read_screen_text,
+            commands::screen_text::cancel_screen_text,
+            commands::screen_text::copy_screen_text,
+            commands::screen_text::get_screen_text_shortcut,
+            commands::screen_text::set_screen_text_shortcut,
+            commands::screen_text::pause_screen_text_shortcut,
             commands::id_photo::prepare_id_photo,
             commands::id_photo::id_photo_preview,
             commands::id_photo::save_id_photo,
@@ -89,6 +111,7 @@ pub fn run() {
             commands::startup::set_autostart,
             commands::history::get_history,
             commands::history::clear_history,
+            commands::history::remove_history_entries,
             commands::updates::get_update,
             commands::updates::check_update,
             commands::updates::install_update,
@@ -111,6 +134,7 @@ pub fn run() {
             services::fullscreen_watcher::spawn(app.handle().clone());
             services::island_watchdog::spawn(app.handle().clone());
             services::updates::spawn(app.handle().clone());
+            services::screen_text::shortcut::apply_saved(app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())

@@ -8,6 +8,7 @@ pub mod id_photo;
 pub mod island;
 pub mod links;
 pub mod notify;
+pub mod screen_text;
 pub mod settings;
 pub mod signatures;
 pub mod startup;
