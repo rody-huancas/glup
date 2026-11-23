@@ -75,6 +75,9 @@ src-tauri/
     `UpdateState` y lo instala con «Actualizar ahora». La versión vive solo en `Cargo.toml`
     (`pnpm version:set`). `getrandom` da la clave aleatoria de «Poner contraseña»; el cifrado AES-256
     lo hace lopdf.
+    Videos: `ffmpeg.exe` se descarga una vez a `tools/` (solo sus bytes dentro del ZIP del build, con
+    un `Range`; `flate2` lo descomprime) y se ejecuta como proceso aparte, sin ventana
+    (`encode::hide_window`). Nunca se enlaza: ver la regla 12 de `convenciones`.
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio

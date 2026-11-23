@@ -35,6 +35,7 @@ use crate::services::{
     },
     settings::SaveMode,
     signatures, tasks,
+    video::{self, plan::VideoOptions, ReduceVideoParams, VideoResult, ALREADY_LIGHT, REDUCED_SUFFIX as VIDEO_SUFFIX, VIDEO_EXTENSION},
 };
 
 pub const ACTION_PROGRESS_EVENT: &str = "action-progress";
@@ -51,6 +52,7 @@ pub const RESULTS_ZIP_PREFIX: &str = "resultados";
 const IMAGE_KIND: &str = "image";
 const PDF_KIND: &str   = "pdf";
 const ZIP_KIND: &str   = "zip";
+const VIDEO_KIND: &str = "video";
 
 pub const MERGED_SUFFIX: &str  = "unido";
 pub const REDUCED_SUFFIX: &str = "reducido";
@@ -94,6 +96,9 @@ pub struct ActionOptions {
     pub watermark: Option<WatermarkOptions>,
     #[serde(default)]
     pub numbering: Option<NumberingOptions>,
+    // "Reducir peso" for videos: what it is for, and the size typed.
+    #[serde(default)]
+    pub video: Option<VideoOptions>,
 }
 
 // "Reducir peso" for PDFs: the level and, optionally, a size the result must stay under.
@@ -586,6 +591,7 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
+        video: None,
     });
     let destination = options.destination.unwrap_or_default();
     let paths       = request.paths.iter().map(PathBuf::from).collect::<Vec<_>>();
@@ -604,12 +610,14 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
     let task     = request.task_id.clone();
     let run      = Run { app, paths, destination: work_destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task };
     let all_pdfs = run.paths.iter().all(|path| is_pdf(path));
+    let videos   = run.paths.iter().all(|path| is_video(path));
     let split    = options.split.clone();
     let mut page = PageOutput::default();
 
     let collected = match (action, options.format) {
         ("convert", Some(format))     => run_convert(&run, format),
         ("compress", _) if all_pdfs => run_reduce_pdf(&run, options.reduce.unwrap_or_default()),
+        ("compress", _) if videos   => run_reduce_video(&run, options.video.unwrap_or_default()),
         ("compress", _)             => run_compress(&run),
         ("to-pdf", _)               => run_to_pdf(&run),
         ("remove-background", _)    => run_remove_background(&run, options.background.unwrap_or_default()),
@@ -660,6 +668,10 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         pages_done       : page.done,
         pages_total      : page.total,
     })
+}
+
+fn is_video(path: &Path) -> bool {
+    crate::services::file_info::read(&path.to_string_lossy(), None).kind == crate::services::file_info::FileKind::Video
 }
 
 fn is_pdf(path: &Path) -> bool {
@@ -1319,5 +1331,66 @@ pub struct PasswordCheckRequest {
 // "Quitar contraseña" checks the password before running, so a wrong one can be typed again right there.
 pub fn check_pdf_password(request: PasswordCheckRequest) -> bool {
     pdf_protect::check_password(Path::new(&request.path), &request.password)
+}
+
+// "Video 2 de 3 · 45 %" (or "45 %" for one): the bar goes by the time made, all videos together.
+fn video_progress(run: &Run, index: usize, done: f64, name: &str) {
+    let total   = run.paths.len();
+    let percent = (done * 100.0).round() as u32;
+    let detail  = if total > 1 { format!("Video {} de {total} · {percent} %", index + 1) } else { format!("{percent} %") };
+    let overall = ((index as f64 + done) / total as f64 * 1000.0) as usize;
+
+    let progress = ActionProgress { task_id: run.task.clone(), current: overall, total: 1000, name: name.to_string(), active: 1, detail: Some(detail) };
+    if let Some(task) = &run.task {
+        tasks::progress(run.app, task, &progress);
+    }
+    let _ = run.app.emit(ACTION_PROGRESS_EVENT, progress);
+}
+
+fn reduce_video_one(run: &Run, index: usize, source: &Path, options: VideoOptions) -> Option<Result<FileResult, String>> {
+    let folder = match destination::prepare(source, &run.destination) {
+        Ok(folder) => folder,
+        Err(error) => return Some(Err(error)),
+    };
+
+    let output = run.reserve(&OutputNameParams { folder: &folder, source, kind: OutputKind::Suffixed { suffix: VIDEO_SUFFIX, extension: VIDEO_EXTENSION } });
+    let name   = file_name(source);
+    let result = video::reduce(ReduceVideoParams {
+        app         : run.app,
+        source,
+        output      : &output,
+        options,
+        cancel      : run.cancel,
+        on_progress : &|done| video_progress(run, index, done, &name),
+    });
+
+    match result {
+        Ok(VideoResult::Saved(size))  => Some(Ok(FileResult::Saved(Saved { output, size }))),
+        Ok(VideoResult::AlreadyLight) => Some(Ok(FileResult::Unchanged(ALREADY_LIGHT.to_string()))),
+        Ok(VideoResult::Cancelled)    => None,
+        Err(error)                    => Some(Err(error)),
+    }
+}
+
+// "Reducir peso" for videos: one at a time (FFmpeg already uses the whole processor), into
+// video-reducido.mp4. Cancelar stops FFmpeg and deletes the half-made file.
+fn run_reduce_video(run: &Run, options: VideoOptions) -> Collected {
+    let mut results   = Vec::new();
+    let mut cancelled = false;
+
+    for (index, source) in run.paths.iter().enumerate() {
+        if run.cancel.load(Ordering::SeqCst) {
+            cancelled = true;
+            break;
+        }
+
+        let result = reduce_video_one(run, index, source, options);
+        cancelled |= result.is_none();
+        results.push(result);
+    }
+
+    let detail              = |source: &Path, result: &Saved| history::reduced_detail(file_size(source), result.size);
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: "compress", kind: VIDEO_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
 }
 

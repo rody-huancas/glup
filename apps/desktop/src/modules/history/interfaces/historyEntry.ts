@@ -6,6 +6,7 @@ export interface HistoryEntry {
   id     : string;
   name   : string;
   path   : string;
+  // 'video' comes from SupportedFileType.
   type   : SupportedFileType | 'zip' | 'cleanup';
   action : ActionId | 'cleanup';
   // type   : SupportedFileType | 'zip';

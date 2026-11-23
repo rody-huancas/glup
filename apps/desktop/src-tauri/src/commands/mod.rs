@@ -10,4 +10,5 @@ pub mod settings;
 pub mod signatures;
 pub mod startup;
 pub mod updates;
+pub mod video;
 // pub mod main_window;

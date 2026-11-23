@@ -26,7 +26,9 @@ export const getSelectionType = (files: FileInfo[]): Exclude<SelectionType, 'mix
 
   if (!first || first === 'other') return null;
   if (files.every((file) => file.kind === first)) return first;
-  return files.every((file) => file.kind !== 'other') ? 'pdf-mixed' : null;
+  // Only PDFs with images can be merged; videos with anything else are 'mixed' (Juntar en ZIP).
+  return files.every((file) => file.kind === 'pdf' || file.kind === 'image') ? 'pdf-mixed' : null;
+  // return files.every((file) => file.kind !== 'other') ? 'pdf-mixed' : null;
 };
 
 // export const getSelectionType = (files: FileInfo[]): SupportedFileType | null => {

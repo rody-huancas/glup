@@ -1,1 +1,1 @@
-export type ToolIcon = 'pdf' | 'image' | 'zip' | 'cleanup';
+export type ToolIcon = 'pdf' | 'image' | 'video' | 'zip' | 'cleanup';

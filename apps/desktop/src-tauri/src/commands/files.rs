@@ -1,16 +1,20 @@
 use std::{fs, path::Path};
 
-use tauri::ipc::Response;
+use tauri::{ipc::Response, AppHandle};
 
-use crate::services::file_info::{self, FileInfo};
+use crate::services::{
+    file_info::{self, FileInfo},
+    video,
+};
 
 // Lets the frontend tell a deleted file apart from any other failure.
 pub const MISSING_FILE: &str = "missing";
 
 // Async and off the main thread, so a long list never blocks the island.
 #[tauri::command]
-pub async fn get_files_info(paths: Vec<String>) -> Result<Vec<FileInfo>, String> {
-    tauri::async_runtime::spawn_blocking(move || file_info::read_all(&paths))
+pub async fn get_files_info(app: AppHandle, paths: Vec<String>) -> Result<Vec<FileInfo>, String> {
+    let ffmpeg = video::tool::ffmpeg_path(&app);
+    tauri::async_runtime::spawn_blocking(move || file_info::read_all(&paths, ffmpeg.as_deref()))
         .await
         .map_err(|error| error.to_string())
 }

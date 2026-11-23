@@ -11,6 +11,7 @@ export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
   // pdf         : ['merge', 'compress', 'split-pages', 'to-images', 'zip'],
   'pdf-mixed' : ['merge', 'zip'],
   'pdf-locked': ['unlock'],
+  video       : ['compress', 'zip'],
   mixed       : ['zip'],
 };
 

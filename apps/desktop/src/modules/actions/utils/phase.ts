@@ -17,6 +17,7 @@ const PHASE_MESSAGES: Record<ActionsPhase, string | null> = {
   unlock           : null,
   watermark        : null,
   numbering        : null,
+  video            : null,
   working          : ACTIONS_TEXTS.working,
   learning         : ACTIONS_TEXTS.learning,
   result           : null,

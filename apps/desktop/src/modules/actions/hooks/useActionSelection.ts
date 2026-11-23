@@ -27,6 +27,8 @@ import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
 import { enqueueTask } from '@/modules/tasks/store/taskStore';
+import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
+import { getVideoTool } from '@/modules/video/services/videoTool';
 
 interface UseActionSelectionParams {
   onFinished  : () => void;
@@ -69,6 +71,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
   // The download goes on as a task; only the step is left.
   'learning-model' : 'choosing',
   background       : 'choosing',
+  video            : 'choosing',
   protect          : 'choosing',
   unlock           : 'choosing',
   watermark        : 'choosing',
@@ -90,6 +93,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const signRef                   = useRef(onSign);
   const organizeRef               = useRef(onOrganize);
   const loadId                    = useRef(0);
+  // The step after learning: the background choice, or what the video is for.
+  const learnDone                 = useRef<ActionsPhase>('background');
 
   useEffect(() => {
     finishedRef.current    = onFinished;
@@ -200,8 +205,18 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     // "Reducir peso" asks for a level only with PDFs.
     if (actionId === 'compress' && selection.type === 'pdf') return setPhase('reduce');
 
+    // With videos it asks what they are for; the first time, Glup has to learn (download FFmpeg).
+    if (actionId === 'compress' && selection.type === 'video') {
+      learnDone.current = 'video';
+      void getVideoTool()
+        .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing', 'video')))
+        .catch(() => setPhase((current) => nextLearnPhase(current, 'missing', 'video')));
+      return;
+    }
+
     // "Quitar fondo" asks for permission to download what it needs the first time.
     if (actionId === 'remove-background') {
+      learnDone.current = 'background';
       void getBackgroundModel()
         .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing')))
         .catch(() => setPhase((current) => nextLearnPhase(current, 'missing')));
@@ -223,9 +238,12 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   }, [phase, execute]);
 
   // The learning step: downloading, back to the question (cancelled or failed), or ready.
-  const modelStarted = useCallback(() => setPhase((current) => nextLearnPhase(current, 'started')), []);
-  const modelStopped = useCallback(() => setPhase((current) => nextLearnPhase(current, 'stopped')), []);
-  const modelReady   = useCallback(() => setPhase((current) => nextLearnPhase(current, 'ready')), []);
+  const modelStarted = useCallback(() => setPhase((current) => nextLearnPhase(current, 'started', learnDone.current)), []);
+  const modelStopped = useCallback(() => setPhase((current) => nextLearnPhase(current, 'stopped', learnDone.current)), []);
+  const modelReady   = useCallback(() => setPhase((current) => nextLearnPhase(current, 'ready', learnDone.current)), []);
+  // const modelStarted = useCallback(() => setPhase((current) => nextLearnPhase(current, 'started')), []);
+  // const modelStopped = useCallback(() => setPhase((current) => nextLearnPhase(current, 'stopped')), []);
+  // const modelReady   = useCallback(() => setPhase((current) => nextLearnPhase(current, 'ready')), []);
 
   const merge = useCallback((paths: string[]) => {
     if (phase === 'order') execute({ actionId: 'merge', paths });
@@ -282,6 +300,10 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     if (phase === 'numbering') execute({ actionId: 'page-numbers', options: { numbering } });
   }, [phase, execute]);
 
+  const reduceVideo = useCallback((video: VideoOptions) => {
+    if (phase === 'video') execute({ actionId: 'compress', options: { video } });
+  }, [phase, execute]);
+
   const back = useCallback(() => {
     const previous = BACK_STEPS[phase];
     if (previous) setPhase(previous);
@@ -317,6 +339,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     unlockPdf,
     watermarkPdf,
     numberPages,
+    reduceVideo,
     chooseBackground,
     modelStarted,
     modelStopped,

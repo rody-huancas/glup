@@ -9,4 +9,8 @@ export interface FileInfo {
   // PDFs: page count (null when unknown) and whether it needs a password.
   pages     : number | null;
   protected : boolean;
+  // Videos, once Glup can work with them: seconds and the picture as shown (null otherwise).
+  duration  : number | null;
+  width     : number | null;
+  height    : number | null;
 }

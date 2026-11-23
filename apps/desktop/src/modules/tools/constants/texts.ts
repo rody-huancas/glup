@@ -11,8 +11,9 @@ export const TOOLS_TEXTS = {
 };
 
 export const TOOL_SECTION_TITLES: Record<ToolSection, string> = {
-  pdf   : 'PDF',
-  images: 'Imágenes',
-  files : 'Archivos',
-  pc    : 'Tu PC',
+  pdf    : 'PDF',
+  images : 'Imágenes',
+  videos : 'Videos',
+  files  : 'Archivos',
+  pc     : 'Tu PC',
 };

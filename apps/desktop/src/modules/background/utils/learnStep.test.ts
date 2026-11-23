@@ -13,6 +13,12 @@ describe('nextLearnPhase', () => {
     expect(nextLearnPhase('learning-model', 'ready')).toBe('background');
   });
 
+  it('goes to the step of the action that needed it (videos)', () => {
+    expect(nextLearnPhase('choosing', 'installed', 'video')).toBe('video');
+    expect(nextLearnPhase('learning-model', 'ready', 'video')).toBe('video');
+    expect(nextLearnPhase('choosing', 'missing', 'video')).toBe('learn-model');
+  });
+
   it('ignores a late event once the step was left', () => {
     expect(nextLearnPhase('choosing', 'ready')).toBe('choosing');
     expect(nextLearnPhase('formats', 'stopped')).toBe('formats');

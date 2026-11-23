@@ -1,4 +1,5 @@
-export type FileType = 'pdf' | 'image' | 'other';
+export type FileType = 'pdf' | 'image' | 'video' | 'other';
+// export type FileType = 'pdf' | 'image' | 'other';
 
 export type SupportedFileType = Exclude<FileType, 'other'>;
 

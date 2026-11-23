@@ -41,6 +41,8 @@ ureq                         = "3.5"
 sha2                         = "0.11"
 # Random file key for "Poner contraseña" (AES-256, done by lopdf).
 getrandom                    = "0.3"
+# Unpacks ffmpeg.exe, downloaded on its own out of the FFmpeg zip (see services/video/tool.rs).
+flate2                       = { version = "1", default-features = false, features = ["zlib-rs"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_System_Com"] }
