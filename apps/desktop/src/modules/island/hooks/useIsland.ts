@@ -13,6 +13,8 @@ import type { HoldReason } from '@/modules/island/types/holdReason';
 import { hoverEnabled, isHeldOpen, toIslandState } from '@/modules/island/utils/islandMachine';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
+import { useTaskNotices } from '@/modules/notices/hooks/useTaskNotices';
+import { panelOpened } from '@/modules/notices/store/toastStore';
 import { useTaskTransitions } from '@/modules/tasks/hooks/useTaskTransitions';
 import { useTasks } from '@/modules/tasks/hooks/useTasks';
 import { getTasks, markForReveal, takeReveals } from '@/modules/tasks/store/taskStore';
@@ -156,11 +158,16 @@ export const useIsland = () => {
   const tasks   = useTasks();
   const running = getRunningTask(tasks);
 
-  const phaseRef = useRef(machine.phase);
+  const phaseRef  = useRef(machine.phase);
+  const insideRef = useRef(machine.inside);
 
   useEffect(() => {
-    phaseRef.current = machine.phase;
-  }, [machine.phase]);
+    phaseRef.current  = machine.phase;
+    insideRef.current = machine.inside;
+  }, [machine.phase, machine.inside]);
+
+  // The end of a task is told once: a toast in the panel or a Windows notification.
+  const notices = useTaskNotices({ phaseRef, insideRef, onNavigate: panel.navigate });
 
   // A task that ends with the island collapsed: the next opening (hovering its notice included) shows
   // its owner screen.
@@ -168,7 +175,8 @@ export const useIsland = () => {
     if (toIslandState(phaseRef.current) === 'collapsed') markForReveal(task.id);
     // if (toIslandState(phaseRef.current) === 'collapsed' && isCleanupScanTask(task.id)) requestCleanupReveal();
     if (task.result) send({ type: 'notice', notice: { message: task.result.message, tone: task.result.tone } });
-  }, [send]);
+    notices.onFinish(task);
+  }, [send, notices]);
 
   // Dropped files whose actions were not run wait while collapsed (a lilac dot on the pill), for
   // ISLAND_TIMING.lastPageLifetime at most.
@@ -212,11 +220,14 @@ export const useIsland = () => {
     });
 
     if (page !== pageRef.current) navigate(page);
+    // A toast that waited for the panel shows now (unless a Windows notification already told it).
+    panelOpened();
     // const page = takeRevealPage();
     // if (page) navigate(page);
   }, [machine.phase, navigate]);
 
-  useTaskTransitions({ tasks, onFinish: onTaskFinish });
+  useTaskTransitions({ tasks, onStart: notices.onStart, onFinish: onTaskFinish });
+  // useTaskTransitions({ tasks, onFinish: onTaskFinish });
 
   const progress = useMemo(
     () => ({ visible: state === 'collapsed' && running !== null && notice === null, fraction: running ? getTaskFraction(running) : null }),
