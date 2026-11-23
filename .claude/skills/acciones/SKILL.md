@@ -68,6 +68,10 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   ni en el historial, ni en logs) y Rust no las imprime. «Quitar contraseña» solo funciona con la
   contraseña correcta (se comprueba antes con `check_pdf_password`): nada de adivinar ni forzar. El
   cifrado es AES-256 (PDF 2.0, revisión 6) con lopdf y una clave aleatoria (`getrandom`).
+- **Videos**: FFmpeg (LGPL, aparte; skill `convenciones`, regla 12) con `h264_mf` y `aac`, nunca
+  `libx264`. Todo lo que decide (tamaño de imagen, tasas de bits, argumentos) es puro en
+  `services/video/plan.rs`; el proceso se lanza en `encode.rs`, con progreso leído de `-progress` y
+  Cancelar que lo detiene y borra el archivo a medias. Uno a la vez.
 - **Texto sobre las páginas** (marca de agua, números): `services/pdf/stamp.rs` lo dibuja encima del
   contenido, derecho como se ve la página (respeta `/Rotate` y el recuadro), con Helvetica estándar
   (sin incrustar fuentes). La vista previa del paso usa los mismos números que Rust.
@@ -83,6 +87,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | PDF con contraseña (1) | Quitar contraseña (la única; con otros archivos se rechaza: «Primero quítale la contraseña») |
 | PDF (2+) | Unir, Reducir peso, Poner contraseña, Marca de agua, Numerar páginas, Juntar en ZIP |
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
+| Video (1+) | Reducir peso (Para WhatsApp, Para correo, Lo más liviano o un peso máximo; la primera vez pide descargar FFmpeg) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
 
 ## Checklist
