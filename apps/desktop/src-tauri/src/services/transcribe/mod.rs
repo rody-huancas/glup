@@ -9,28 +9,31 @@ pub mod model;
 mod tests;
 
 use std::{
+    cell::Cell,
     fs,
     path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
+    time::Instant,
 };
 
 use chrono::Local;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
 use crate::services::{
-    actions::{ActionControl, ActionProgress, ACTION_PROGRESS_EVENT},
+    actions::{ActionControl, ActionProgress},
     background::{
         download::{self, fetch_http, DownloadEnd, DownloadParams},
         model::{delete_in, model_path, models_folder, status_in, ModelStatus},
     },
     destination::{self, Destination},
-    history::{self, format_size, NewEntryParams},
+    history::{self, NewEntryParams},
     naming::{output_path, OutputKind, OutputNameParams},
-    tasks::{self, TaskSummary},
+    progress::{self, DownloadSpan, Stage},
+    tasks::TaskSummary,
     text::compose::to_windows_lines,
     transcribe::{
         audio::{decode, seconds_of},
@@ -40,7 +43,7 @@ use crate::services::{
     },
     video::{
         self,
-        tool::{self as video_tool, FFMPEG_DATA_SIZE, MISSING_ERROR},
+        tool::{self as video_tool, FFMPEG_DATA_SIZE, FFMPEG_DOWNLOAD, MISSING_ERROR},
     },
 };
 
@@ -73,38 +76,57 @@ pub fn status(app: &AppHandle, level: Level) -> Result<ModelStatus, String> {
 }
 
 fn emit(app: &AppHandle, progress: ActionProgress) {
-    if let Some(task) = &progress.task_id {
-        tasks::progress(app, task, &progress);
-    }
-    let _ = app.emit(ACTION_PROGRESS_EVENT, progress);
+    progress::emit(app, progress);
 }
 
-// FFmpeg first if missing (its own download, as for videos), then the model, resumed and checked.
+// What is still missing, in bytes: FFmpeg (if videos never needed it) and the model.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Missing {
+    pub ffmpeg : u64,
+    pub model  : u64,
+}
+
+pub fn missing_bytes(ffmpeg_installed: bool, model_installed: bool, level: Level) -> Missing {
+    Missing {
+        ffmpeg : if ffmpeg_installed { 0 } else { FFMPEG_DOWNLOAD.size },
+        model  : if model_installed { 0 } else { level.model().size },
+    }
+}
+
+// FFmpeg first if missing, then the model, resumed and checked: one bar for both ("de 704 MB"), so it
+// never looks like the download starts over.
 pub fn download_model(app: &AppHandle, task: &Option<String>, level: Level) -> Result<TaskSummary, String> {
-    if video_tool::ffmpeg_path(app).is_none() {
-        let summary = video::download_tool(app, task)?;
+    let control = app.state::<ActionControl>();
+    control.begin(task);
+
+    let model   = level.model();
+    let folder  = models_folder(app)?;
+    let missing = missing_bytes(video_tool::ffmpeg_path(app).is_some(), model_path(&folder, model).exists(), level);
+    let total   = missing.ffmpeg + missing.model;
+
+    if missing.ffmpeg > 0 {
+        let summary = video::download_tool_as(app, &DownloadSpan { task: task.clone(), before: 0, total })?;
         if video_tool::ffmpeg_path(app).is_none() {
             return Ok(summary);
         }
     }
 
-    let control = app.state::<ActionControl>();
-    control.cancelled.store(false, Ordering::SeqCst);
+    // if video_tool::ffmpeg_path(app).is_none() {
+    //     let summary = video::download_tool(app, task)?;
+    //     ...
+    // }
+    // let control = app.state::<ActionControl>();
+    // control.cancelled.store(false, Ordering::SeqCst);
 
-    let model       = level.model();
-    let folder      = models_folder(app)?;
-    let on_progress = |done: u64| {
-        emit(app, ActionProgress {
-            task_id : task.clone(),
-            current : done as usize,
-            total   : model.size as usize,
-            name    : String::new(),
-            active  : 1,
-            detail  : Some(format!("{} de {}", format_size(done), format_size(model.size))),
-        });
-    };
-
-    let end = download::download(DownloadParams { folder: &folder, model, cancel: &control.cancelled, on_progress: &on_progress, fetch: &|start| fetch_http(model.url, start) })?;
+    let span = DownloadSpan { task: task.clone(), before: missing.ffmpeg, total };
+    let end  = download::download(DownloadParams {
+        folder       : &folder,
+        model,
+        cancel       : &control.cancelled,
+        on_progress  : &|done| emit(app, span.downloading(done)),
+        on_verifying : &|| emit(app, span.verifying()),
+        fetch        : &|start| fetch_http(model.url, start),
+    })?;
 
     Ok(match end {
         DownloadEnd::Installed => TaskSummary::success(LEARNED_MESSAGE.to_string()),
@@ -191,14 +213,26 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
     }
 
     let control = app.state::<ActionControl>();
-    control.cancelled.store(false, Ordering::SeqCst);
+    control.begin(&request.task_id);
+    // control.cancelled.store(false, Ordering::SeqCst);
     let cancel  = Arc::new(AtomicBool::new(false));
     let session = app.state::<Arc<TranscribeSession>>().inner().clone();
     let total   = request.paths.len();
+    let clock   = StageClock::start();
 
     let mut files     = Vec::new();
     let mut seconds   = 0.0;
     let mut cancelled = false;
+
+    // Loading Whisper takes seconds and cannot be interrupted; another audio a moment ago reuses it.
+    if !session.is_loaded(&model) {
+        emit(app, ActionProgress::at(&request.task_id, Stage::Preparing));
+        session.prepare(&model)?;
+        clock.lap("cargar el modelo");
+    }
+    if control.cancelled.load(Ordering::SeqCst) {
+        return Ok(TranscribeReport { text: String::new(), subtitles: String::new(), seconds: 0, cancelled: true, entry_id: None });
+    }
 
     for (index, path) in request.paths.iter().map(PathBuf::from).enumerate() {
         let name   = file_name(&path);
@@ -212,6 +246,7 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
                 name    : name.clone(),
                 active  : 1,
                 detail  : Some(detail),
+                stage   : Stage::Working,
             });
         };
 
@@ -222,6 +257,7 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
         };
         seconds += seconds_of(&samples);
         report(DECODE_SHARE);
+        clock.lap("leer el sonido");
 
         // Whisper's own flag follows the shared one (Cancelar on the task) while it listens.
         let watcher = watch_cancel(app.clone(), cancel.clone());
@@ -243,10 +279,12 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
                     name    : progress_name.clone(),
                     active  : 1,
                     detail  : Some(if total > 1 { format!("{progress_name} · {shown} %") } else { format!("{shown} %") }),
+                    stage   : Stage::Working,
                 });
             }),
         });
         watcher.store(true, Ordering::SeqCst);
+        clock.lap("escuchar");
 
         match listened? {
             Listened::Segments(segments) => files.push(FileSegments { name, segments }),
@@ -257,6 +295,8 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
         }
     }
 
+    emit(app, ActionProgress::at(&request.task_id, Stage::Saving));
+
     let text      = compose(&files);
     let subtitles = srt(&files);
     let entry_id  = request.paths.first().filter(|_| !text.is_empty()).map(|first| {
@@ -266,7 +306,22 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
         id
     });
 
+    clock.lap("armar el texto y el historial");
     Ok(TranscribeReport { text, subtitles, seconds: seconds.round() as u64, cancelled, entry_id })
+}
+
+// How long each stage took, in the log (to see where the time goes).
+struct StageClock(Cell<Instant>);
+
+impl StageClock {
+    fn start() -> Self {
+        Self(Cell::new(Instant::now()))
+    }
+
+    fn lap(&self, stage: &str) {
+        eprintln!("[transcribe] {stage}: {} ms", self.0.get().elapsed().as_millis());
+        self.0.set(Instant::now());
+    }
 }
 
 // Copies the task's cancel flag into Whisper's while it listens; returns a flag to stop watching.
