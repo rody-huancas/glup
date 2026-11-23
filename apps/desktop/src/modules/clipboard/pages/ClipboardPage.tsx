@@ -2,12 +2,14 @@ import { useCallback, useMemo } from 'react';
 import { ClipboardIntro } from '@/modules/clipboard/components/ClipboardIntro';
 import { ClipboardToolbar } from '@/modules/clipboard/components/ClipboardToolbar';
 import { ClipList } from '@/modules/clipboard/components/ClipList';
+import { TurnOffDialog } from '@/modules/clipboard/components/TurnOffDialog';
 import { CLIPBOARD_TEXTS } from '@/modules/clipboard/constants/texts';
 import { useClipboardStatus } from '@/modules/clipboard/hooks/useClipboardStatus';
 import { useClipKeys } from '@/modules/clipboard/hooks/useClipKeys';
 import { useClips } from '@/modules/clipboard/hooks/useClips';
 import { useCopyClip } from '@/modules/clipboard/hooks/useCopyClip';
 import { useRemoveClips } from '@/modules/clipboard/hooks/useRemoveClips';
+import { useTurnOffClipboard } from '@/modules/clipboard/hooks/useTurnOffClipboard';
 import type { Clip } from '@/modules/clipboard/interfaces/clip';
 import { setClipPinned } from '@/modules/clipboard/services/clipboard';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
@@ -23,6 +25,7 @@ import { useCheckSelection } from '@/shared/hooks/useCheckSelection';
 export const ClipboardPage = ({ onNavigate }: PageProps) => {
   const clipboard = useClipboardStatus();
   const status    = clipboard.status;
+  const switching = useTurnOffClipboard({ status, apply: clipboard.apply });
   const enabled   = status?.enabled ?? false;
   const list      = useClips(enabled);
   const clips     = useMemo(() => list.clips ?? [], [list.clips]);
@@ -56,7 +59,7 @@ export const ClipboardPage = ({ onNavigate }: PageProps) => {
     return (
       <div className="flex flex-col gap-6">
         {header}
-        <ClipboardIntro supported={status.supported} onTurnOn={() => clipboard.setEnabled(true)} onLater={() => onNavigate('tools')} />
+        <ClipboardIntro supported={status.supported} onTurnOn={() => switching.setEnabled(true)} onLater={() => onNavigate('tools')} />
       </div>
     );
   }
@@ -81,7 +84,7 @@ export const ClipboardPage = ({ onNavigate }: PageProps) => {
         onKeyDown={keys.onSearchKeyDown}
         onPause={clipboard.pause}
         onResume={clipboard.resume}
-        onTurnOff={() => clipboard.setEnabled(false)}
+        onTurnOff={() => switching.setEnabled(false)}
       />
       <p className="-mt-1 text-[12px] text-muted">{CLIPBOARD_TEXTS.private}</p>
       {(list.failed || removing.failed) && <p role="alert" className="text-[13px] text-lilac-soft">{list.failed ? CLIPBOARD_TEXTS.failed : CLIPBOARD_TEXTS.removeFailed}</p>}
@@ -106,6 +109,7 @@ export const ClipboardPage = ({ onNavigate }: PageProps) => {
           />
         </>
       )}
+      {switching.asking && <TurnOffDialog count={switching.count} onKeep={switching.keep} onDeleteAll={switching.deleteAll} onDismiss={switching.dismiss} />}
       {removing.pending && (
         <ConfirmDialog
           title={CLIPBOARD_TEXTS.removeTitle(removing.pending.length)}
