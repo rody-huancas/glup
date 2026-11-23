@@ -21,6 +21,8 @@ tauri-plugin-single-instance = "2.5"
 tauri-plugin-autostart       = "2.7"
 # Updates: checks the latest Release of the repo, verifies its signature and installs it.
 tauri-plugin-updater         = "2"
+# "Copiar texto de la pantalla": the keyboard shortcut that works from any app (Apache-2.0 OR MIT).
+tauri-plugin-global-shortcut = "2"
 serde                        = { version = "1", features = ["derive"] }
 serde_json                   = "1"
 image                        = { version = "0.25", default-features = false, features = ["rayon", "avif", "bmp", "gif", "ico", "jpeg", "png", "tiff", "webp"] }
@@ -47,7 +49,7 @@ flate2                       = { version = "1", default-features = false, featur
 whisper-rs                   = "0.16"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_System_Com"] }
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_System_Com", "Win32_System_DataExchange", "Win32_System_Memory", "Win32_System_Ole"] }
 # "Sacar texto": the OCR that comes with Windows (Windows.Media.Ocr). Same version Tauri already uses.
 # Windows notifications with a click handler (the notification plugin has none on desktop).
 tauri-winrt-notification = "0.8"

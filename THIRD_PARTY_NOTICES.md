@@ -166,3 +166,22 @@ SOFTWARE.
 Para leer el sonido usa el mismo `ffmpeg.exe` de «Videos» (ver arriba); si no está, se descarga junto
 con el modelo.
 
+
+## Copiar texto de la pantalla
+
+El texto lo lee el mismo reconocimiento de texto que trae Windows («Sacar texto»); la captura de la
+pantalla y el portapapeles usan las funciones de Windows. Nada se descarga ni se guarda en disco.
+
+### tauri-plugin-global-shortcut (el atajo de teclado)
+
+- **Qué es**: el plugin de Tauri que registra con Windows el atajo que abre «Copiar texto de la
+  pantalla» desde cualquier programa. Va enlazado dentro de Glup.
+- **Autor**: Tauri Programme within The Commons Conservancy —
+  [tauri-apps/plugins-workspace](https://github.com/tauri-apps/plugins-workspace).
+- **Licencia**: Apache-2.0 o MIT, a elección.
+
+### global-hotkey (la pieza del plugin que habla con Windows)
+
+- **Autor**: Tauri Programme within The Commons Conservancy —
+  [tauri-apps/global-hotkey](https://github.com/tauri-apps/global-hotkey).
+- **Licencia**: Apache-2.0 o MIT, a elección.
