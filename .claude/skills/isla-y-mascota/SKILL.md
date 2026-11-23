@@ -45,7 +45,8 @@ solo traduce cada fase en animación, región y foco.
 | Pantalla completa en el monitor principal | `hidden` |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
-  `drag`, `step`, `sign`, `dialog`), que `useIsland` le envía con el evento `holds`. Un diálogo nuevo
+  `drag`, `step`, `sign` (una pantalla entera: Firmar u Organizar páginas), `dialog`), que `useIsland`
+  le envía con el evento `holds`. Un diálogo nuevo
   la retiene con `useIslandHold(abierto)` o `holdWhile(...)` para los selectores nativos. Que Glup
   coma o trabaje **no** la retiene.
 - Recoger **no** reinicia la navegación ni el estado de las secciones. Una selección de archivos con
