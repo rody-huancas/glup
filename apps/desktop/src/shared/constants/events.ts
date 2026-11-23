@@ -19,6 +19,7 @@ export const FINISH_PAGE_IMAGES       = 'finish_page_images';
 export const GET_ACTIVE_TASKS         = 'get_active_tasks';
 export const DISMISS_TASK             = 'dismiss_task';
 export const SIGN_PDF                 = 'sign_pdf';
+export const ORGANIZE_PDF             = 'organize_pdf';
 export const LIST_SIGNATURES          = 'list_signatures';
 export const SAVE_SIGNATURE           = 'save_signature';
 export const DELETE_SIGNATURE         = 'delete_signature';

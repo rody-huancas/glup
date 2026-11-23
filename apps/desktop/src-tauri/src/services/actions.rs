@@ -23,6 +23,7 @@ use crate::services::{
     pdf::{
         self as pdf_tools,
         merge as pdf_merge,
+        organize::{self as pdf_organize, OrganizeParams, OrganizedPage, ORGANIZED_SUFFIX, ORGANIZE_ERROR},
         reduce::{self as pdf_reduce, ReduceLevel, TARGET_STEPS},
         save_images::{self, PageImageFormat, PageImageSession, PageImageSessions, SESSION_ERROR},
         sign::{self as pdf_sign, Placement, PlacementContent, SignParams},
@@ -1051,6 +1052,69 @@ pub fn sign_pdf(app: &AppHandle, request: SignRequest) -> Result<ActionReport, S
 
     Ok(ActionReport {
         action_id        : "sign".to_string(),
+        outcomes,
+        output           : batch.as_ref().map(|result| result.output.to_string_lossy().into_owned()),
+        output_size      : batch.map(|result| result.size),
+        total            : 1,
+        cancelled        : false,
+        bundled          : false,
+        output_is_folder : false,
+        pages_done       : None,
+        pages_total      : None,
+    })
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrganizeRequest {
+    pub path: String,
+    // The pages of the result in their new order; the ones left out are removed.
+    pub pages: Vec<OrganizedPage>,
+    pub destination: Option<Destination>,
+    pub task_id: Option<String>,
+}
+
+// "Organizar páginas": the pages reordered, turned and removed as chosen, in contrato-organizado.pdf.
+pub fn organize_pdf(app: &AppHandle, request: OrganizeRequest) -> Result<ActionReport, String> {
+    let source  = PathBuf::from(&request.path);
+    let control = app.state::<ActionControl>();
+    let run     = Run {
+        app,
+        paths       : vec![source.clone()],
+        destination : request.destination.unwrap_or_default(),
+        cancel      : &control.cancelled,
+        reserved    : Mutex::new(HashSet::new()),
+        task        : request.task_id.clone(),
+    };
+
+    run.progress(ProgressParams { current: 0, total: 1, name: &file_name(&source), active: 1 });
+
+    let kind   = OutputKind::Suffixed { suffix: ORGANIZED_SUFFIX, extension: PDF_EXTENSION };
+    let result = pdf_tools::load(&source).and_then(|document| {
+        let total = document.get_pages().len() as u32;
+        if !pdf_organize::is_valid(&request.pages, total) {
+            return Err(ORGANIZE_ERROR.to_string());
+        }
+
+        let summary = pdf_organize::summarize(&request.pages, total);
+        let bytes   = pdf_organize::organize(OrganizeParams { document, pages: &request.pages })?;
+        run.save(SaveParams { source: &source, kind, bytes: &bytes }).map(|saved| (saved, summary))
+    });
+
+    run.progress(ProgressParams { current: 1, total: 1, name: "", active: 1 });
+
+    let (outcomes, batch) = match result {
+        Ok((result, summary)) => {
+            let detail = pdf_organize::detail(summary);
+            let entry  = history::new_entry(NewEntryParams { output: &result.output, kind: PDF_KIND, action: "organize-pages", detail });
+            let _      = history::append(app, vec![entry]);
+            (vec![saved(&source, &result)], Some(result))
+        }
+        Err(error) => (vec![failed(&source, error)], None),
+    };
+
+    Ok(ActionReport {
+        action_id        : "organize-pages".to_string(),
         outcomes,
         output           : batch.as_ref().map(|result| result.output.to_string_lossy().into_owned()),
         output_size      : batch.map(|result| result.size),

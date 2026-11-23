@@ -50,6 +50,7 @@ pub fn run() {
             commands::actions::get_active_tasks,
             commands::actions::dismiss_task,
             commands::actions::sign_pdf,
+            commands::actions::organize_pdf,
             commands::cleanup::get_disk_space,
             commands::cleanup::scan_cleanup,
             commands::cleanup::clean_up,
