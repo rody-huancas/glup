@@ -19,5 +19,6 @@ pub mod startup;
 pub mod tasks;
 // pub mod main_window;
 pub mod tray;
+pub mod updates;
 pub mod visibility;
 pub mod window_position;
