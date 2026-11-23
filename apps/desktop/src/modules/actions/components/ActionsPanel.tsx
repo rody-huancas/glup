@@ -12,6 +12,7 @@ import { getPhaseMessage } from '@/modules/actions/utils/phase';
 import { getActionsTitle, getSelectionSummary } from '@/modules/actions/utils/summary';
 import { BackgroundStep } from '@/modules/background/components/BackgroundStep';
 import { LearnModelStep } from '@/modules/background/components/LearnModelStep';
+import { LEARNABLES } from '@/modules/background/constants/learnables';
 import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
 import { NumberingStep } from '@/modules/pdf/components/NumberingStep';
 import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
@@ -23,6 +24,7 @@ import { UnlockStep } from '@/modules/pdf/components/UnlockStep';
 import { WatermarkStep } from '@/modules/pdf/components/WatermarkStep';
 import { BundleZipToggle } from '@/modules/settings/components/BundleZipToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
+import { VideoGoalStep } from '@/modules/video/components/VideoGoalStep';
 import { FileChip } from '@/shared/components/FileChip';
 
 interface ActionsPanelProps {
@@ -80,6 +82,7 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
   if (flow.phase === 'learn-model' || flow.phase === 'learning-model') {
     return (
       <LearnModelStep
+        learnable={LEARNABLES[selection.type === 'video' ? 'video' : 'background']}
         downloading={flow.phase === 'learning-model'}
         onStarted={flow.modelStarted}
         onStopped={flow.modelStopped}
@@ -91,6 +94,10 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
 
   if (flow.phase === 'background') {
     return <BackgroundStep onChoose={flow.chooseBackground} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'video') {
+    return <VideoGoalStep paths={selection.paths} onReduce={flow.reduceVideo} onBack={flow.back} />;
   }
 
   if (flow.phase === 'protect') {

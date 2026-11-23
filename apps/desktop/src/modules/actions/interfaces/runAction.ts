@@ -6,6 +6,7 @@ import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { SplitOptions } from '@/modules/pdf/interfaces/splitOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
+import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 
 export interface RunActionOptions {
   format?      : ImageFormat;
@@ -18,6 +19,7 @@ export interface RunActionOptions {
   password?    : string;
   watermark?   : WatermarkOptions;
   numbering?   : NumberingOptions;
+  video?       : VideoOptions;
 }
 
 export interface RunActionParams {

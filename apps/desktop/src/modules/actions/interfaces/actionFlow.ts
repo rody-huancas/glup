@@ -7,6 +7,7 @@ import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
+import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 
 // Everything the actions panel needs to show a step and react to it. Progress and results moved to
 // the task store (TaskCard).
@@ -27,7 +28,8 @@ export interface ActionFlow {
   unlockPdf        : (password: string) => Promise<boolean>;
   watermarkPdf     : (options: WatermarkOptions) => void;
   numberPages      : (options: NumberingOptions) => void;
-  // The "Quitar fondo" learning step: download started, stopped (cancel or error), finished.
+  reduceVideo      : (options: VideoOptions) => void;
+  // The learning step ("Quitar fondo" or videos): download started, stopped (cancel or error), finished.
   modelStarted     : () => void;
   modelStopped     : () => void;
   modelReady       : () => void;
