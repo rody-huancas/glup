@@ -284,23 +284,6 @@ fn personal_files(roots: &[PathBuf], cancel: &AtomicBool) -> Vec<FileEntry> {
     walk::files_in_parallel(ParallelWalkParams { roots, cancel, personal: true })
 }
 
-// Before: one thread per root, so one big folder (Documents) kept the others waiting.
-// fn personal_files(roots: &[PathBuf], cancel: &AtomicBool) -> Vec<FileEntry> {
-//     let threads = worker_count().min(roots.len()).max(1);
-//
-//     run_parallel(ParallelParams {
-//         paths       : roots,
-//         threads,
-//         cancel,
-//         work        : |root: &Path| walk::files(WalkParams { root, recursive: true, cancel, personal: true }),
-//         on_finished : &|_| {},
-//     })
-//     .into_iter()
-//     .flatten()
-//     .flatten()
-//     .collect()
-// }
-
 fn scan_summary(categories: &[CategoryReport], cancelled: bool) -> TaskSummary {
     let total = categories.iter().map(|category| category.total).sum::<u64>();
 
@@ -321,7 +304,6 @@ pub fn scan(app: &AppHandle, task: &Option<String>) -> CleanupScan {
     let control = app.state::<ActionControl>();
     let cancel  = &control.cancelled;
     control.begin(task);
-    // cancel.store(false, Ordering::SeqCst);
 
     let folders  = folders::user_folders();
     let now      = walk::millis(SystemTime::now());
@@ -533,7 +515,6 @@ pub fn clean(app: &AppHandle, request: &CleanRequest) -> CleanReport {
     let control = app.state::<ActionControl>();
     let cancel  = &control.cancelled;
     control.begin(&request.task_id);
-    // cancel.store(false, Ordering::SeqCst);
 
     let known = app.state::<CleanupState>().0.lock().map(|state| state.clone()).unwrap_or_default();
     let paths: Vec<PathBuf> = request.paths.iter().map(PathBuf::from).collect();

@@ -24,7 +24,6 @@ use lopdf::{dictionary, Document, Object, ObjectId};
 pub type PdfResult<T> = Result<T, String>;
 
 pub const PASSWORD_ERROR: &str = "Primero quítale la contraseña";
-// pub const PASSWORD_ERROR: &str = "Este PDF tiene contraseña, todavía no puedo abrirlo";
 pub const PDF_READ_ERROR: &str = "No pude leer el PDF";
 pub const PDF_WRITE_ERROR: &str = "No pude crear el PDF";
 
