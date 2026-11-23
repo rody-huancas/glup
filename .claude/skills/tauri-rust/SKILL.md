@@ -110,8 +110,10 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 
 - `[profile.dev]` usa `debug = "line-tables-only"`: los errores muestran archivo y línea, y `target`
   pesa mucho menos. Los crates de imagen y `ort` siguen con `opt-level = 3`.
-- Después de compilar en release para medir o probar algo (`cargo build --release`, `cargo test
-  --release`, `tauri build`), correr `cargo clean --release`.
+- Si en la tarea se corrió `cargo test` o se compiló en release (`cargo build --release`,
+  `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` (todo `target`, no
+  solo `--release`): las compilaciones de prueba también pesan varios GB. Antes se detienen
+  `glup.exe` y `tauri dev` si están corriendo, porque bloquean archivos de `target`.
 - Al terminar una tarea no quedan copias del proyecto (worktrees, clones), carpetas de compilación
   extra (otro `CARGO_TARGET_DIR`) ni archivos temporales pesados.
 
@@ -123,4 +125,5 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 - [ ] Ningún original modificado; nombres de salida con `naming.rs`.
 - [ ] Pruebas con archivos generados en una carpeta temporal.
 - [ ] `cargo check` y `cargo test` sin errores ni warnings.
-- [ ] Sin compilaciones release, copias del proyecto ni carpetas de compilación extra al terminar.
+- [ ] `cargo clean` al terminar si se corrió `cargo test` o se compiló en release; sin copias del
+      proyecto ni carpetas de compilación extra.
