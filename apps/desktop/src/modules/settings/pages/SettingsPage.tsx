@@ -1,6 +1,7 @@
 import { LearnedSection } from '@/modules/background/components/LearnedSection';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { AutostartToggle } from '@/modules/settings/components/AutostartToggle';
+import { NotificationsToggle } from '@/modules/settings/components/NotificationsToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
 import { GENERAL_TEXTS } from '@/modules/settings/constants/general';
 import { SAVE_TEXTS, SETTINGS_TEXTS } from '@/modules/settings/constants/saveLocation';
@@ -20,6 +21,8 @@ export const SettingsPage = ({ files }: PageProps) => (
       <SectionLabel>{GENERAL_TEXTS.title}</SectionLabel>
       <Card className="flex flex-col gap-3.5 p-3.5">
         <AutostartToggle />
+        <div className="border-t border-line" />
+        <NotificationsToggle />
         <div className="border-t border-line" />
         <VersionRow />
       </Card>
