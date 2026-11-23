@@ -31,7 +31,6 @@ pub const PRECISE_MODEL: ModelFile = ModelFile {
 // Chosen by measuring a 5 min 25 s meeting in Spanish on a laptop processor (8 threads):
 // small-q5_1 82 s and 2,4 % of words wrong; medium-q5_0 218 s and 1,8 %; large-v3-turbo-q5_0 352 s
 // and 1,3 % (slower than the audio itself on a processor, so not for a regular computer).
-// pub const PRECISE_MODEL: ModelFile = large-v3-turbo-q5_0 (574_041_195 bytes, 394221709cd5ad1f…).
 
 impl Level {
     pub fn model(self) -> &'static ModelFile {

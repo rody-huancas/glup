@@ -111,13 +111,6 @@ pub fn download_model(app: &AppHandle, task: &Option<String>, level: Level) -> R
         }
     }
 
-    // if video_tool::ffmpeg_path(app).is_none() {
-    //     let summary = video::download_tool(app, task)?;
-    //     ...
-    // }
-    // let control = app.state::<ActionControl>();
-    // control.cancelled.store(false, Ordering::SeqCst);
-
     let span = DownloadSpan { task: task.clone(), before: missing.ffmpeg, total };
     let end  = download::download(DownloadParams {
         folder       : &folder,
@@ -214,7 +207,6 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
 
     let control = app.state::<ActionControl>();
     control.begin(&request.task_id);
-    // control.cancelled.store(false, Ordering::SeqCst);
     let cancel  = Arc::new(AtomicBool::new(false));
     let session = app.state::<Arc<TranscribeSession>>().inner().clone();
     let total   = request.paths.len();

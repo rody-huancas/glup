@@ -130,7 +130,6 @@ pub fn unpack(folder: &Path) -> Result<(), String> {
     };
 
     let unpacked = inflate().unwrap_or(false);
-    // let unpacked = inflate().is_ok() && matches_hash(&temp, FFMPEG_EXE_SHA256);
     let _        = fs::remove_file(&source);
 
     if !unpacked {

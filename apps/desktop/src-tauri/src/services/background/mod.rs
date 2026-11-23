@@ -111,18 +111,10 @@ pub fn remove(app: &AppHandle, source: &Path, kind: BackgroundKind) -> Result<Re
     cutout(CutoutParams { image: &image, logits: &logits, kind })
 }
 
-// "12,4 MB de 109,2 MB": now progress::download_detail.
-// pub fn download_detail(done: u64, total: u64) -> String {
-//     format!("{} de {}", format_size(done), format_size(total))
-// }
-
-// fn emit_download(app: &AppHandle, task: &Option<String>, done: u64) { … }: now DownloadSpan.
-
 // The one-time download, as a task: progress in MB, Cancelar keeps the part to resume later.
 pub fn download_model(app: &AppHandle, task: &Option<String>) -> Result<TaskSummary, String> {
     let control = app.state::<ActionControl>();
     control.begin(task);
-    // control.cancelled.store(false, Ordering::SeqCst);
 
     let folder = models_folder(app)?;
     let span   = DownloadSpan::single(task, BACKGROUND_MODEL.size);

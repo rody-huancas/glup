@@ -173,19 +173,6 @@ fn install(params: &DownloadParams, hash: &str) -> Result<DownloadEnd, String> {
     Ok(DownloadEnd::Installed)
 }
 
-// fn verify_and_install(params: &DownloadParams) -> Result<DownloadEnd, String> {
-//     let part       = part_path(params.folder, params.model);
-//     let final_path = model_path(params.folder, params.model);
-//
-//     if !matches_hash(&part, params.model.sha256) {
-//         let _ = fs::remove_file(&part);
-//         return Err(CORRUPT_ERROR.to_string());
-//     }
-//
-//     fs::rename(&part, &final_path).map_err(|_| WRITE_ERROR.to_string())?;
-//     Ok(DownloadEnd::Installed)
-// }
-
 // Resumes a cut download from where the .part ended (if the server allows it). The hash is computed
 // while the bytes arrive; on a resume, the part already on disk is read once first, so the hash still
 // covers exactly the bytes of the file.
@@ -246,10 +233,6 @@ pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
     (params.on_verifying)();
     install(&params, &to_hex(&hasher.finalize()))
 }
-
-// pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
-//     ... read the whole .part again with matches_hash at the end (verify_and_install).
-// }
 
 // The real network: the fixed url, asking for the rest of the file when part of it is already here.
 pub fn fetch_http(url: &str, start: u64) -> Result<Fetched, String> {

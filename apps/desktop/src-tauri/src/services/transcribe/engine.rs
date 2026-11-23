@@ -133,7 +133,6 @@ impl TranscribeSession {
         // whisper-rs 0.16's set_abort_callback_safe casts its pointer to the wrong type (it reads the
         // closure's box as the closure), so the flag goes straight to C here. `params.cancel` outlives
         // the call below.
-        // full.set_abort_callback_safe(move || cancel.load(Ordering::SeqCst));
         unsafe {
             full.set_abort_callback(Some(should_abort));
             full.set_abort_callback_user_data(Arc::as_ptr(&params.cancel) as *mut c_void);
