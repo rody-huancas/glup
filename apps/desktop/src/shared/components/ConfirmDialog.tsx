@@ -7,20 +7,24 @@ interface ConfirmDialogProps {
   body      : string;
   confirm   : string;
   cancel    : string;
-  onConfirm : () => void;
-  onCancel  : () => void;
+  onConfirm  : () => void;
+  onCancel   : () => void;
+  // Esc and a click outside, when they must not mean the same as the first button (by default they do).
+  onDismiss? : () => void;
 }
 
 // Inside the panel (no browser dialogs). The safe option comes first and takes the focus; Tab stays
-// inside, Esc or a click outside cancel. Whoever opens it keeps the island open (useIslandHold).
-export const ConfirmDialog = ({ title, body, confirm, cancel, onConfirm, onCancel }: ConfirmDialogProps) => {
+// inside, Esc or a click outside cancel (or dismiss, when given). Whoever opens it keeps the island open
+// (useIslandHold).
+export const ConfirmDialog = ({ title, body, confirm, cancel, onConfirm, onCancel, onDismiss }: ConfirmDialogProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId   = useId();
   const bodyId    = useId();
-  const onKeyDown = useFocusTrap({ containerRef: dialogRef, onEscape: onCancel });
+  const dismiss   = onDismiss ?? onCancel;
+  const onKeyDown = useFocusTrap({ containerRef: dialogRef, onEscape: dismiss });
 
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center rounded-[18px] bg-black/55" onPointerDown={onCancel}>
+    <div className="absolute inset-0 z-40 flex items-center justify-center rounded-[18px] bg-black/55" onPointerDown={dismiss}>
       <div
         ref={dialogRef}
         role="alertdialog"
