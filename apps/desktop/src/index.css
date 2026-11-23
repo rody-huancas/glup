@@ -22,6 +22,8 @@
   /* Ink on the white page of a PDF preview (watermark gray, page numbers black). */
   --color-ink         : #000000;
   --color-ink-gray    : #808080;
+  /* What dims the screen around the zone of "Copiar texto de la pantalla". */
+  --color-scrim       : #0A090E8C;
 
   --font-sans : "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
