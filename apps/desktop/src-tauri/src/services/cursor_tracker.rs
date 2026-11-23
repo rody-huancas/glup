@@ -72,21 +72,3 @@ fn zone_contains(window: &WebviewWindow, cursor: CursorPosition) -> bool {
 
     cursor.x >= left && cursor.x <= right && cursor.y >= top && cursor.y <= bottom
 }
-
-// fn zone_contains(window: &WebviewWindow, cursor: CursorPosition) -> bool {
-//     if !window.is_visible().unwrap_or(false) {
-//         return false;
-//     }
-//
-//     let (Ok(position), Ok(size), Ok(scale)) = (window.outer_position(), window.outer_size(), window.scale_factor()) else {
-//         return false;
-//     };
-//
-//     let margin = (ZONE_MARGIN * scale).round() as i32;
-//     let left   = position.x - margin;
-//     let top    = position.y - margin;
-//     let right  = position.x + size.width as i32 + margin;
-//     let bottom = position.y + size.height as i32 + margin;
-//
-//     cursor.x >= left && cursor.x <= right && cursor.y >= top && cursor.y <= bottom
-// }

@@ -81,26 +81,6 @@ fn update(app: &AppHandle, change: impl FnOnce(&mut VisibilityFlags)) -> Visibil
     result
 }
 
-// Previous version kept the lock while showing or hiding and did not tell the webview about the tray.
-// fn update(app: &AppHandle, change: impl FnOnce(&mut VisibilityFlags)) {
-//     let state = app.state::<Visibility>();
-//     let Ok(mut flags) = state.0.lock() else {
-//         return;
-//     };
-//
-//     change(&mut flags);
-//
-//     let Some(window) = app.get_webview_window(ISLAND_WINDOW_LABEL) else {
-//         return;
-//     };
-//
-//     if flags.user_hidden || flags.fullscreen {
-//         let _ = window.hide();
-//     } else {
-//         let _ = window.show();
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;

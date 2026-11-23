@@ -29,5 +29,4 @@ export const DEFAULT_SETTINGS: SettingsView = {
 export const SETTINGS_TEXTS = {
   title    : 'Ajustes',
   subtitle : 'Cómo arranco y dónde guardo lo que hago.',
-  // subtitle : 'Por ahora, solo dónde guardo lo que hago.',
 };

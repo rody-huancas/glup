@@ -34,7 +34,6 @@ export const CreateSignatureModal = ({ savedCount, onCancel, onAccept }: CreateS
         ) : (
           <InkPicker colors={DRAW_INKS} color={create.color} onChange={create.setColor} />
         )}
-        {/* <InkPicker color={create.color} onChange={create.setColor} /> */}
         {create.tab === 'draw' && <DrawTab drawing={create.drawing} />}
         {create.tab === 'type' && (
           <TypeTab name={create.name} font={create.font} ink={INK_COLORS[create.color]} onName={create.setName} onFont={create.setFont} />

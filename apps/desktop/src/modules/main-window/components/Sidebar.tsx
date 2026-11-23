@@ -12,14 +12,10 @@ interface SidebarProps {
   onNavigate      : (page: PageId) => void;
   // Hidden while signing; it stays mounted because the avatar box is where Glup lands.
   hidden?         : boolean;
-  // avatarRef           : RefObject<MascotController | null>;
-  // onAvatarStateChange : (state: MascotState) => void;
 }
 
 export const Sidebar = ({ page, avatarAnchorRef, avatarStatus, onNavigate, hidden = false }: SidebarProps) => (
   <aside className={cx('w-[232px] shrink-0 flex-col px-3.5 pb-4 pt-[18px]', hidden ? 'hidden' : 'flex')}>
-    {/* <aside className="flex w-[232px] shrink-0 flex-col px-3.5 pb-4 pt-[18px]"> */}
-    {/* <aside className="flex w-[220px] shrink-0 flex-col px-3.5 pb-4 pt-[18px]"> */}
     <SidebarProfile anchorRef={avatarAnchorRef} status={avatarStatus} />
     <SidebarNav page={page} onNavigate={onNavigate} />
     <div className="mt-auto">

@@ -30,7 +30,6 @@ export const HomeActionsCard = ({ files }: HomeActionsCardProps) => {
             <ActionsSkeleton pending={files.loading} slow={files.slow} location={files.saveLocation} onClose={files.close} />
           )
         )}
-        {/* <ActionsPanel selection={files.selection} phase={files.phase} onChoose={files.choose} onClose={files.close} /> */}
       </Card>
     </section>
   );

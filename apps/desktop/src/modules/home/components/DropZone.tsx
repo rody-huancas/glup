@@ -43,7 +43,6 @@ export const DropZone = ({ files, compact }: DropZoneProps) => {
       <div ref={full} inert={compact} aria-hidden={compact} className="flex min-w-0 flex-col items-start overflow-hidden">
         <p className="text-[22px] font-semibold leading-tight text-text">{title}</p>
         <p className="mt-1.5 text-[13px] leading-snug text-muted/80">{ACCEPTED}</p>
-        {/* <p ref={hint} className="mt-2 overflow-hidden text-[15px] leading-snug text-muted">{HOME_TEXTS.dropHint}</p> */}
         <Button onClick={files.pickFiles} className="mt-4 h-12 shrink-0 text-sm">
           {HOME_TEXTS.chooseFiles}
         </Button>
@@ -57,19 +56,3 @@ export const DropZone = ({ files, compact }: DropZoneProps) => {
     </section>
   );
 };
-
-// Before: one layout that only got shorter (Glup of 64 px, the hint folded away, the title and the button
-// kept), 120 px tall.
-// <div className="flex min-w-0 flex-col items-start">
-//   <p className="text-[22px] font-semibold leading-tight text-text">{files.notice ?? HOME_TEXTS.dropTitle}</p>
-//   <p ref={hint} className="mt-2 overflow-hidden text-[15px] leading-snug text-muted">{HOME_TEXTS.dropHint}</p>
-//   <Button onClick={files.pickFiles} className="mt-4 h-12 shrink-0 text-sm">{HOME_TEXTS.chooseFiles}</Button>
-// </div>
-
-// Column layout: Glup of 150 px above the text, everything centered.
-// <section className="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-3 ... px-5 text-center">
-//   <div ref={mascot} className="w-[150px] shrink-0">…</div>
-//   <p className="text-[22px] font-semibold leading-tight text-text">…</p>
-//   <p ref={hint} className="-mt-3 pt-3 text-[15px] leading-snug text-muted">…</p>
-//   <Button className="h-12 shrink-0 text-sm">…</Button>
-// </section>

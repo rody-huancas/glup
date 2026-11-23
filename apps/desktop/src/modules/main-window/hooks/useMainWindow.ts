@@ -22,8 +22,6 @@ export const useMainWindow = (): MainPanelState => {
   const signMode      = useSignMode();
   const organizeMode  = useOrganizeMode();
   const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start });
-  // const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start });
-  // const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome });
 
   useTaskMood(commandAvatar);
 
@@ -49,8 +47,6 @@ export const useMainWindow = (): MainPanelState => {
     avatarStatus,
     // Signing and organizing keep the island open until saved or cancelled.
     busy                : files.busy || signMode.target !== null || organizeMode.target !== null,
-    // busy                : files.busy || signMode.target !== null,
-    // busy                : files.busy || avatarState.type === 'working',
     navigate            : setPage,
     onAvatarStateChange : setAvatarState,
     reset,

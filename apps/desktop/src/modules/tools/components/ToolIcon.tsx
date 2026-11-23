@@ -18,8 +18,6 @@ export const ToolIcon = ({ icon }: ToolIconProps) => {
   }
 
   const Icon = STROKE_ICONS[icon];
-  // const Icon = icon === 'zip' ? ZipIcon : icon === 'video' ? VideoIcon : CleanupIcon;
-  // const Icon = icon === 'zip' ? ZipIcon : CleanupIcon;
 
   return (
     <span className="flex size-9 shrink-0 items-center justify-center rounded-control bg-bg text-lilac">

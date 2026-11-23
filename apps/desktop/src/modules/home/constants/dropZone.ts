@@ -14,23 +14,6 @@ export const DROP_ZONE_SIZES = {
   compactGap     : 12,
 };
 
-// export const DROP_ZONE_SIZES = {
-//   minHeight      : 200,
-//   compactHeight  : 120,
-//   mascot         : 120,
-//   compactMascot  : 64,
-//   padding        : 32,
-//   compactPadding : 12,
-//   hintGap        : 8,
-// };
-
-// export const DROP_ZONE_SIZES = {
-//   minHeight     : 180,
-//   mascot        : 150,
-//   compactMascot : 68,
-//   hintGap       : 12,
-// };
-
 // Seconds, as GSAP expects.
 export const DROP_ZONE_MOTION = {
   duration : 0.3,

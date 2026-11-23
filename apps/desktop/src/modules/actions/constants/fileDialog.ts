@@ -13,17 +13,11 @@ const ANY_FILTER: DialogFilter = {
   extensions : [...FILE_EXTENSIONS.pdf, ...FILE_EXTENSIONS.image, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS],
 };
 
-// const ANY_FILTER: DialogFilter = {
-//   name       : 'PDF e imágenes',
-//   extensions : [...FILE_EXTENSIONS.pdf, ...FILE_EXTENSIONS.image],
-// };
-
 export const DIALOG_FILTERS: Record<DialogFileType, DialogFilter[]> = {
   pdf   : [PDF_FILTER],
   image : [IMAGE_FILTER],
   video : [VIDEO_FILTER],
   audio : [AUDIO_FILTER, VIDEO_FILTER],
   any   : [ANY_FILTER, PDF_FILTER, IMAGE_FILTER, VIDEO_FILTER, AUDIO_FILTER],
-  // any   : [ANY_FILTER, PDF_FILTER, IMAGE_FILTER],
   files : [],
 };

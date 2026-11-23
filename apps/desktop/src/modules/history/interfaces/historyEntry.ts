@@ -9,8 +9,6 @@ export interface HistoryEntry {
   // 'video' comes from SupportedFileType.
   type   : SupportedFileType | 'zip' | 'cleanup';
   action : ActionId | 'cleanup';
-  // type   : SupportedFileType | 'zip';
-  // action : ActionId;
   detail : string;
   date   : string;
 }

@@ -20,8 +20,5 @@ export const canBundle = (selection: FileSelection): boolean => {
   return several || pages;
 };
 
-// export const canBundle = (selection: FileSelection): boolean =>
-//   selection.files.length >= 2 && BUNDLE_ACTIONS.some((actionId) => isImplemented(selection, actionId));
-
 // Whether this action delivers in one zip when the switch is on.
 export const usesBundle = (actionId: ActionId): boolean => BUNDLE_ACTIONS.includes(actionId) || PAGE_BUNDLE_ACTIONS.includes(actionId);

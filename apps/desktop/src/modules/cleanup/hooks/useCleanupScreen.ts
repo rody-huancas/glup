@@ -27,7 +27,6 @@ export const useCleanupScreen = () => {
   const disk                     = useDiskSpace(cleanup.diskRead);
   const task                     = useCleanupTask(cleanup.taskId);
   const [confirming, setConfirm] = useState(false);
-  // const [expanded, setExpanded]  = useState<Set<CategoryId>>(new Set());
 
   // Its result is the category list: a finished scan or cleaning is seen as soon as the page is on.
   useSeenTasks('cleanup');

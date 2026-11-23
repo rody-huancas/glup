@@ -20,8 +20,3 @@ export const ActionsGrid = ({ actions, message, onChoose }: ActionsGridProps) =>
     {message && <ActionsStatus message={message} />}
   </div>
 );
-
-// export const ActionsGrid = ({ actions, phase, onChoose }: ActionsGridProps) => {
-//   const message = getPhaseMessage(phase);
-//   ...
-// };

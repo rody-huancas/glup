@@ -25,7 +25,6 @@ gsap.registerPlugin(useGSAP, Flip);
 interface UseIslandTimelineParams {
   elements  : IslandElements;
   mascotRef : RefObject<MascotController | null>;
-  // setState  : Dispatch<SetStateAction<IslandState>>;
 }
 
 interface ShowNoticeParams {
@@ -86,7 +85,6 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
         return setIslandArea(getIslandArea(kind));
       })
       .catch(() => undefined);
-    // area.current = area.current.then(() => setIslandArea(getIslandArea(kind))).catch(() => undefined);
     return area.current;
   }, []);
 
@@ -181,7 +179,6 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
       return;
     }
 
-    // setState(target);
     setLimbsVisible(true);
     createTimeline(current);
   }, [stopHover, stopNotice, mascot, setArea, finish, createTimeline]);
@@ -190,7 +187,6 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
   // A timeline still at its very start cannot be reversed (GSAP fires nothing), so it settles right away.
   const redirect = useCallback((current: IslandMotion, target: VisibleIslandState) => {
     current.target = target;
-    // setState(target);
 
     if (target === 'collapsed') mascot.stopIdle();
     if (current.builtFor === 'expanded') void setArea('frame');
@@ -253,14 +249,8 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
     resolveWaiters(false);
     snapToPill();
     setLimbsVisible(false);
-    // setState('hidden');
     await setArea('collapsed');
   }, [stopHover, stopNotice, mascot, resolveWaiters, snapToPill, setArea]);
-
-  // Leaving hidden is now a reset of the machine (hide above); the state no longer lives here.
-  // const reveal = useCallback(() => {
-  //   setState((previous) => (previous === 'hidden' ? 'collapsed' : previous));
-  // }, [setState]);
 
   // A task ended with the island collapsed: the pill widens with the result for a few seconds, then comes
   // back to the exact pill. A second result while it is showing only swaps the text and restarts the
@@ -319,38 +309,5 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
   // Nothing is moving: the watchdog can compare the region with the real window.
   const isMoving = useCallback(() => motion.current !== null || noticeLine.current !== null, []);
 
-  //   // A task ended with the island collapsed: the pill widens with the result for a few seconds.
-  //   // Hovering it then opens the panel as usual (the opening starts from the wide pill).
-  //   const notify = useMemo(
-  //     () =>
-  //       contextSafe((next: IslandNotice) => {
-  //         if (motion.current || settled.current !== 'collapsed' || reduced.current) return;
-  //
-  //         stopHover();
-  //         stopNotice();
-  //         setNotice(next);
-  //
-  //         void setArea('notice').then(() => {
-  //           if (motion.current) return;
-  //
-  //           const timeline = buildNoticeTimeline({ elements, shape: shape.current, onRender: render });
-  //           if (!timeline) return;
-  //
-  //           noticeLine.current = timeline.play();
-  //           noticeHold.current = gsap.delayedCall(NOTICE_MOTION.hold, () => {
-  //             timeline.eventCallback('onReverseComplete', () => {
-  //               noticeLine.current = null;
-  //               setNotice(null);
-  //               void setArea('collapsed');
-  //             });
-  //             timeline.reverse();
-  //           });
-  //         });
-  //       }),
-  //     [contextSafe, stopHover, stopNotice, setArea, elements, render],
-  //   );
-  //
-
   return { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving };
-  // return { transitionTo, hide, reveal, hover, limbsVisible, notice, notify };
 };

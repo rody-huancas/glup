@@ -10,14 +10,12 @@ use services::{
 };
 
 pub const ISLAND_WINDOW_LABEL: &str = "island";
-// pub const MAIN_WINDOW_LABEL: &str   = "main";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         // First: a second Glup never opens; the one running shows its island, as "Abrir Glup".
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| services::startup::second_launch(app, args)))
-        // .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| services::island_window::request_open(app)))
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![AUTOSTART_ARG])))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -37,7 +35,6 @@ pub fn run() {
         .manage(services::id_photo::IdPhotoSessions::default())
         .manage(std::sync::Arc::new(services::transcribe::engine::TranscribeSession::default()))
         .manage(LaunchOpen::new(services::startup::launch_open_pending()))
-        // .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
         .invoke_handler(tauri::generate_handler![
             commands::cursor::get_cursor_position,
             commands::files::get_files_info,
@@ -95,20 +92,16 @@ pub fn run() {
             commands::updates::get_update,
             commands::updates::check_update,
             commands::updates::install_update,
-            // commands::island::resize_island,
             commands::island::set_island_area,
             commands::island::set_island_focus,
             commands::island::get_island_status,
             commands::island::log_island
-            // commands::main_window::open_main_window
         ])
-        // .on_window_event(services::main_window::handle_event)
         .setup(|app| {
             let window = app
                 .get_webview_window(ISLAND_WINDOW_LABEL)
                 .ok_or("island window not found")?;
 
-            // services::window_position::place_bottom_right(&window)?;
             services::island_window::center_top(&window)?;
             services::island_window::remember_frame(&window);
             services::island_window::set_area(&window, services::island_window::INITIAL_AREA)?;

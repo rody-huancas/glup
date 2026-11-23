@@ -35,11 +35,6 @@ export const useMascot = ({
     () => getDisplayedFace({ face, state, override: expression ? { ...faceOverride, ...expression } : faceOverride }),
     [face, state, faceOverride, expression],
   );
-  // const fixedGaze         = useMemo(() => getFixedGaze(state), [state]);
-  // const displayedFace     = useMemo(
-  //   () => getDisplayedFace({ face, state, override: faceOverride }),
-  //   [face, state, faceOverride],
-  // );
   const pointerHandlers   = useMascotInteractions({ setState, onClick, reactToDrops });
   const { gesture }       = useMascotLimbs({ elements, state, enabled: limbs });
 
@@ -55,7 +50,6 @@ export const useMascot = ({
     }),
     [elements, gesture],
   );
-  // useImperativeHandle(controllerRef, () => ({ setState }), []);
 
   useBreath(elements.breath);
   useBlink({ eyes: blinkingEyes, enabled: displayedFace.eyes === 'open' });

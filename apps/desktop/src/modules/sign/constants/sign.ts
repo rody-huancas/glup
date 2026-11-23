@@ -108,8 +108,6 @@ export const DRAW_CANVAS = { width: 480, height: 180, guide: 136, exportScale: 2
 export const STROKE_OPTIONS = { size: 5, thinning: 0.6, smoothing: 0.55, streamline: 0.45, simulatePressure: true };
 
 export const TYPED_FONT_SIZE = 96;
-// Uploads keep their full resolution now.
-// export const UPLOAD_MAX_SIDE = 1400;
 export const CROP_PADDING    = 6;
 
 export const SIGNATURE_HEADERS = { keep: 'x-glup-keep' };

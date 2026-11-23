@@ -17,7 +17,6 @@ import type { IslandElements } from '@/modules/island/interfaces/islandElements'
 import type { HoverTweenParams, IslandPoseParams, IslandTimelineParams } from '@/modules/island/interfaces/islandTimeline';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { addFlightFlourish } from '@/modules/island/utils/mascotFlight';
-// import { addHop } from '@/modules/island/utils/mascotMoves';
 import { getOvershootEnd } from '@/modules/island/utils/overshoot';
 import { getThemeColor } from '@/modules/island/utils/themeColor';
 import { REVEAL_ATTRIBUTE } from '@/shared/constants/reveal';
@@ -84,9 +83,6 @@ const getGroupItems = (content: HTMLElement, group: RevealGroup): Element[] =>
 const getRevealItems = (content: HTMLElement): Element[] =>
   REVEAL_BLOCKS.flatMap((group) => getGroupItems(content, group));
 
-// const getRevealItems = (content: HTMLElement): Element[] =>
-//   REVEAL_ORDER.flatMap((group) => Array.from(content.querySelectorAll(`[${REVEAL_ATTRIBUTE}="${group}"]`)));
-
 // Widest change of the silhouette during the expansion, ears included.
 const EXPANSION_CHANGE =
   ISLAND_SHAPES.expanded.width + ISLAND_SHAPES.expanded.earRadius * 2
@@ -115,7 +111,6 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
     .to(fill, { ...getFillVars('expanded'), duration: colors.duration, ease: colors.ease }, grow)
     .to(outline, { ...getOutlineVars('expanded'), duration: colors.duration, ease: colors.ease }, grow)
     .call(settleShape, undefined, settleAt)
-    // .call(settleShape, undefined, grow + expansion.duration)
     .to(flyer, { ...getFitVars(flyer, avatarAnchor), duration: flight.duration, ease: flight.ease }, grow)
     .to(
       squash,
@@ -127,8 +122,6 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
     .call(forwardOnly(timeline, cues.celebrate), undefined, hopAt);
 
   addFlightFlourish({ timeline, lift, squash, at: grow, duration: flight.duration });
-  // The landing hop gave way to a wave with arm-wave (MascotGesture 'wave', fired by cues.celebrate).
-  // addHop({ timeline, lift, at: hopAt });
 
   REVEAL_BLOCKS.forEach((group, block) => {
     const items = getGroupItems(content, group);
@@ -156,8 +149,6 @@ const buildCloseTimeline = ({ targets, shape, cues, farewell, onRender }: BuildP
   const arrived   = shrinkAt + shrink.duration;
   const takeOff   = farewell ? MASCOT_MOTION.farewell.lead : MASCOT_MOTION.farewell.leaveLead;
   const timeline  = gsap.timeline({ paused: true, onUpdate: onRender });
-  // const arrived   = shrink.startAt + shrink.duration;
-  // const takeOff   = MASCOT_MOTION.farewell.lead;
 
   return timeline
     .call(forwardOnly(timeline, () => cues.farewell(farewell)), undefined, 0)
@@ -166,7 +157,6 @@ const buildCloseTimeline = ({ targets, shape, cues, farewell, onRender }: BuildP
     .to(content, { opacity: 0, y: fadeOut.y, duration: fadeOut.duration, ease: fadeOut.ease }, 0)
     .to(squash, { scaleX: 1, scaleY: 1, duration: fadeOut.duration }, 0)
     .to(flyer, { ...getFitVars(flyer, pillAnchor), duration: flight.duration, ease: flight.ease }, takeOff)
-    // .to(flyer, { ...getFitVars(flyer, pillAnchor), duration: flight.duration, ease: flight.ease }, 0)
     .to(shape, { ...collapsed, duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(fill, { ...getFillVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(outline, { ...getOutlineVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)

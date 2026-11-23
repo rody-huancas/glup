@@ -45,7 +45,6 @@ pub const SAVE_ERROR: &str        = "No pude guardar el archivo";
 pub const UNSUPPORTED_ERROR: &str = "Esto lo aprendo pronto";
 pub const SAME_FORMAT: &str       = "Ya está en este formato";
 pub const ALREADY_SMALL: &str     = "Ya pesaba poco";
-// pub const ALREADY_SMALL: &str     = "Ya estaba bien comprimida";
 
 pub const FILES_ZIP_PREFIX: &str   = "archivos";
 pub const RESULTS_ZIP_PREFIX: &str = "resultados";
@@ -245,11 +244,6 @@ impl Run<'_> {
         };
 
         progress::emit(self.app, progress);
-        // if let Some(task) = &self.task {
-        //     tasks::progress(self.app, task, &progress);
-        // }
-        //
-        // let _ = self.app.emit(ACTION_PROGRESS_EVENT, progress);
     }
 
     // One by one (PDF pages, zip entries): reports the file in progress and stops between files once cancelled.
@@ -304,7 +298,6 @@ impl Run<'_> {
 
 pub fn cancel(app: &AppHandle, task: Option<String>) {
     app.state::<ActionControl>().cancel(task);
-    // app.state::<ActionControl>().cancelled.store(true, Ordering::SeqCst);
 }
 
 fn file_name(path: &Path) -> String {
@@ -604,7 +597,6 @@ fn bundle(params: BundleParams) -> Collected {
     } else {
         format!("{} {noun} en un ZIP · {}", outputs.len(), format_size(report.size))
     };
-    // let detail   = format!("{} imágenes en un ZIP · {}", outputs.len(), format_size(report.size));
     let entry    = history::new_entry(NewEntryParams { output: &output, kind: ZIP_KIND, action, detail });
 
     Collected { outcomes, entries: vec![entry], batch: Some(Saved { output, size: report.size }), cancelled: collected.cancelled }
@@ -614,7 +606,6 @@ fn bundle(params: BundleParams) -> Collected {
 pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, String> {
     let control = app.state::<ActionControl>();
     control.begin(&request.task_id);
-    // control.cancelled.store(false, Ordering::SeqCst);
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
@@ -625,7 +616,6 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
     let total       = paths.len();
     let action      = request.action_id.as_str();
     let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers");
-    // let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background");
     let scratch     = if bundled { Some(scratch_folder()?) } else { None };
 
     // Bundled results are made in the scratch folder first, then zipped into the real destination.
@@ -666,14 +656,6 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         }
         _ => return Err(UNSUPPORTED_ERROR.to_string()),
     };
-
-    // let collected = match (action, options.format) {
-    //     ("convert", Some(format)) => run_convert(&run, format),
-    //     ("compress", _)           => run_compress(&run),
-    //     ("to-pdf", _)             => run_to_pdf(&run),
-    //     ("zip", _)                => run_zip(&run),
-    //     _                         => return Err(UNSUPPORTED_ERROR.to_string()),
-    // };
 
     // The counted part is over: writing the ZIP and the history is shown as "Guardando…".
     progress::emit(app, ActionProgress::at(&run.task, Stage::Saving));
@@ -781,11 +763,6 @@ fn reduce_pdf_one(params: ReducePdfParams) -> Result<FileResult, String> {
 
     Ok(FileResult::Reduced { saved, maximum: result.maximum, note })
 }
-
-// fn reduce_pdf_one(run: &Run, source: &Path) -> Result<FileResult, String> {
-//     let outcome = pdf_reduce::reduce(source)?;
-//     …
-// }
 
 // "Reducir peso" for PDFs: lighter images and streams, several PDFs at once.
 fn run_reduce_pdf(run: &Run, options: ReduceOptions) -> Collected {

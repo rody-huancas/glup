@@ -44,7 +44,8 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 
 - Una cosa a la vez. Cambios pequeños y revisables.
 - El formato es manual: nunca formateadores automáticos (ni Prettier ni rustfmt) sobre código existente.
-- El código que se reemplaza se deja comentado junto al nuevo, para comparar fácilmente.
+- Lo que se reemplaza o se retira se borra: ni se comenta ni se guarda aparte (nada de `legacy/`),
+  porque el historial queda en git.
 - Nunca se modifican ni se borran los archivos originales de la persona.
 - No inventes funciones del producto: si algo no está claro, pregunta.
 - No hagas commits ni push salvo que se pidan. Tampoco tags: un tag `v*.*.*` dispara la publicación.

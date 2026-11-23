@@ -5,7 +5,6 @@ use tauri::{
 };
 
 use crate::services::{island_window, startup, visibility};
-// use crate::services::main_window;
 
 const TRAY_ID: &str   = "glup-tray";
 const OPEN_ID: &str   = "open";
@@ -45,10 +44,6 @@ fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
             eprintln!("[glup:isla] abrir fijada: «Abrir Glup» de la bandeja");
             island_window::request_open(app);
         }
-        // OPEN_ID      => island_window::request_open(app),
-        // OPEN_ID   => {
-        //     let _ = main_window::open(app);
-        // }
         TOGGLE_ID    => visibility::toggle_user_hidden(app),
         // The checkbox flips itself on click; set_enabled puts it back to Windows' real state.
         AUTOSTART_ID => {

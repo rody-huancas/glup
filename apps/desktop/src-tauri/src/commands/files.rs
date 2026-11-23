@@ -19,11 +19,6 @@ pub async fn get_files_info(app: AppHandle, paths: Vec<String>) -> Result<Vec<Fi
         .map_err(|error| error.to_string())
 }
 
-// #[tauri::command]
-// pub fn get_files_info(paths: Vec<String>) -> Vec<FileInfo> {
-//     paths.iter().map(|path| file_info::read(path)).collect()
-// }
-
 #[tauri::command]
 pub fn open_file(path: String) -> Result<(), String> {
     if !Path::new(&path).exists() {

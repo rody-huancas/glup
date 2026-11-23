@@ -3,7 +3,6 @@ import type { IslandElements } from '@/modules/island/interfaces/islandElements'
 
 export const createIslandElements = (): IslandElements => ({
   panel        : createRef(),
-  // peek         : createRef(),
   fill         : createRef(),
   outline      : createRef(),
   content      : createRef(),

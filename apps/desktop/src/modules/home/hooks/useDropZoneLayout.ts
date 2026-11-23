@@ -77,7 +77,5 @@ export const useDropZoneLayout = (compact: boolean) => {
     { dependencies: [compact] },
   );
 
-  // Before, only the hint folded away (height and opacity) and the title and button stayed:
-  // gsap.to(text, { height: 0, marginTop: 0, opacity: 0, duration, ease });
   return { zone, mascot, full, bar };
 };

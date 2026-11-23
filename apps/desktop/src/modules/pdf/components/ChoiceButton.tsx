@@ -21,7 +21,6 @@ export const ChoiceButton = ({ label, hint, onClick, selected = false, disabled 
       selected ? 'border-lilac' : 'border-line-strong',
     )}
   >
-  {/* className={cx('flex h-[52px] min-w-0 cursor-pointer flex-col items-start justify-center rounded-control border border-line-strong bg-raised px-3 text-left transition-colors hover:bg-line')} */}
     <span className="text-[13px] font-semibold text-text">{label}</span>
     <span className="w-full truncate text-[11px] text-muted">{hint}</span>
   </button>

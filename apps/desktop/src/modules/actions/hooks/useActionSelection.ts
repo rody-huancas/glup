@@ -38,7 +38,6 @@ import { extractText } from '@/modules/text/services/extractText';
 import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
 import type { TranscribeOptions } from '@/modules/transcribe/interfaces/transcribeOptions';
 import { transcribeAudio } from '@/modules/transcribe/services/transcribe';
-// import { getTranscribeModel, transcribeAudio } from '@/modules/transcribe/services/transcribe';
 import { toTranscribeResult } from '@/modules/transcribe/utils/transcribe';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 import { getVideoTool } from '@/modules/video/services/videoTool';
@@ -110,7 +109,6 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
 export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize }: UseActionSelectionParams) => {
-// export const useActionSelection = ({ onFinished, destination, bundle, onSign }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -119,7 +117,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const [learnable, setLearnable] = useState<LearnableId>('background');
   // An action whose download is being asked for: "Descargar" runs both as one task.
   const [chained, setChained]     = useState<ChainedRun | null>(null);
-  // const pendingTranscribe         = useRef<TranscribeOptions | null>(null);
   const timers                    = useRef<number[]>([]);
   const finishedRef               = useRef(onFinished);
   const destinationRef            = useRef(destination);
@@ -137,7 +134,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     signRef.current        = onSign;
     organizeRef.current    = onOrganize;
   }, [onFinished, destination, bundle, onSign, onOrganize]);
-  // }, [onFinished, destination, bundle, onSign]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -169,7 +165,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
 
       // One PDF with a password only offers "Quitar contraseña"; with other files it is refused.
       if (files.length > 1 && files.some((file) => file.protected)) return { selection: null, notice: PDF_TEXTS.password };
-      // if (files.some((file) => file.protected)) return { selection: null, notice: PDF_TEXTS.password };
 
       const next = createSelection({ paths, files });
       setSelection(next);
@@ -246,7 +241,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
 
     if (needs) return runOrLearn({ spec: { ...describe(actionId, selection), run }, needs });
     enqueue(actionId, run);
-    // enqueue(actionId, ({ taskId }) => runAction({ actionId, paths: files, options: { ...options, ...delivery }, taskId }));
   }, [selection, enqueue, describe, runOrLearn]);
 
   const choose = useCallback((actionId: ActionId) => {
@@ -302,14 +296,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
 
     // "Quitar fondo" chooses first; the download, if needed, is asked for after (and runs with it).
     if (actionId === 'remove-background') return setPhase('background');
-    // if (actionId === 'remove-background') {
-    //   learnDone.current = 'background';
-    //   setLearnable('background');
-    //   void getBackgroundModel()
-    //     .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing')))
-    //     .catch(() => setPhase((current) => nextLearnPhase(current, 'missing')));
-    //   return;
-    // }
 
     const step = ACTION_STEPS[actionId];
     if (step) return setPhase(step);
@@ -329,9 +315,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const modelStarted = useCallback(() => setPhase((current) => nextLearnPhase(current, 'started', learnDone.current)), []);
   const modelStopped = useCallback(() => setPhase((current) => nextLearnPhase(current, 'stopped', learnDone.current)), []);
   const modelReady   = useCallback(() => setPhase((current) => nextLearnPhase(current, 'ready', learnDone.current)), []);
-  // const modelStarted = useCallback(() => setPhase((current) => nextLearnPhase(current, 'started')), []);
-  // const modelStopped = useCallback(() => setPhase((current) => nextLearnPhase(current, 'stopped')), []);
-  // const modelReady   = useCallback(() => setPhase((current) => nextLearnPhase(current, 'ready')), []);
 
   const merge = useCallback((paths: string[]) => {
     if (phase === 'order') execute({ actionId: 'merge', paths });
@@ -430,11 +413,6 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
 
     runOrLearn({ spec, needs: options.level === 'fast' ? 'transcribe-fast' : 'transcribe-precise' });
   }, [selection, phase, runOrLearn]);
-
-  // Before, the download was its own task and the listening another one, started when it ended:
-  // const runTranscribe = useCallback((options: TranscribeOptions) => { … enqueueTask(…) }, [selection]);
-  // const startTranscribe = … getTranscribeModel(options.level) … pendingTranscribe.current = options; setPhase('learn-model');
-  // useEffect(() => { … runTranscribe(pendingTranscribe.current) once back on 'transcribe' … }, [phase, runTranscribe]);
 
   const reduceVideo = useCallback((video: VideoOptions) => {
     if (phase === 'video') execute({ actionId: 'compress', options: { video } });

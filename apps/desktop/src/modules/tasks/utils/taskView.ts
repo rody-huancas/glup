@@ -11,9 +11,3 @@ export const getQueuedCount = (tasks: Task[]): number => tasks.filter((task) => 
 
 // 0 to 1 while something is counted; null (a moving bar) otherwise, as in the task card.
 export const getTaskFraction = (task: Task): number | null => progressFraction(task.progress);
-
-// export const getTaskFraction = (task: Task): number | null => {
-//   const progress = task.progress;
-//   if (!progress || progress.total <= 1) return null;
-//   return progress.current / progress.total;
-// };

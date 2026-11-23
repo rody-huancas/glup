@@ -49,11 +49,4 @@ export interface ActionFlow {
   modelReady       : () => void;
   back             : () => void;
   close            : () => void;
-  // progress     : ActionProgress | null;
-  // result       : ActionResult | null;
-  // running      : boolean;
-  // cancelling   : boolean;
-  // cancel       : () => void;
-  // openOutput   : () => void;
-  // revealOutput : () => void;
 }

@@ -25,7 +25,6 @@ export const SidebarNav = ({ page, onNavigate }: SidebarNavProps) => {
           icon={item.icon}
           active={item.id === page}
           badge={(item.id === 'cleanup' && unseen && page !== 'cleanup') || (item.id === 'settings' && available !== null)}
-          // badge={item.id === 'cleanup' && unseen && page !== 'cleanup'}
           badgeLabel={item.id === 'settings' ? UPDATE_TEXTS.badge : NAV_TEXTS.newResult}
           badgeTone={item.id === 'settings' ? 'lilac' : 'mint'}
           onClick={() => onNavigate(item.id)}

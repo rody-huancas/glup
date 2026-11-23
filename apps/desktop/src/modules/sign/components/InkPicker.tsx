@@ -9,8 +9,6 @@ interface InkPickerProps<T extends InkColor> {
   onChange : (color: T) => void;
 }
 
-// const COLORS: InkColor[] = ['black', 'blue'];
-
 // "Original" shows a split swatch: it keeps whatever color the stroke has.
 const swatch = (color: InkColor): CSSProperties =>
   color === 'original' ? { background: `linear-gradient(135deg, ${INK_COLORS.blue} 50%, ${INK_COLORS.black} 50%)` } : { background: INK_COLORS[color] };

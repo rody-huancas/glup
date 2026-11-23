@@ -97,10 +97,6 @@ pub fn signed_detail(params: SignedDetailParams) -> String {
     format!("Firmado · {placed} en {}", counted(params.pages, "página", "páginas"))
 }
 
-// pub fn size_change_detail(before: u64, after: u64) -> String {
-//     format!("De {} a {}", format_size(before), format_size(after))
-// }
-
 // Newest first, never more than MAX_ENTRIES.
 pub fn merge(mut current: Vec<HistoryEntry>, added: Vec<HistoryEntry>) -> Vec<HistoryEntry> {
     let mut merged = added;

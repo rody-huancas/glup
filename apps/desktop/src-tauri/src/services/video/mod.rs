@@ -47,7 +47,6 @@ pub fn download_tool(app: &AppHandle, task: &Option<String>) -> Result<TaskSumma
 pub fn download_tool_as(app: &AppHandle, span: &DownloadSpan) -> Result<TaskSummary, String> {
     let control = app.state::<ActionControl>();
     control.begin(&span.task);
-    // control.cancelled.store(false, Ordering::SeqCst);
 
     let folder = tools_folder(app)?;
     if tool::ffmpeg_in(&folder).is_file() {

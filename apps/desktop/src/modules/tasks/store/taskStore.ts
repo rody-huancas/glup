@@ -63,7 +63,6 @@ const pump = () => {
       isCancelled : () => cancelled.has(next.id),
     })
     .then(toTaskResult)
-    // .then(summarizeReport)
     .catch((error: unknown) => failedResult(String(error)))
     .then((result) => finish(next.id, result));
 };
@@ -156,7 +155,6 @@ export const cancelTask = (id: string) => {
     cancelled.add(id);
     update(id, { cancelling: true });
     void cancelAction(id);
-    // void cancelAction();
   }
 };
 
@@ -180,9 +178,3 @@ export const takeReveals = (): TaskReveal[] => {
   reveals       = [];
   return pending;
 };
-
-// export const takeRevealPage = (): PageId | null => {
-//   const page = pickRevealPage(reveals);
-//   reveals    = [];
-//   return page;
-// };

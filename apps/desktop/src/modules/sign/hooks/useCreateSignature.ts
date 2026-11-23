@@ -28,7 +28,6 @@ export const useCreateSignature = ({ savedCount, onAccept }: UseCreateSignatureP
   const [error, setError]     = useState<string | null>(null);
   const drawing               = useDrawing(INK_COLORS[color]);
   const upload                = useInkUpload(uploadInk);
-  // const upload                = useInkUpload(color);
 
   const ready = (tab === 'draw' && !drawing.empty) || (tab === 'type' && name.trim() !== '') || (tab === 'upload' && upload.result !== null);
 

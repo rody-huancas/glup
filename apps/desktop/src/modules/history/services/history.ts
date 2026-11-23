@@ -7,6 +7,3 @@ import { CLEAR_HISTORY, GET_HISTORY } from '@/shared/constants/events';
 export const fetchHistory = async (): Promise<HistoryEntry[]> => sortByNewest(await invoke<HistoryEntry[]>(GET_HISTORY));
 
 export const clearHistory = (): Promise<void> => invoke(CLEAR_HISTORY);
-
-// Simulates an API until the history is stored by the backend.
-// export const fetchHistory = async (): Promise<HistoryEntry[]> => sortByNewest(HISTORY_ENTRIES);

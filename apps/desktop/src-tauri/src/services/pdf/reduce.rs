@@ -15,11 +15,7 @@ use crate::services::pdf::{analysis, load, PdfResult, PDF_WRITE_ERROR};
 pub const TARGET_DPI: f32   = 150.0;
 // "Normal" mode: the result must look like the original.
 pub const JPEG_QUALITY: u8  = 82;
-// pub const JPEG_QUALITY: u8  = 70;
 const POINTS_PER_INCH: f32  = 72.0;
-// Longest side allowed for images not found directly on a page (inside forms): A4 at 150 ppp.
-// Images whose drawn size is unknown are no longer shrunk.
-// const DEFAULT_LONG_SIDE: u32 = 1754;
 // Only shrink when it saves a meaningful amount of pixels.
 const MIN_SHRINK: f32 = 0.95;
 // A new image replaces the original only if it weighs at most 90 % of it.
@@ -230,7 +226,6 @@ fn encode_jpeg(params: EncodeParams) -> Option<Vec<u8>> {
     let EncodeParams { image, channels, quality } = params;
     let mut buffer  = Vec::new();
     let mut encoder = Encoder::new(&mut buffer, quality);
-    // encoder.set_optimized_huffman_tables(true);
 
     let (width, height) = image.size();
     let (width, height) = (u16::try_from(width).ok()?, u16::try_from(height).ok()?);
@@ -440,7 +435,6 @@ fn shrink(params: ShrinkParams) -> ShrinkOutcome {
         Some(quality) if profile.keep_low_quality => quality.min(profile.quality),
         _ => profile.quality,
     };
-    // let quality         = original.map_or(JPEG_QUALITY, |quality| quality.min(JPEG_QUALITY));
     let (width, height) = image.size();
     let reference       = guard_pixels(&image, channels);
 

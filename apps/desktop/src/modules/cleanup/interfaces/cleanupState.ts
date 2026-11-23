@@ -20,7 +20,6 @@ export interface CleanupState {
   finishedAt : number | null;
   // A result arrived while the person was elsewhere: the menu shows a dot.
   unseen     : boolean;
-  // Moved to the task store (owner screens): reveal     : boolean;
   // The last result was too old and was dropped.
   expired    : boolean;
 }

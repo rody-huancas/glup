@@ -46,7 +46,6 @@ export const exportPdfPages = async ({ path, format, destination, bundle, onProg
   } finally {
     // The pages are written; the ZIP and the history come next.
     onProgress({ current: 0, total: 0, name: '', active: 1, stage: 'saving' });
-    // onProgress({ current: total, total, name: '', active: 1 });
   }
 
   return invoke<ActionReport>(FINISH_PAGE_IMAGES, { request: { session, cancelled, taskId } });

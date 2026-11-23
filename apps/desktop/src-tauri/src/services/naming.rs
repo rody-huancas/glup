@@ -53,11 +53,9 @@ fn base_name(params: &OutputNameParams) -> (String, String) {
 // `exists` is injected so the naming stays pure and testable.
 pub fn output_path(params: &OutputNameParams, exists: impl Fn(&Path) -> bool) -> PathBuf {
     let folder            = params.folder;
-    // let folder            = params.source.parent().unwrap_or_else(|| Path::new(""));
     let (name, extension) = base_name(params);
     let dotted            = if extension.is_empty() { String::new() } else { format!(".{extension}") };
     let first             = folder.join(format!("{name}{dotted}"));
-    // let first             = folder.join(format!("{name}.{extension}"));
 
     if !exists(&first) {
         return first;

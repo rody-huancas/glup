@@ -37,6 +37,3 @@ export const DiskUsageBar = ({ space, failed }: DiskUsageBarProps) => {
     </div>
   );
 };
-
-// Before: inside a card.
-// <Card className="px-4 py-3.5"> … <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-bg"> …

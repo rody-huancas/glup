@@ -119,7 +119,6 @@ export const summarizeReport = (report: ActionReport): ActionResult => {
     tone    : 'success',
     message : doneMessage(report, saved),
     note    : fileNote ?? (unchanged.length > 0 ? RESULT_TEXTS.skipped(unchanged.length) : null),
-    // note    : unchanged.length > 0 ? RESULT_TEXTS.skipped(unchanged.length) : null,
   };
 };
 
