@@ -28,9 +28,10 @@ interface UseHomeFilesParams {
   commandAvatar   : (state: MascotState) => void;
   onFilesIncoming : () => void;
   onSign          : (path: string) => void;
+  onOrganize      : (path: string) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // const [showActions, setShowActions] = useState(false);
@@ -49,7 +50,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize });
   // const eating     = useEatingSequence({ mascotState: dropState, onDone: () => setShowActions(true) });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });

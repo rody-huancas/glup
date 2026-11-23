@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import { PageContent } from '@/modules/main-window/components/PageContent';
 import { Sidebar } from '@/modules/main-window/components/Sidebar';
 import type { MainPanelState, PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
+import { OrganizePage } from '@/modules/organize/pages/OrganizePage';
 import { SignPage } from '@/modules/sign/pages/SignPage';
 import { WelcomeScreen } from '@/modules/welcome/components/WelcomeScreen';
 
@@ -18,7 +19,8 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
       avatarAnchorRef={avatarAnchorRef}
       avatarStatus={panel.avatarStatus}
       onNavigate={panel.navigate}
-      hidden={panel.signing !== null}
+      hidden={panel.fullScreen}
+      // hidden={panel.signing !== null}
     />
     {/* <Sidebar
       page={panel.page}
@@ -27,11 +29,14 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
       onNavigate={panel.navigate}
       onAvatarStateChange={panel.onAvatarStateChange}
     /> */}
-    {panel.signing ? (
+    {panel.signing && <SignPage target={panel.signing} destination={panel.files.saveLocation.destination} onExit={panel.stopSigning} />}
+    {panel.organizing && <OrganizePage target={panel.organizing} destination={panel.files.saveLocation.destination} onExit={panel.stopOrganize} />}
+    {!panel.fullScreen && <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />}
+    {/* {panel.signing ? (
       <SignPage target={panel.signing} destination={panel.files.saveLocation.destination} onExit={panel.stopSigning} />
     ) : (
       <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />
-    )}
+    )} */}
     {/* <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} /> */}
     {panel.welcome.visible && <WelcomeScreen onAnswer={panel.welcome.answer} />}
   </div>
