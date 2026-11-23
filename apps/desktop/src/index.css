@@ -19,6 +19,9 @@
   --color-lilac       : #9D90FA;
   --color-lilac-soft  : #C3BAFF;
   --color-warn        : #F0B46E;
+  /* Ink on the white page of a PDF preview (watermark gray, page numbers black). */
+  --color-ink         : #000000;
+  --color-ink-gray    : #808080;
 
   --font-sans : "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
