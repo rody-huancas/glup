@@ -2,8 +2,8 @@ import { LearnedRow } from '@/modules/background/components/LearnedRow';
 import { LEARNABLES } from '@/modules/background/constants/learnables';
 import { LEARNED_TEXTS } from '@/modules/background/constants/texts';
 import { useLearned } from '@/modules/background/hooks/useLearned';
-import { ConfirmDialog } from '@/modules/sign/components/ConfirmDialog';
 import { Card } from '@/shared/components/Card';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { SectionLabel } from '@/shared/components/SectionLabel';
 import { Skeleton } from '@/shared/components/Skeleton';
 

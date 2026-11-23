@@ -1,4 +1,3 @@
-import { ConfirmDialog } from '@/modules/sign/components/ConfirmDialog';
 import { CreateSignatureModal } from '@/modules/sign/components/CreateSignatureModal';
 import { PageThumbnails } from '@/modules/sign/components/PageThumbnails';
 import { PageViewer } from '@/modules/sign/components/PageViewer';
@@ -9,6 +8,7 @@ import { SIGN_TEXTS } from '@/modules/sign/constants/sign';
 import { useSignScreen } from '@/modules/sign/hooks/useSignScreen';
 import type { SignTarget } from '@/modules/sign/interfaces/signTarget';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 
 interface SignPageProps {
   target      : SignTarget;
