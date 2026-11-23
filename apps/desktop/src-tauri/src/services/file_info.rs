@@ -9,7 +9,6 @@ const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
 const IMAGE_EXTENSIONS: [&str; 9] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif"];
 const VIDEO_EXTENSIONS: [&str; 7] = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
 const AUDIO_EXTENSIONS: [&str; 9] = ["mp3", "m4a", "wav", "ogg", "opus", "aac", "flac", "wma", "amr"];
-// const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
 
 // Enough bytes to recognize every supported signature; the file is never decoded.
 const SNIFF_BYTES: usize = 16;
@@ -107,7 +106,6 @@ pub fn read(path: &str, ffmpeg: Option<&Path>) -> FileInfo {
     let expected = if is_file { kind_of(&extension) } else { FileKind::Other };
     // Audio formats are too varied to check by their first bytes (an MP3 without tags, raw AAC…): FFmpeg reads them later.
     let kind     = if expected == FileKind::Audio || (expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected) { expected } else { FileKind::Other };
-    // let kind     = if expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected { expected } else { FileKind::Other };
 
     let pdf   = if kind == FileKind::Pdf { info::read(file_path) } else { None };
     let video = if kind == FileKind::Video { video::probe_if_ready(ffmpeg, file_path) } else { None };

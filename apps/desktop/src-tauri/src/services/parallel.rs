@@ -22,11 +22,6 @@ pub fn worker_count() -> usize {
     thread::available_parallelism().map(|cores| cores.get() / 2).unwrap_or(1).clamp(1, MAX_WORKERS)
 }
 
-// Cores minus one, so the island and the rest of the PC stay responsive; at least one.
-// pub fn worker_count() -> usize {
-//     thread::available_parallelism().map(|cores| cores.get().saturating_sub(1)).unwrap_or(1).max(1)
-// }
-
 // Runs `work` on every path with at most `threads` at a time, keeping the input order in the result.
 // Once cancelled, files not started yet come back as None; the ones in progress finish.
 pub fn run_parallel<T, F>(params: ParallelParams<'_, F>) -> Vec<Option<T>>
