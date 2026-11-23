@@ -1,0 +1,16 @@
+export const UPDATE_TEXTS = {
+  available    : (version: string) => `Hay una versión nueva (${version})`,
+  notesTitle   : 'Lo que trae',
+  notesEmpty   : 'Trae mejoras y arreglos.',
+  installNow   : 'Actualizar ahora',
+  downloading  : 'Descargando la versión nueva…',
+  installing   : 'Instalando… Me cierro y vuelvo en un momento.',
+  installError : 'No pude actualizarme. Vuelve a intentarlo más tarde.',
+  version      : (version: string) => `Versión ${version}`,
+  check        : 'Buscar actualizaciones',
+  checking     : 'Buscando…',
+  upToDate     : 'Estás al día.',
+  checkFailed  : 'No pude revisar ahora. Lo vuelvo a intentar más tarde.',
+  badge        : 'Versión nueva',
+  progress     : (done: string, total: string) => `${done} de ${total}`,
+};
