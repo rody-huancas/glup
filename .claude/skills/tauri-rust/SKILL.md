@@ -12,7 +12,8 @@ description: Reglas obligatorias del lado nativo de Glup (apps/desktop/src-tauri
 ```text
 src-tauri/
 ├── Cargo.toml          Dependencias; perfiles dev optimizados para los crates de imagen
-├── tauri.conf.json     Ventana de la isla, bandeja, permisos
+├── tauri.conf.json     Ventana de la isla, bandeja, permisos, actualizador (sin versión: la lee de Cargo.toml)
+├── tauri.release.conf.json  Solo para el workflow Release: genera los archivos firmados del actualizador
 ├── capabilities/       Permisos de Tauri por ventana
 └── src/
     ├── main.rs         Solo llama a lib::run
@@ -69,6 +70,10 @@ src-tauri/
     trae Windows). La sesión del modelo vive en `services/background/session.rs`: se carga una vez,
     prueba la tarjeta gráfica con caída al procesador y se libera tras 5 minutos sin uso. Los
     crates pesados de imagen llevan `opt-level = 3` en `[profile.dev.package.*]`.
+    Actualizaciones con `tauri-plugin-updater`, todo desde Rust (`services/updates.rs`): revisa al
+    arrancar y cada 6 horas (en debug solo con `GLUP_UPDATE_CHECK=1`), guarda lo encontrado en
+    `UpdateState` y lo instala con «Actualizar ahora». La versión vive solo en `Cargo.toml`
+    (`pnpm version:set`).
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio

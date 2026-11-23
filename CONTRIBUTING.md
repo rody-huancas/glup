@@ -50,3 +50,29 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - Una rama por cambio: `feature/<nombre>`, `fix/<nombre>` o `chore/<nombre>`, desde `master`.
 - Commits convencionales en español: `feat: …`, `fix: …`, `chore: …`.
 - Completa la plantilla del PR, incluida la sección «Qué probar a mano».
+
+## Publicar una versión
+
+Solo Windows por ahora. La versión vive en `apps/desktop/src-tauri/Cargo.toml` (Tauri la lee de ahí) y
+`apps/desktop/package.json` la sigue.
+
+1. **Subir la versión** en `master`: `pnpm version:set 0.2.0`. Cambia `Cargo.toml`, `Cargo.lock` y
+   `package.json` juntos.
+2. **Commit**: `git commit -am "chore: versión 0.2.0"` y `git push`. Espera a que el CI pase.
+3. **Tag con las notas**. El mensaje del tag es lo que trae la versión: va al Release y a lo que Glup
+   muestra en Ajustes (cambiar el texto del borrador después no cambia lo que ve Glup).
+
+   ```bash
+   git tag -a v0.2.0 -m "- Herramientas: el catálogo completo
+   - Arreglos en la isla"
+   ```
+
+4. **Push del tag**: `git push origin v0.2.0`. El workflow `Release` compila y deja un **borrador**
+   con el instalador `.exe`, el `.msi` y `latest.json`. Falla si el tag no coincide con `Cargo.toml`.
+5. **Revisar el borrador** en GitHub › Releases: que estén los archivos (también los `.sig`), instalar
+   el `.exe` y probarlo.
+6. **Publicarlo** («Publish release»). Desde ese momento las copias instaladas lo ven como versión
+   nueva (lo revisan al arrancar y cada 6 horas, o con «Buscar actualizaciones» en Ajustes).
+
+La firma usa los secretos `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Si se
+pierde la clave privada, las copias instaladas ya no pueden actualizarse solas: guárdala bien.

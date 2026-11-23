@@ -1,0 +1,67 @@
+# Builds Glup for Windows when a v*.*.* tag is pushed and leaves a draft Release with the NSIS
+# installer, the .msi and the signed latest.json for the updater. The draft is published by hand.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The tag message holds the notes: they go to the Release and to latest.json (what Glup shows).
+      - name: Notes and version check
+        id: tag
+        shell: bash
+        run: |
+          git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+          version=$(sed -n 's/^version *= *"\(.*\)"/\1/p' apps/desktop/src-tauri/Cargo.toml | head -n 1)
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::El tag ${GITHUB_REF_NAME} no coincide con la versión de Cargo.toml (${version}). Usa pnpm version:set."
+            exit 1
+          fi
+          {
+            echo 'notes<<GLUP_NOTES'
+            git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" | sed '/^-----BEGIN PGP SIGNATURE-----/,$d'
+            echo 'GLUP_NOTES'
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: apps/desktop
+          tauriScript: pnpm tauri
+          # Only here: updater artifacts need the private key, which local builds do not have.
+          args: --config src-tauri/tauri.release.conf.json
+          tagName: ${{ github.ref_name }}
+          releaseName: Glup ${{ github.ref_name }}
+          releaseBody: ${{ steps.tag.outputs.notes }}
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
+          # People install with the NSIS installer; updates use it too.
+          updaterJsonPreferNsis: true
