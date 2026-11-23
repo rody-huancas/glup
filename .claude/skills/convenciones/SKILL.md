@@ -56,9 +56,10 @@ lado. Si dos reglas parecen chocar, se pregunta.
 7. **Comentarios: solo los esenciales.** Explican el porqué que el código no dice (un caso borde, una
    decisión, una limitación de una librería), en inglés y en una o dos líneas. Nada de comentar lo
    obvio.
-8. **El código reemplazado se deja comentado** justo al lado del nuevo, para comparar en el diff. Un
-   módulo o pantalla retirados enteros van a la carpeta `legacy/` de su app, fuera del código que se
-   compila, con un `README.md` que diga qué es y por qué se retiró.
+8. **Lo que se reemplaza o se retira se borra**: ni se comenta ni se guarda aparte (nada de carpetas
+   `legacy/` ni archivos `-legacy`), porque el historial queda en git y el diff del PR muestra el antes
+   y el después. Tampoco quedan comentarios que solo cuentan cómo era antes («Antes:», «Versión
+   anterior»); los comentarios que explican el porqué del código actual sí se quedan.
 9. **Nada de dominio inventado.** Si una función del producto, un texto o un comportamiento no está
    definido, se pregunta antes de implementarlo. En la interfaz, un hueco se muestra honesto
    («Esta parte la estoy preparando»), nunca con datos falsos.
