@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
 import type { PointerEvent } from 'react';
-// import { getCurrentWindow } from '@tauri-apps/api/window';
 import { DRAG_THRESHOLD } from '@/modules/mascot/constants/animation';
 import type { Point } from '@/shared/interfaces/point';
 import { distance } from '@/shared/utils/math';
@@ -19,7 +18,6 @@ export const usePointerDrag = (onClick: () => void) => {
     if (distance(origin.current, { x: event.screenX, y: event.screenY }) < DRAG_THRESHOLD) return;
 
     origin.current = null;
-    // void getCurrentWindow().startDragging();
   }, []);
 
   const onPointerUp = useCallback(() => {

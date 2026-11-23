@@ -3,7 +3,6 @@ import type { Dispatch, SetStateAction } from 'react';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import { usePointerDrag } from '@/modules/mascot/hooks/usePointerDrag';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
-// import { getFileKind } from '@/modules/mascot/utils/fileKind';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 interface UseMascotInteractionsParams {
@@ -32,12 +31,6 @@ export const useMascotInteractions = ({ setState, onClick, reactToDrops }: UseMa
       onEnter : () => dropsRef.current && setState({ type: 'alert' }),
       onLeave : () => dropsRef.current && setState(IDLE_STATE),
       onDrop  : () => undefined,
-      // onDrop  : (paths: string[]) => {
-      //   console.log('Dropped paths:', paths);
-      //
-      //   const kind = paths[0] ? getFileKind(paths[0]) : null;
-      //   setState(kind ? { type: 'eating', kind } : { type: 'confused' });
-      // },
     }),
     [setState],
   );

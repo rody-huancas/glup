@@ -11,5 +11,4 @@ export const FILE_PIECES: Record<FileKind, PieceName> = {
 export const FILE_EXTENSIONS: Record<FileKind, string[]> = {
   pdf   : ['pdf'],
   image : ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tif', 'tiff', 'avif'],
-  // image : ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'],
 };
