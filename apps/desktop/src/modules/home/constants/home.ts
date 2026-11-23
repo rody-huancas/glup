@@ -1,10 +1,14 @@
+import type { SupportedFileType } from '@/modules/actions/types/fileType';
 import type { Face } from '@/modules/mascot/interfaces/face';
 
 export const HOME_TEXTS = {
   title       : '¿Qué le damos de comer hoy?',
   subtitle    : 'Suelta un archivo o elige una herramienta.',
-  dropTitle   : 'Suelta aquí tus PDFs o imágenes',
-  dropHint    : 'Varios a la vez también vale.',
+  dropTitle   : 'Suelta aquí tus archivos',
+  // dropTitle   : 'Suelta aquí tus PDFs o imágenes',
+  // dropHint    : 'Varios a la vez también vale.',
+  // With files chosen, the zone is a one-line bar.
+  dropMore    : 'Suelta más archivos o elige',
   chooseFiles : 'Elegir archivos',
   quickTools  : 'Herramientas rápidas',
   back        : 'Volver',
@@ -13,3 +17,12 @@ export const HOME_TEXTS = {
 };
 
 export const DROP_ZONE_FACE: Partial<Face> = { mouth: 'o' };
+
+// Under the title, what Glup takes ("PDF, imágenes, audio y video"): the kinds come from tools.json,
+// these are only their words and their order.
+export const ACCEPTED_LABELS: Record<SupportedFileType, string> = {
+  pdf   : 'PDF',
+  image : 'imágenes',
+  audio : 'audio',
+  video : 'video',
+};
