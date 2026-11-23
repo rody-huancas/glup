@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useClipboardStatus } from '@/modules/clipboard/hooks/useClipboardStatus';
+import { useTurnOffClipboard } from '@/modules/clipboard/hooks/useTurnOffClipboard';
 import { pickProgram, setClipboardExcluded, setClipboardLimit } from '@/modules/clipboard/services/clipboard';
 import { addProgram, programFile, removeProgram } from '@/modules/clipboard/utils/programs';
 
@@ -15,6 +16,7 @@ export const useClipboardSettings = () => {
   }, []);
 
   const apply    = clipboard.apply;
+  const turnOff  = useTurnOffClipboard({ status, apply });
   const setLimit = useCallback((limit: number) => apply(setClipboardLimit(limit)), [apply]);
   const excluded = status?.excluded ?? [];
 
@@ -25,5 +27,5 @@ export const useClipboardSettings = () => {
 
   const removeOne = useCallback((name: string) => apply(setClipboardExcluded(removeProgram(excluded, name))), [apply, excluded]);
 
-  return { status, failed: failed || clipboard.failed, setEnabled: clipboard.setEnabled, setLimit, addOne, removeOne };
+  return { status, failed: failed || clipboard.failed, turnOff, setLimit, addOne, removeOne };
 };
