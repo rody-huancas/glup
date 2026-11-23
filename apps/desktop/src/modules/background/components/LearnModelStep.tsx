@@ -29,7 +29,6 @@ export const LearnModelStep = ({ learnable, downloading, onStarted, onStopped, o
   const controllerRef = useAttentiveMascot(downloading);
   const progress      = model.task?.progress ?? null;
   const cancelling    = model.task?.cancelling ?? false;
-  // const fraction      = progress ? downloadFraction(progress.current, progress.total) : null;
 
   return (
     <div className="flex flex-col">

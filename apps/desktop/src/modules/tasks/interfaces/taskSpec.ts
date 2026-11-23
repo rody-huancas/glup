@@ -20,5 +20,4 @@ export interface TaskSpec {
   owner     : PageId;
   // A file report (actions) or a result ready to show (Limpieza).
   run       : (context: TaskContext) => Promise<ActionReport | ActionResult>;
-  // run       : (context: TaskContext) => Promise<ActionReport>;
 }
