@@ -159,10 +159,14 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
   `flate2`, `zlib-rs`) siguen con `opt-level = 3`.
 - **Nunca se compila en release en local** (`cargo build --release`, `cargo test --release`,
   `tauri build`) salvo que la persona lo pida: el instalador lo arma el workflow de Release.
-- Si en la tarea se corrió `cargo test` o se compiló en release (`cargo build --release`,
-  `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` (todo `target`, no
-  solo `--release`): las compilaciones de prueba también pesan varios GB. Antes se detienen
-  `glup.exe` y `tauri dev` si están corriendo, porque bloquean archivos de `target`.
+- **Se conserva la compilación incremental**: `cargo clean` hace que `tauri dev` compile todo de cero.
+  Al terminar una tarea en la que se compiló se corre `pnpm sweep` (`scripts/sweep-target.ps1`):
+  borra las carpetas de `target/<perfil>/build/<crate>/<hash>` y de `target/<perfil>/incremental`
+  que no se usaron en 3 días (último acceso o escritura de sus archivos: Cargo lee la huella de cada
+  crate en cada compilación) y dice cuánto liberó; `pnpm sweep:dry` solo lista. `cargo-sweep` no
+  sirve: busca `debug/deps` y `.fingerprint`, que Cargo ya no usa. `cargo clean` (todo `target`) solo
+  si quedan menos de 20 GB libres en C:. Antes de limpiar se detienen `glup.exe` y `tauri dev` si
+  están corriendo, porque bloquean archivos de `target` (el script no corre mientras Cargo compila).
 - El crate es solo `rlib` (sin `staticlib` ni `cdylib`, que son para iOS y Android) y sin doctests,
   y `main.rs` no tiene binario de prueba (`test = false`): cada compilación arma solo lo que se usa.
 - Al terminar una tarea no quedan copias del proyecto (worktrees, clones), carpetas de compilación
@@ -176,5 +180,6 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 - [ ] Ningún original modificado; nombres de salida con `naming.rs`.
 - [ ] Pruebas con archivos generados en una carpeta temporal.
 - [ ] `cargo check` y `cargo test` sin errores ni warnings.
-- [ ] `cargo clean` al terminar si se corrió `cargo test` o se compiló en release; sin copias del
-      proyecto ni carpetas de compilación extra.
+- [ ] `pnpm sweep` al terminar si se compiló (`cargo clean` solo con menos de 20 GB libres
+      en C:); nada compilado en release salvo pedido; sin copias del proyecto ni carpetas de
+      compilación extra.
