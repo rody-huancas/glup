@@ -51,6 +51,7 @@ pub fn run() {
             commands::actions::dismiss_task,
             commands::actions::sign_pdf,
             commands::actions::organize_pdf,
+            commands::actions::check_pdf_password,
             commands::cleanup::get_disk_space,
             commands::cleanup::scan_cleanup,
             commands::cleanup::clean_up,
