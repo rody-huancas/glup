@@ -18,8 +18,11 @@ import { getBackgroundModel } from '@/modules/background/services/backgroundMode
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
 import { nextLearnPhase } from '@/modules/background/utils/learnStep';
 import { PDF_TEXTS } from '@/modules/pdf/constants/pdf';
+import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
+import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
 import { exportPdfPages } from '@/modules/pdf/services/pageImages';
+import { checkPdfPassword } from '@/modules/pdf/services/password';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
@@ -48,6 +51,10 @@ const ACTION_STEPS: Partial<Record<ActionId, ActionsPhase>> = {
   merge         : 'order',
   'split-pages' : 'split',
   'to-images'   : 'image-format',
+  protect        : 'protect',
+  unlock         : 'unlock',
+  watermark      : 'watermark',
+  'page-numbers' : 'numbering',
 };
 
 // Where "Volver" goes from each step.
@@ -62,6 +69,10 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
   // The download goes on as a task; only the step is left.
   'learning-model' : 'choosing',
   background       : 'choosing',
+  protect          : 'choosing',
+  unlock           : 'choosing',
+  watermark        : 'choosing',
+  numbering        : 'choosing',
 };
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
@@ -117,7 +128,9 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
       const files = await getFilesInfo(paths);
       if (ticket !== loadId.current) return { selection: null, notice: null };
 
-      if (files.some((file) => file.protected)) return { selection: null, notice: PDF_TEXTS.password };
+      // One PDF with a password only offers "Quitar contraseña"; with other files it is refused.
+      if (files.length > 1 && files.some((file) => file.protected)) return { selection: null, notice: PDF_TEXTS.password };
+      // if (files.some((file) => file.protected)) return { selection: null, notice: PDF_TEXTS.password };
 
       const next = createSelection({ paths, files });
       setSelection(next);
@@ -247,6 +260,28 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     if (phase === 'reduce') execute({ actionId: 'compress', options: { reduce } });
   }, [phase, execute]);
 
+  // The password goes straight to the task; it is not kept anywhere else.
+  const protectPdf = useCallback((password: string) => {
+    if (phase === 'protect') execute({ actionId: 'protect', options: { password } });
+  }, [phase, execute]);
+
+  // Checked first, so a wrong password can be typed again in the same step.
+  const unlockPdf = useCallback(async (password: string): Promise<boolean> => {
+    if (!selection || phase !== 'unlock') return false;
+
+    const right = await checkPdfPassword({ path: selection.paths[0], password });
+    if (right) execute({ actionId: 'unlock', options: { password } });
+    return right;
+  }, [selection, phase, execute]);
+
+  const watermarkPdf = useCallback((watermark: WatermarkOptions) => {
+    if (phase === 'watermark') execute({ actionId: 'watermark', options: { watermark } });
+  }, [phase, execute]);
+
+  const numberPages = useCallback((numbering: NumberingOptions) => {
+    if (phase === 'numbering') execute({ actionId: 'page-numbers', options: { numbering } });
+  }, [phase, execute]);
+
   const back = useCallback(() => {
     const previous = BACK_STEPS[phase];
     if (previous) setPhase(previous);
@@ -278,6 +313,10 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     splitPages,
     toImages,
     reducePdf,
+    protectPdf,
+    unlockPdf,
+    watermarkPdf,
+    numberPages,
     chooseBackground,
     modelStarted,
     modelStopped,

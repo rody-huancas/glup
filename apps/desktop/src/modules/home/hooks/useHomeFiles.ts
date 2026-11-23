@@ -21,7 +21,8 @@ import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 // Steps with a list, a grid or a choice: the person is in the middle of them.
 // Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
-const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background'];
+const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering'];
+// const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background'];
 // const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce'];
 
 interface UseHomeFilesParams {
@@ -79,7 +80,8 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
     // The actions show right away; Glup keeps eating in parallel.
     if (selection) {
-      dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'pdf' || selection.type === 'pdf-mixed' ? 'pdf' : 'image' });
+      dropMascotRef.current?.setState({ type: 'eating', kind: ['pdf', 'pdf-mixed', 'pdf-locked'].includes(selection.type) ? 'pdf' : 'image' });
+      // dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'pdf' || selection.type === 'pdf-mixed' ? 'pdf' : 'image' });
       // dropMascotRef.current?.setState({ type: 'eating', kind: selection.type === 'mixed' ? 'image' : selection.type });
       return;
     }
@@ -177,6 +179,10 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
       toImages         : actions.toImages,
       reducePdf        : actions.reducePdf,
       chooseBackground : actions.chooseBackground,
+      protectPdf       : actions.protectPdf,
+      unlockPdf        : actions.unlockPdf,
+      watermarkPdf     : actions.watermarkPdf,
+      numberPages      : actions.numberPages,
       modelStarted     : actions.modelStarted,
       modelStopped     : actions.modelStopped,
       modelReady       : actions.modelReady,

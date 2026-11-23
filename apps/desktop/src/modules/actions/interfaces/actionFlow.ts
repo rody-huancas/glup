@@ -2,7 +2,9 @@ import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ImageFormat } from '@/modules/actions/types/imageFormat';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
+import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
+import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
 
@@ -20,6 +22,11 @@ export interface ActionFlow {
   toImages         : (format: PageImageFormat) => void;
   reducePdf        : (options: ReduceOptions) => void;
   chooseBackground : (background: BackgroundKind) => void;
+  protectPdf       : (password: string) => void;
+  // Resolves false when the password is not the right one.
+  unlockPdf        : (password: string) => Promise<boolean>;
+  watermarkPdf     : (options: WatermarkOptions) => void;
+  numberPages      : (options: NumberingOptions) => void;
   // The "Quitar fondo" learning step: download started, stopped (cancel or error), finished.
   modelStarted     : () => void;
   modelStopped     : () => void;
