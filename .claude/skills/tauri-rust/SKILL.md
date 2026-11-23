@@ -83,6 +83,11 @@ src-tauri/
     detector de rostros de «Foto tamaño carnet» (`Windows.Media.FaceAnalysis`) va igual
     (`services/id_photo/face.rs`). Notificaciones con `tauri-winrt-notification` (el plugin de
     notificaciones no avisa del clic en escritorio): `services/notify.rs`.
+    «Pasar audio a texto»: whisper.cpp enlazado con `whisper-rs` (solo procesador: Vulkan obligaría a
+    tener su SDK para compilar y haría que Glup no abra sin `vulkan-1.dll`). Compilarlo pide CMake y
+    LLVM (libclang). La sesión del modelo vive en `services/transcribe/engine.rs`, se libera tras 5
+    minutos sin uso; cancelar usa `set_abort_callback` con una bandera, no `set_abort_callback_safe`
+    (en whisper-rs 0.16 convierte mal el puntero).
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio
