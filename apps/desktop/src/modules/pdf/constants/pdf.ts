@@ -4,6 +4,11 @@ export const THUMBNAIL_HEIGHTS = {
   pages : 96,
 };
 
+// The page shown under the options of "Marca de agua" and "Numerar páginas".
+export const PREVIEW_HEIGHT = 176;
+// Points across an A4 page: the preview scales sizes given in points with it.
+export const A4_WIDTH       = 595;
+
 // Page images: scale 2 is about 150 ppp for a regular page.
 export const PAGE_RENDER_SCALE = 2;
 export const JPEG_QUALITY      = 0.88;
@@ -32,7 +37,8 @@ export const PDF_TEXTS = {
   pagesButton   : (count: number) => `Crear PDF con ${count} ${count === 1 ? 'página' : 'páginas'}`,
   imagesTitle   : '¿En qué formato?',
   pageProgress  : (page: number, total: number) => `Página ${page} de ${total}`,
-  password      : 'Este PDF tiene contraseña, todavía no puedo abrirlo',
+  password      : 'Primero quítale la contraseña',
+  // password      : 'Este PDF tiene contraseña, todavía no puedo abrirlo',
 };
 
 export const RANGE_ERRORS = {
