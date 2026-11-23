@@ -13,10 +13,14 @@ import { getActionsTitle, getSelectionSummary } from '@/modules/actions/utils/su
 import { BackgroundStep } from '@/modules/background/components/BackgroundStep';
 import { LearnModelStep } from '@/modules/background/components/LearnModelStep';
 import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
+import { NumberingStep } from '@/modules/pdf/components/NumberingStep';
 import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
 import { PageSelectionStep } from '@/modules/pdf/components/PageSelectionStep';
+import { ProtectStep } from '@/modules/pdf/components/ProtectStep';
 import { ReduceStep } from '@/modules/pdf/components/ReduceStep';
 import { SplitStep } from '@/modules/pdf/components/SplitStep';
+import { UnlockStep } from '@/modules/pdf/components/UnlockStep';
+import { WatermarkStep } from '@/modules/pdf/components/WatermarkStep';
 import { BundleZipToggle } from '@/modules/settings/components/BundleZipToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
 import { FileChip } from '@/shared/components/FileChip';
@@ -27,7 +31,12 @@ interface ActionsPanelProps {
 }
 
 // Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
-const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model'];
+const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock'];
+// const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model'];
+
+// The shortest PDF chosen, when every page count is known (numbering cannot start past it).
+const shortestPdf = (selection: FileSelection): number | null =>
+  selection.files.every((file) => file.pages !== null) ? Math.min(...selection.files.map((file) => file.pages ?? 0)) : null;
 // const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result'];
 
 const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
@@ -82,6 +91,22 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
 
   if (flow.phase === 'background') {
     return <BackgroundStep onChoose={flow.chooseBackground} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'protect') {
+    return <ProtectStep onProtect={flow.protectPdf} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'unlock') {
+    return <UnlockStep onUnlock={flow.unlockPdf} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'watermark') {
+    return <WatermarkStep path={selection.paths[0]} onConfirm={flow.watermarkPdf} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'numbering') {
+    return <NumberingStep path={selection.paths[0]} total={shortestPdf(selection)} onConfirm={flow.numberPages} onBack={flow.back} />;
   }
 
   // Results now show in the task card.

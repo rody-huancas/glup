@@ -154,7 +154,7 @@ pub fn page_box(document: &Document, page_id: ObjectId) -> Option<PageBox> {
 }
 
 // Helvetica's WinAnsi encoding matches Latin-1 for the accents and ñ; anything else becomes "?".
-fn pdf_string(text: &str) -> String {
+pub(crate) fn pdf_string(text: &str) -> String {
     let mut encoded = String::from("(");
 
     for character in text.chars() {

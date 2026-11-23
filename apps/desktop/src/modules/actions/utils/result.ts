@@ -1,6 +1,7 @@
 import { RESULT_TEXTS } from '@/modules/actions/constants/texts';
 import type { ActionReport, FileOutcome } from '@/modules/actions/interfaces/actionReport';
 import type { ActionResult } from '@/modules/actions/interfaces/actionResult';
+import type { ActionId } from '@/modules/actions/types/actionId';
 import { formatFileSize } from '@/modules/actions/utils/fileSize';
 import { getExtension, getFileName } from '@/modules/actions/utils/paths';
 
@@ -27,9 +28,17 @@ const sizeChange = (saved: FileOutcome[]): string => {
   return RESULT_TEXTS.sizeChange(formatFileSize(before), formatFileSize(after));
 };
 
+// Actions where the weight says nothing: the name of the new PDF (or how many) is shown instead.
+const NAMED_ACTIONS: ActionId[] = ['protect', 'unlock', 'watermark', 'page-numbers'];
+
 // "Listo · de 2,4 MB a 680 KB", "Listo · 5 imágenes · de 12 MB a 3,1 MB" or "Listo · foto.pdf".
 const doneMessage = (report: ActionReport, saved: FileOutcome[]): string => {
   if (report.output) return `${RESULT_TEXTS.done} · ${getFileName(report.output)}`;
+
+  if (NAMED_ACTIONS.includes(report.actionId)) {
+    const first = saved[0]?.output;
+    return saved.length === 1 && first ? `${RESULT_TEXTS.done} · ${getFileName(first)}` : `${RESULT_TEXTS.done} · ${RESULT_TEXTS.pdfs(saved.length)}`;
+  }
 
   // The size says nothing here: the name of the cut-out, or how many.
   if (report.actionId === 'remove-background') {

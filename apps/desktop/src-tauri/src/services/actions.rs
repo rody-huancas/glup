@@ -22,12 +22,16 @@ use crate::services::{
     parallel::{run_parallel, worker_count, ParallelParams},
     pdf::{
         self as pdf_tools,
+        images::{self as pdf_images, IMAGES_SUFFIX as ORIGINALS_SUFFIX, NO_IMAGES},
         merge as pdf_merge,
+        numbering::{self as pdf_numbering, NumberingOptions, NUMBERED_SUFFIX, NUMBERING_ERROR},
         organize::{self as pdf_organize, OrganizeParams, OrganizedPage, ORGANIZED_SUFFIX, ORGANIZE_ERROR},
+        protect::{self as pdf_protect, PROTECTED_SUFFIX, SHORT_PASSWORD, UNLOCKED_SUFFIX},
         reduce::{self as pdf_reduce, ReduceLevel, TARGET_STEPS},
         save_images::{self, PageImageFormat, PageImageSession, PageImageSessions, SESSION_ERROR},
         sign::{self as pdf_sign, Placement, PlacementContent, SignParams},
         split as pdf_split,
+        watermark::{self as pdf_watermark, WatermarkOptions, EMPTY_TEXT, WATERMARK_SUFFIX},
     },
     settings::SaveMode,
     signatures, tasks,
@@ -82,6 +86,14 @@ pub struct ActionOptions {
     pub reduce: Option<ReduceOptions>,
     // "Quitar fondo": transparent (PNG) or white (JPG).
     pub background: Option<BackgroundKind>,
+    // "Poner contraseña" and "Quitar contraseña". Only used to (de)crypt: never stored, logged or
+    // written to the history.
+    #[serde(default)]
+    pub password: Option<String>,
+    #[serde(default)]
+    pub watermark: Option<WatermarkOptions>,
+    #[serde(default)]
+    pub numbering: Option<NumberingOptions>,
 }
 
 // "Reducir peso" for PDFs: the level and, optionally, a size the result must stay under.
@@ -572,12 +584,15 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
     let control = app.state::<ActionControl>();
     control.cancelled.store(false, Ordering::SeqCst);
 
-    let options     = request.options.unwrap_or(ActionOptions { format: None, destination: None, bundle: None, split: None, reduce: None, background: None });
+    let options     = request.options.unwrap_or(ActionOptions {
+        format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
+    });
     let destination = options.destination.unwrap_or_default();
     let paths       = request.paths.iter().map(PathBuf::from).collect::<Vec<_>>();
     let total       = paths.len();
     let action      = request.action_id.as_str();
-    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background");
+    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers");
+    // let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background");
     let scratch     = if bundled { Some(scratch_folder()?) } else { None };
 
     // Bundled results are made in the scratch folder first, then zipped into the real destination.
@@ -602,6 +617,15 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         ("merge", _)                => run_merge(&run),
         ("split-pages", _)          => {
             let (collected, output) = run_split(SplitParams { run: &run, split, bundle: options.bundle.unwrap_or(false) });
+            page = output;
+            collected
+        }
+        ("protect", _)              => run_protect(&run, options.password.as_deref().unwrap_or_default()),
+        ("unlock", _)               => run_unlock(&run, options.password.as_deref().unwrap_or_default()),
+        ("watermark", _)            => run_watermark(&run, options.watermark.as_ref()),
+        ("page-numbers", _)         => run_numbering(&run, options.numbering.as_ref()),
+        ("extract-images", _)       => {
+            let (collected, output) = run_extract_images(&run, options.bundle.unwrap_or(false));
             page = output;
             collected
         }
@@ -1126,3 +1150,174 @@ pub fn organize_pdf(app: &AppHandle, request: OrganizeRequest) -> Result<ActionR
         pages_total      : None,
     })
 }
+
+struct PdfStepParams<'a> {
+    run: &'a Run<'a>,
+    action: &'a str,
+    suffix: &'a str,
+    // Makes the new PDF from the loaded one; Err is the reason shown for that file.
+    work: &'a (dyn Fn(&Path, lopdf::Document) -> Result<Vec<u8>, String> + Sync),
+    detail: &'a dyn Fn(&Path, &Saved) -> String,
+}
+
+// The PDF actions that turn each file into one new PDF (contraseña, marca de agua, números), several
+// files at once. A file that cannot be read or made is reported and the rest go on.
+fn run_pdf_step(params: PdfStepParams) -> Collected {
+    let PdfStepParams { run, action, suffix, work, detail } = params;
+
+    let (results, cancelled) = run.each_parallel(|source| {
+        let kind = OutputKind::Suffixed { suffix, extension: PDF_EXTENSION };
+        pdf_tools::load(source)
+            .and_then(|document| work(source, document))
+            .and_then(|bytes| run.save(SaveParams { source, kind, bytes: &bytes }))
+            .map(FileResult::Saved)
+    });
+
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action, kind: PDF_KIND, detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+fn refuse_all(run: &Run, error: &str) -> Collected {
+    let outcomes = run.paths.iter().map(|source| failed(source, error.to_string())).collect();
+    Collected { outcomes, entries: Vec::new(), batch: None, cancelled: false }
+}
+
+// "Poner contraseña": contrato-protegido.pdf, AES-256.
+fn run_protect(run: &Run, password: &str) -> Collected {
+    if !pdf_protect::is_valid_password(password) {
+        return refuse_all(run, SHORT_PASSWORD);
+    }
+
+    let work   = |_: &Path, document: lopdf::Document| pdf_protect::protect(document, password);
+    let detail = |_: &Path, _: &Saved| "Protegido con contraseña".to_string();
+    run_pdf_step(PdfStepParams { run, action: "protect", suffix: PROTECTED_SUFFIX, work: &work, detail: &detail })
+}
+
+// "Quitar contraseña": only with the right password, into contrato-sin-clave.pdf.
+fn run_unlock(run: &Run, password: &str) -> Collected {
+    let mut results = Vec::new();
+    let cancelled   = run.each(|source| {
+        let result = pdf_protect::unlock(source, password)
+            .and_then(|bytes| run.save(SaveParams { source, kind: OutputKind::Suffixed { suffix: UNLOCKED_SUFFIX, extension: PDF_EXTENSION }, bytes: &bytes }))
+            .map(FileResult::Saved);
+        results.push(Some(result));
+    });
+    let detail = |_: &Path, _: &Saved| "Contraseña quitada".to_string();
+
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: "unlock", kind: PDF_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+// "Marca de agua": the same text on every page, in contrato-marca.pdf.
+fn run_watermark(run: &Run, options: Option<&WatermarkOptions>) -> Collected {
+    let Some(options) = options.filter(|options| !pdf_watermark::clean_text(&options.text).is_empty()) else {
+        return refuse_all(run, EMPTY_TEXT);
+    };
+
+    let text   = pdf_watermark::clean_text(&options.text);
+    let work   = |_: &Path, document: lopdf::Document| pdf_watermark::watermark(document, options);
+    let detail = |_: &Path, _: &Saved| format!("Marca de agua «{text}»");
+    run_pdf_step(PdfStepParams { run, action: "watermark", suffix: WATERMARK_SUFFIX, work: &work, detail: &detail })
+}
+
+// "Numerar páginas": contrato-numerado.pdf. The history says how many pages got a number.
+fn run_numbering(run: &Run, options: Option<&NumberingOptions>) -> Collected {
+    let Some(options) = options else {
+        return refuse_all(run, NUMBERING_ERROR);
+    };
+
+    let counts = Mutex::new(std::collections::HashMap::<PathBuf, u32>::new());
+    let work   = |source: &Path, document: lopdf::Document| {
+        let (bytes, stamped) = pdf_numbering::number_pages(document, options)?;
+        counts.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).insert(source.to_path_buf(), stamped);
+        Ok(bytes)
+    };
+    let detail = |source: &Path, _: &Saved| {
+        let stamped = counts.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).get(source).copied().unwrap_or(0);
+        format!("Numerado · {stamped} {}", if stamped == 1 { "página" } else { "páginas" })
+    };
+    run_pdf_step(PdfStepParams { run, action: "page-numbers", suffix: NUMBERED_SUFFIX, work: &work, detail: &detail })
+}
+
+// "Sacar imágenes": contrato-img-01.jpg… in contrato-imagenes-originales/ (or that name as a ZIP).
+fn run_extract_images(run: &Run, bundle: bool) -> (Collected, PageOutput) {
+    let empty = |outcomes: Vec<FileOutcome>| (Collected { outcomes, entries: Vec::new(), batch: None, cancelled: false }, PageOutput::default());
+
+    let Some(source) = run.paths.first() else {
+        return empty(Vec::new());
+    };
+
+    run.progress(ProgressParams { current: 0, total: 1, name: &file_name(source), active: 1 });
+
+    let images = match pdf_tools::load(source) {
+        Ok(document) => pdf_images::extract(&document),
+        Err(error)   => return empty(vec![failed(source, error)]),
+    };
+
+    if images.is_empty() {
+        run.progress(ProgressParams { current: 1, total: 1, name: "", active: 1 });
+        return empty(vec![unchanged(source, NO_IMAGES)]);
+    }
+
+    let result = write_images(ImagesFolderParams { run, source, images: &images, bundle });
+    run.progress(ProgressParams { current: 1, total: 1, name: "", active: 1 });
+
+    match result {
+        Ok(result) => {
+            let count  = images.len();
+            let detail = format!("{count} {} sacadas", if count == 1 { "imagen" } else { "imágenes" });
+            let kind   = if bundle { ZIP_KIND } else { IMAGE_KIND };
+            let entry  = history::new_entry(NewEntryParams { output: &result.output, kind, action: "extract-images", detail });
+            let item   = FileOutcome { output: Some(result.output.to_string_lossy().into_owned()), ..outcome(source) };
+            let output = PageOutput { folder: !bundle, bundled: bundle, done: None, total: None };
+            (Collected { outcomes: vec![item], entries: vec![entry], batch: Some(result), cancelled: false }, output)
+        }
+        Err(error) => empty(vec![failed(source, error)]),
+    }
+}
+
+struct ImagesFolderParams<'a> {
+    run: &'a Run<'a>,
+    source: &'a Path,
+    images: &'a [pdf_images::ExtractedImage],
+    bundle: bool,
+}
+
+fn write_images(params: ImagesFolderParams) -> Result<Saved, String> {
+    let ImagesFolderParams { run, source, images, bundle } = params;
+    let stem    = stem_of(source);
+    let scratch = if bundle { Some(scratch_folder()?) } else { None };
+    let folder  = match &scratch {
+        Some(folder) => folder.clone(),
+        None         => output_folder(run, source, ORIGINALS_SUFFIX)?,
+    };
+
+    let mut written = Vec::new();
+    for (index, image) in images.iter().enumerate() {
+        let path = folder.join(pdf_images::image_name(&stem, index + 1, images.len(), image.extension));
+        fs::write(&path, &image.bytes).map_err(|_| SAVE_ERROR.to_string())?;
+        written.push(path);
+    }
+
+    if bundle {
+        let zipped = zip_into_destination(ZipFolderParams { run, source, files: &written, suffix: ORIGINALS_SUFFIX });
+        let _      = fs::remove_dir_all(&folder);
+        return zipped;
+    }
+
+    Ok(Saved { output: folder, size: written.iter().map(|path| file_size(path)).sum() })
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PasswordCheckRequest {
+    pub path: String,
+    // Only compared, never kept.
+    pub password: String,
+}
+
+// "Quitar contraseña" checks the password before running, so a wrong one can be typed again right there.
+pub fn check_pdf_password(request: PasswordCheckRequest) -> bool {
+    pdf_protect::check_password(Path::new(&request.path), &request.password)
+}
+

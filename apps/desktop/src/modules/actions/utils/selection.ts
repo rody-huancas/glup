@@ -44,7 +44,10 @@ export const getActionsFor = ({ type, count }: ActionsForParams): ActionDefiniti
 
 // Two or more files of mixed or unsupported kinds still make a selection, with only the actions for any type.
 export const createSelection = ({ paths, files }: CreateSelectionParams): FileSelection | null => {
-  const type = getSelectionType(files) ?? (files.length >= 2 ? 'mixed' : null);
+  // A PDF that needs a password cannot be opened: the only thing to do is remove it.
+  const locked = files.length === 1 && files[0].kind === 'pdf' && files[0].protected;
+  const type   = locked ? 'pdf-locked' : getSelectionType(files) ?? (files.length >= 2 ? 'mixed' : null);
+  // const type = getSelectionType(files) ?? (files.length >= 2 ? 'mixed' : null);
   if (!type) return null;
 
   const actions = getActionsFor({ type, count: files.length });

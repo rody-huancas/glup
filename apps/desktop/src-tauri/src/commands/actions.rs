@@ -4,7 +4,7 @@ use tauri::{
 };
 
 use crate::services::{
-    actions::{self, ActionReport, ActionRequest, FinishPageImagesRequest, OrganizeRequest, PageImagesRequest, SignRequest},
+    actions::{self, ActionReport, ActionRequest, FinishPageImagesRequest, OrganizeRequest, PageImagesRequest, PasswordCheckRequest, SignRequest},
     pdf::save_images::{self, PageImageSessions, SavePageParams, PAGE_ERROR},
     tasks::{self, TaskRecord},
 };
@@ -85,6 +85,14 @@ pub async fn organize_pdf(app: AppHandle, request: OrganizeRequest) -> Result<Ac
     }
 
     result
+}
+
+// True when the password opens the PDF. Off the main thread: reading a big PDF takes a moment.
+#[tauri::command]
+pub async fn check_pdf_password(request: PasswordCheckRequest) -> Result<bool, String> {
+    tauri::async_runtime::spawn_blocking(move || actions::check_pdf_password(request))
+        .await
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
