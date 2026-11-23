@@ -5,7 +5,7 @@ use std::{
 };
 
 use super::{
-    audio::{decode_args, seconds_of, to_samples},
+    audio::{decode, decode_args, seconds_of, to_samples},
     compose::{compose, duration_label, history_detail, is_noise, paragraphs, srt, srt_time, FileSegments, Segment},
     engine::{Listened, ListenParams, TranscribeSession},
     model::{estimate_seconds, Level, FAST_MODEL, PRECISE_MODEL},
@@ -168,4 +168,56 @@ fn real_whisper_compares_models() {
         println!("{model}: {seconds:.1} s para {audio} (carga + audio corto {loaded:.1} s)");
         session.release();
     }
+}
+
+#[test]
+fn the_download_counts_only_what_is_missing() {
+    use crate::services::{transcribe::{missing_bytes, Missing}, video::tool::FFMPEG_DOWNLOAD};
+
+    let model = Level::Fast.model().size;
+    assert_eq!(missing_bytes(false, false, Level::Fast), Missing { ffmpeg: FFMPEG_DOWNLOAD.size, model });
+    assert_eq!(missing_bytes(true, false, Level::Fast), Missing { ffmpeg: 0, model });
+    assert_eq!(missing_bytes(false, true, Level::Fast), Missing { ffmpeg: FFMPEG_DOWNLOAD.size, model: 0 });
+}
+
+
+// Where the time goes with a real voice note, stage by stage (and a second audio with the model
+// already loaded). GLUP_WHISPER_DIR has the model, GLUP_FFMPEG the ffmpeg.exe and GLUP_WHISPER_NOTE
+// the note (any format).
+#[test]
+#[ignore]
+fn real_voice_note_stages() {
+    let folder  = PathBuf::from(std::env::var("GLUP_WHISPER_DIR").unwrap());
+    let ffmpeg  = PathBuf::from(std::env::var("GLUP_FFMPEG").unwrap());
+    let note    = PathBuf::from(std::env::var("GLUP_WHISPER_NOTE").unwrap());
+    let model   = folder.join(std::env::var("GLUP_WHISPER_MODELS").unwrap_or_else(|_| "ggml-small-q5_1.bin".to_string()));
+    let session = Arc::new(TranscribeSession::default());
+    let lap     = |start: Instant| start.elapsed().as_millis();
+
+    let start   = Instant::now();
+    let samples = decode(&ffmpeg, &note, &AtomicBool::new(false)).unwrap().unwrap();
+    let decoded = lap(start);
+
+    let start  = Instant::now();
+    session.prepare(&model).unwrap();
+    let loaded = lap(start);
+
+    let start  = Instant::now();
+    let result = session.listen(ListenParams { model: &model, samples: &samples, language: Some("es"), cancel: Arc::new(AtomicBool::new(false)), on_progress: Box::new(|_| {}) }).unwrap();
+    let heard  = lap(start);
+    let Listened::Segments(segments) = result else { panic!("cancelled") };
+
+    let start    = Instant::now();
+    let files    = vec![FileSegments { name: "nota".to_string(), segments }];
+    let text     = compose(&files);
+    let _        = srt(&files);
+    let composed = lap(start);
+
+    let start  = Instant::now();
+    assert!(session.is_loaded(&model));
+    session.prepare(&model).unwrap();
+    let reused = lap(start);
+
+    println!("audio {:.1} s · leer el sonido {decoded} ms · cargar el modelo {loaded} ms · escuchar {heard} ms · armar el texto {composed} ms · segundo audio, cargar {reused} ms", seconds_of(&samples));
+    println!("{text}");
 }
