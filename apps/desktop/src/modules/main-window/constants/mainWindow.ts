@@ -3,8 +3,6 @@ import type { MascotStateType } from '@/modules/mascot/types/mascotState';
 
 export const MAIN_WINDOW_TEXTS = {
   name         : 'Glup',
-  // minimize     : 'Minimizar',
-  // close        : 'Cerrar',
   pin          : 'Fijar',
   unpin        : 'Soltar',
   collapse     : 'Recoger',

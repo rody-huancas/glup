@@ -22,9 +22,6 @@ export const PageContent = ({ page, files, onNavigate, controls }: PageContentPr
           <Page files={files} onNavigate={onNavigate} />
         </div>
       </div>
-      {/* <div className="h-full overflow-y-auto scroll-thin p-8">
-        <Page files={files} onNavigate={onNavigate} />
-      </div> */}
     </main>
   );
 };
