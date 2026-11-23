@@ -26,7 +26,6 @@ let state: CleanupState = {
   unseen     : false,
   expired    : false,
 };
-// let state: CleanupState = { phase: 'idle', taskId: null, categories: [], selected: new Set(), report: null, diskRead: 0 };
 let started             = false;
 // How many Limpieza pages are on screen (0 or 1): a result seen there leaves no dot.
 let viewing             = 0;
@@ -67,7 +66,6 @@ export const startScan = () => {
   if (state.phase === 'scanning' || state.phase === 'cleaning') return;
 
   setState({ phase: 'scanning', categories: [], selected: new Set(), expanded: new Set(), report: null, taskId: null, finishedAt: null, expired: false, unseen: false });
-  // setState({ phase: 'scanning', categories: [], selected: new Set(), report: null, taskId: null });
 
   const taskId = enqueueTask({
     title     : CLEANUP_TEXTS.scanTask,
@@ -87,7 +85,6 @@ export const startScan = () => {
           finishedAt : Date.now(),
           unseen     : done && viewing === 0,
         });
-        // setState({ phase: done ? 'ready' : 'idle', categories: ordered(scan.categories), selected: defaultSelection(scan.categories), taskId: null });
         return summaryToResult(scan.summary);
       } catch (error) {
         setState({ phase: 'idle', taskId: null });
@@ -161,19 +158,6 @@ export const setCleanupViewing = (on: boolean) => {
   viewing = Math.max(0, viewing + (on ? 1 : -1));
   if (on && state.unseen) setState({ unseen: false });
 };
-
-// Replaced by the general rule in the task store (markForReveal / takeRevealPage, by owner screen).
-// export const isCleanupScanTask = (taskId: string): boolean => state.scanTaskId === taskId;
-//
-// // The scan ended with the island collapsed: its notice leads to Limpieza on the next opening.
-// export const requestCleanupReveal = () => setState({ reveal: true });
-//
-// export const takeCleanupReveal = (): boolean => {
-//   if (!state.reveal) return false;
-//
-//   setState({ reveal: false });
-//   return true;
-// };
 
 // After 30 minutes the files may have changed: the result is dropped and a new scan is offered.
 export const expireCleanupResult = (now: number) => {

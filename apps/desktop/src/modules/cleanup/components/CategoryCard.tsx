@@ -23,14 +23,11 @@ interface CategoryCardProps {
 export const CategoryCard = ({ category, selected, expanded, editable, onToggle, onExpand, onToggleItem, onReveal }: CategoryCardProps) => {
   const text  = CATEGORY_TEXTS[category.id];
   const state = categoryState(category, selected);
-  // Empty categories are a CategoryEmptyRow now.
-  // const empty = category.total === 0;
   const note  = category.running.length > 0 ? CLEANUP_TEXTS.running(category.running) : category.method === 'empty-recycle-bin' ? CLEANUP_TEXTS.wholeBin : null;
 
   return (
     <Card className="overflow-hidden">
       <div className="flex min-h-16 items-center gap-3 px-4 py-3">
-      {/* <Card className={cx('overflow-hidden', empty && 'opacity-60')}> */}
         <Checkbox
           label={CLEANUP_TEXTS.mark(text.name)}
           checked={state === 'all'}

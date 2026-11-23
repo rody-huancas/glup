@@ -16,7 +16,6 @@ interface HistoryItemProps {
 export const HistoryItem = ({ entry, now, missing, onOpen }: HistoryItemProps) => {
   const cleanup = entry.type === 'cleanup';
   const icon    = entry.type === 'cleanup' ? null : getSelectionIcon(entry.type);
-  // const icon = getSelectionIcon(entry.type);
 
   return (
     <li {...REVEAL_PROPS.card}>
@@ -38,9 +37,3 @@ export const HistoryItem = ({ entry, now, missing, onOpen }: HistoryItemProps) =
     </li>
   );
 };
-
-// export const HistoryItem = ({ entry, now }: HistoryItemProps) => (
-//   <li {...REVEAL_PROPS.card} className="flex items-center gap-3 rounded-[14px] bg-raised px-3 py-2.5">
-//     ...
-//   </li>
-// );
