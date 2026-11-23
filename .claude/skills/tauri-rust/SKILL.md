@@ -73,7 +73,8 @@ src-tauri/
     Actualizaciones con `tauri-plugin-updater`, todo desde Rust (`services/updates.rs`): revisa al
     arrancar y cada 6 horas (en debug solo con `GLUP_UPDATE_CHECK=1`), guarda lo encontrado en
     `UpdateState` y lo instala con «Actualizar ahora». La versión vive solo en `Cargo.toml`
-    (`pnpm version:set`).
+    (`pnpm version:set`). `getrandom` da la clave aleatoria de «Poner contraseña»; el cifrado AES-256
+    lo hace lopdf.
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio
