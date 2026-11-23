@@ -161,6 +161,8 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
   `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` (todo `target`, no
   solo `--release`): las compilaciones de prueba también pesan varios GB. Antes se detienen
   `glup.exe` y `tauri dev` si están corriendo, porque bloquean archivos de `target`.
+- El crate es solo `rlib` (sin `staticlib` ni `cdylib`, que son para iOS y Android) y sin doctests,
+  y `main.rs` no tiene binario de prueba (`test = false`): cada compilación arma solo lo que se usa.
 - Al terminar una tarea no quedan copias del proyecto (worktrees, clones), carpetas de compilación
   extra (otro `CARGO_TARGET_DIR`) ni archivos temporales pesados.
 
