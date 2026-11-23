@@ -111,3 +111,58 @@ SOFTWARE.
   compilación de FFmpeg; Glup solo lo ejecuta.
 - **Texto de la licencia**: [GNU Lesser General Public License v3](https://www.gnu.org/licenses/lgpl-3.0.html).
 
+## Pasar audio a texto
+
+### whisper.cpp (el motor que escucha)
+
+- **Qué es**: la implementación en C/C++ de Whisper que corre en el procesador. Va **enlazada dentro
+  de Glup** (se compila con el crate `whisper-rs-sys`, versión 0.15, que trae whisper.cpp).
+- **Autor**: Georgi Gerganov y colaboradores — [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp).
+- **Licencia**: MIT.
+
+```text
+MIT License
+
+Copyright (c) 2023-2026 The ggml authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### whisper-rs (el puente de Rust con whisper.cpp)
+
+- **Autor**: tazz4843 y colaboradores — [tazz4843/whisper-rs](https://github.com/tazz4843/whisper-rs).
+- **Licencia**: Unlicense (dominio público).
+
+### Los modelos de Whisper
+
+- **Qué son**: los pesos del modelo de reconocimiento de voz de OpenAI, convertidos al formato ggml.
+  Glup **no los incluye en el instalador**: descarga uno solo, con permiso, la primera vez que se usa
+  cada nivel («Rápido»: `ggml-small-q5_1.bin`, 190 MB; «Más preciso»: `ggml-medium-q5_0.bin`, 539 MB).
+  Corren en la computadora; los audios nunca salen de ella.
+- **Origen**: [openai/whisper](https://github.com/openai/whisper) (código y pesos bajo MIT); la
+  conversión ggml cuantizada es de [ggerganov/whisper.cpp en Hugging Face](https://huggingface.co/ggerganov/whisper.cpp)
+  (MIT), fijada a la revisión `5359861c739e955e79d9a303bcbc70fb988958b1` y verificada con su SHA-256
+  (`apps/desktop/src-tauri/src/services/transcribe/model.rs`).
+- **Licencia**: MIT, Copyright (c) 2022 OpenAI.
+
+### FFmpeg
+
+Para leer el sonido usa el mismo `ffmpeg.exe` de «Videos» (ver arriba); si no está, se descarga junto
+con el modelo.
+
