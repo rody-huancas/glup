@@ -2,9 +2,7 @@
 // showed, the person drags over the zone and its text goes to the clipboard. The still lives only in
 // memory; the text is kept in the history (history.json, local) unless turned off in Ajustes.
 pub mod capture;
-pub mod clipboard;
 pub mod region;
-pub mod shortcut;
 
 use std::{
     io::Cursor,
@@ -26,6 +24,7 @@ use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Webview
 
 use crate::{
     services::{
+        clipboard::write,
         history::{self, FilelessEntryParams},
         screen_text::region::{count_words, crop_rect, overlay_frame, MonitorFrame, ZoneRequest},
         settings,
@@ -276,7 +275,7 @@ pub fn read(app: &AppHandle, label: &str, request: ReadZoneRequest) {
         None => ScreenTextDone::without_text(Outcome::Empty),
         Some(Err(_)) => ScreenTextDone::without_text(Outcome::Failed),
         Some(Ok(text)) if count_words(&text) == 0 => ScreenTextDone::without_text(Outcome::Empty),
-        Some(Ok(text)) => match clipboard::copy(app, &text) {
+        Some(Ok(text)) => match write::copy_text(app, &text) {
             Ok(()) => ScreenTextDone { outcome: Outcome::Copied, words: count_words(&text), entry_id: remember(app, text) },
             Err(_) => ScreenTextDone::without_text(Outcome::Failed),
         },
@@ -299,7 +298,7 @@ fn remember(app: &AppHandle, text: String) -> Option<String> {
 
 // "Copiar de nuevo" in the history.
 pub fn copy_again(app: &AppHandle, text: &str) -> Result<(), String> {
-    clipboard::copy(app, text)
+    write::copy_text(app, text)
 }
 
 #[cfg(test)]
