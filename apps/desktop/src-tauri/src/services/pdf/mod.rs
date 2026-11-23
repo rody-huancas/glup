@@ -1,6 +1,7 @@
 pub mod analysis;
 pub mod info;
 pub mod merge;
+pub mod organize;
 pub mod reduce;
 pub mod save_images;
 pub mod sign;
