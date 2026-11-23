@@ -104,18 +104,6 @@ export const fileToPixels = async (file: File): Promise<PixelImage | null> => {
   return toPixels(canvas);
 };
 
-// Before: scaled down so its longer side was at most UPLOAD_MAX_SIDE.
-// export const fileToPixels = async (file: File): Promise<PixelImage | null> => {
-//   const bitmap  = await createImageBitmap(file);
-//   const factor  = Math.min(1, UPLOAD_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
-//   const canvas  = createCanvas(bitmap.width * factor, bitmap.height * factor);
-//   const context = canvas.getContext('2d');
-//
-//   context?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-//   bitmap.close();
-//   return toPixels(canvas);
-// };
-
 export const imageSize = (url: string): Promise<Size> =>
   new Promise((resolve, reject) => {
     const image   = new Image();

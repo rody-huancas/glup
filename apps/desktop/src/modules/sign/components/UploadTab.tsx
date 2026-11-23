@@ -29,7 +29,6 @@ export const UploadTab = ({ preview, processing, error, onPick }: UploadTabProps
         className="flex items-center justify-center overflow-hidden rounded-control p-4"
         style={{ width: DRAW_CANVAS.width, height: DRAW_CANVAS.height, ...(onWhite || !preview ? { background: '#FAFAF7' } : CHECKERBOARD) }}
       >
-      {/* <div className="flex items-center justify-center overflow-hidden rounded-control bg-[#FAFAF7] p-4" style={{ width: DRAW_CANVAS.width, height: DRAW_CANVAS.height }}> */}
         {preview && !processing ? (
           <img src={preview} alt="" draggable={false} className="max-h-full max-w-full object-contain" />
         ) : (

@@ -20,10 +20,6 @@ export const useInkUpload = (color: InkColor) => {
     () => (cutOut ? prepareUpload({ image: cutOut, color: color === 'original' ? null : hexToRgb(INK_COLORS[color]), padding: CROP_PADDING }) : null),
     [cutOut, color],
   );
-  // const result = useMemo(
-  //   () => (source ? cropToContent({ image: extractInk({ image: source, color: hexToRgb(INK_COLORS[color]) }), padding: CROP_PADDING }) : null),
-  //   [source, color],
-  // );
 
   useEffect(() => {
     if (!result) {
