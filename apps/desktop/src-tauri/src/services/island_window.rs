@@ -11,8 +11,6 @@ pub const ISLAND_OPEN_EVENT: &str = "island-open";
 
 // Visible area at startup (the pill with its ears and hover room); must match getIslandArea('collapsed').
 pub const INITIAL_AREA: IslandSize = IslandSize { width: 184.0, height: 36.0 };
-// pub const INITIAL_AREA: IslandSize = IslandSize { width: 152.0, height: 28.0 };
-// pub const INITIAL_AREA: IslandSize = IslandSize { width: 120.0, height: 24.0 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub struct IslandSize {
@@ -52,12 +50,6 @@ pub fn center_top(window: &WebviewWindow) -> Result<()> {
 
     window.set_position(PhysicalPosition::new(x, origin.y))
 }
-
-// Replaced by set_area: resizing and moving the window made WebView2 show stale frames (the flicker).
-// pub fn resize(window: &WebviewWindow, size: IslandSize) -> Result<()> {
-//     window.set_size(LogicalSize::new(size.width, size.height))?;
-//     center_top(window)
-// }
 
 // The window keeps the expanded size; only its visible and clickable area changes, anchored top center.
 pub fn set_area(window: &WebviewWindow, size: IslandSize) -> Result<()> {
