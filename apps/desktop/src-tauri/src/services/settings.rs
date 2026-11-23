@@ -36,6 +36,9 @@ pub struct Settings {
     // run (no file) shows it.
     #[serde(default = "already_seen")]
     pub welcome_seen: bool,
+    // "Avisarme con notificaciones de Windows" turned off. Kept in the negative so a missing value
+    // (and a first run) means they are on.
+    pub notifications_off: bool,
 }
 
 fn already_seen() -> bool {
@@ -120,7 +123,7 @@ mod tests {
     use super::*;
 
     fn settings(mode: SaveMode, folder: Option<&str>) -> Settings {
-        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true }
+        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false }
     }
 
     #[test]
