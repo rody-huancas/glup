@@ -6,7 +6,7 @@ use tauri_plugin_autostart::MacosLauncher;
 
 use services::{
     actions::ActionControl, background::session::BackgroundSession, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
-    screen_text::{shortcut::ShortcutStatus, ScreenTextState}, settings::SettingsStore, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, updates::UpdateState,
+    clipboard::ClipboardState, screen_text::ScreenTextState, settings::SettingsStore, shortcuts::ShortcutStatus, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, updates::UpdateState,
     visibility::Visibility,
 };
 
@@ -21,12 +21,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        // Only one shortcut is ever registered: "Copiar texto de la pantalla".
+        // Glup's shortcuts ("Copiar texto de la pantalla", "Portapapeles"): shortcuts.rs knows which is which.
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
+                .with_handler(|app, shortcut, event| {
                     if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                        services::screen_text::start(app);
+                        services::shortcuts::dispatch(app, shortcut);
                     }
                 })
                 .build(),
@@ -45,6 +45,7 @@ pub fn run() {
         .manage(UpdateState::default())
         .manage(ScreenTextState::default())
         .manage(ShortcutStatus::default())
+        .manage(ClipboardState::default())
         .manage(services::id_photo::IdPhotoSessions::default())
         .manage(std::sync::Arc::new(services::transcribe::engine::TranscribeSession::default()))
         .manage(LaunchOpen::new(services::startup::launch_open_pending()))
@@ -93,9 +94,19 @@ pub fn run() {
             commands::screen_text::read_screen_text,
             commands::screen_text::cancel_screen_text,
             commands::screen_text::copy_screen_text,
-            commands::screen_text::get_screen_text_shortcut,
-            commands::screen_text::set_screen_text_shortcut,
-            commands::screen_text::pause_screen_text_shortcut,
+            commands::shortcuts::get_shortcut,
+            commands::shortcuts::set_shortcut,
+            commands::shortcuts::pause_shortcuts,
+            commands::clipboard::get_clipboard_status,
+            commands::clipboard::set_clipboard_enabled,
+            commands::clipboard::set_clipboard_limit,
+            commands::clipboard::set_clipboard_excluded,
+            commands::clipboard::pause_clipboard,
+            commands::clipboard::list_clips,
+            commands::clipboard::get_clip_image,
+            commands::clipboard::copy_clip,
+            commands::clipboard::remove_clips,
+            commands::clipboard::set_clip_pinned,
             commands::id_photo::prepare_id_photo,
             commands::id_photo::id_photo_preview,
             commands::id_photo::save_id_photo,
@@ -134,7 +145,8 @@ pub fn run() {
             services::fullscreen_watcher::spawn(app.handle().clone());
             services::island_watchdog::spawn(app.handle().clone());
             services::updates::spawn(app.handle().clone());
-            services::screen_text::shortcut::apply_saved(app.handle());
+            services::shortcuts::apply_saved(app.handle());
+            services::clipboard::spawn(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())

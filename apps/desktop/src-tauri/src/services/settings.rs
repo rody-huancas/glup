@@ -47,6 +47,15 @@ pub struct Settings {
     pub screen_text_shortcut_off: bool,
     // "Guardar en el historial lo que copio de la pantalla" turned off (on by default).
     pub screen_text_history_off: bool,
+    // "Portapapeles": off until the person turns it on, after reading what it keeps.
+    pub clipboard_on: bool,
+    // How many it keeps (None: CLIPBOARD_LIMIT). Pinned ones never go away on their own.
+    pub clipboard_limit: Option<u32>,
+    // Programs whose copies are never kept, by file name ("banco.exe").
+    pub clipboard_excluded: Vec<String>,
+    // Its shortcut, as the one of "Copiar texto de la pantalla".
+    pub clipboard_shortcut: Option<String>,
+    pub clipboard_shortcut_off: bool,
 }
 
 fn already_seen() -> bool {
@@ -131,7 +140,7 @@ mod tests {
     use super::*;
 
     fn settings(mode: SaveMode, folder: Option<&str>) -> Settings {
-        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false, transcribe_level: Default::default(), screen_text_shortcut: None, screen_text_shortcut_off: false, screen_text_history_off: false }
+        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false, transcribe_level: Default::default(), screen_text_shortcut: None, screen_text_shortcut_off: false, screen_text_history_off: false, ..Default::default() }
     }
 
     #[test]
