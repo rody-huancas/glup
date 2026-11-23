@@ -6,7 +6,7 @@ use tauri_plugin_autostart::MacosLauncher;
 
 use services::{
     actions::ActionControl, background::session::BackgroundSession, cleanup::CleanupState, history::HistoryStore, island_window::{IslandArea, IslandFrame}, pdf::save_images::PageImageSessions,
-    settings::SettingsStore, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, visibility::Visibility,
+    settings::SettingsStore, startup::{LaunchOpen, TrayAutostart, AUTOSTART_ARG}, tasks::TaskRegistry, updates::UpdateState, visibility::Visibility,
 };
 
 pub const ISLAND_WINDOW_LABEL: &str = "island";
@@ -21,6 +21,7 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![AUTOSTART_ARG])))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(Visibility::default())
         .manage(IslandArea::default())
         .manage(IslandFrame::default())
@@ -32,6 +33,7 @@ pub fn run() {
         .manage(CleanupState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
+        .manage(UpdateState::default())
         .manage(LaunchOpen::new(services::startup::launch_open_pending()))
         // .manage(LaunchOpen::new(!services::startup::launch_info().autostart))
         .invoke_handler(tauri::generate_handler![
@@ -66,6 +68,9 @@ pub fn run() {
             commands::startup::set_autostart,
             commands::history::get_history,
             commands::history::clear_history,
+            commands::updates::get_update,
+            commands::updates::check_update,
+            commands::updates::install_update,
             // commands::island::resize_island,
             commands::island::set_island_area,
             commands::island::set_island_focus,
@@ -88,6 +93,7 @@ pub fn run() {
             services::cursor_tracker::spawn(app.handle().clone());
             services::fullscreen_watcher::spawn(app.handle().clone());
             services::island_watchdog::spawn(app.handle().clone());
+            services::updates::spawn(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())
