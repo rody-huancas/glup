@@ -4,11 +4,12 @@ use tauri::{
     AppHandle, Manager, Result,
 };
 
-use crate::services::{island_window, screen_text, startup, visibility};
+use crate::services::{clipboard, island_window, screen_text, startup, visibility};
 
 const TRAY_ID: &str        = "glup-tray";
 const OPEN_ID: &str        = "open";
 const SCREEN_TEXT_ID: &str = "screen-text";
+const CLIPBOARD_ID: &str   = "clipboard-pause";
 const TOGGLE_ID: &str      = "toggle";
 const AUTOSTART_ID: &str   = "autostart";
 const QUIT_ID: &str        = "quit";
@@ -16,13 +17,19 @@ const QUIT_ID: &str        = "quit";
 pub fn create(app: &AppHandle) -> Result<()> {
     let open   = MenuItem::with_id(app, OPEN_ID, "Abrir Glup", true, None::<&str>)?;
     let text   = MenuItem::with_id(app, SCREEN_TEXT_ID, "Copiar texto de la pantalla", true, None::<&str>)?;
+    let pause  = MenuItem::with_id(app, CLIPBOARD_ID, clipboard::PAUSE_LABEL, true, None::<&str>)?;
     let toggle = MenuItem::with_id(app, TOGGLE_ID, "Mostrar/Ocultar Glup", true, None::<&str>)?;
     let start  = CheckMenuItem::with_id(app, AUTOSTART_ID, "Abrir al encender la computadora", true, startup::is_enabled(app), None::<&str>)?;
     let quit   = MenuItem::with_id(app, QUIT_ID, "Salir", true, None::<&str>)?;
-    let menu   = Menu::with_items(app, &[&open, &text, &toggle, &start, &quit])?;
+    let menu   = Menu::with_items(app, &[&open, &text, &pause, &toggle, &start, &quit])?;
 
     if let Ok(mut item) = app.state::<startup::TrayAutostart>().0.lock() {
         *item = Some(start);
+    }
+
+    // Its text says "Reanudar…" while paused.
+    if let Ok(mut item) = app.state::<clipboard::ClipboardState>().tray.lock() {
+        *item = Some(pause);
     }
 
     let mut builder = TrayIconBuilder::with_id(TRAY_ID)
@@ -47,6 +54,7 @@ fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
             island_window::request_open(app);
         }
         SCREEN_TEXT_ID => screen_text::start(app),
+        CLIPBOARD_ID   => clipboard::toggle_pause(app),
         TOGGLE_ID      => visibility::toggle_user_hidden(app),
         // The checkbox flips itself on click; set_enabled puts it back to Windows' real state.
         AUTOSTART_ID   => {
