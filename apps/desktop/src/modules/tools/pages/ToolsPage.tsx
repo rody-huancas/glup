@@ -1,4 +1,3 @@
-// import { ComingSoon } from '@/modules/main-window/components/ComingSoon';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { ToolGroupSection } from '@/modules/tools/components/ToolGroupSection';
 import { ToolSearchField } from '@/modules/tools/components/ToolSearchField';
@@ -24,5 +23,3 @@ export const ToolsPage = ({ files, onNavigate }: PageProps) => {
     </div>
   );
 };
-
-// export const ToolsPage = () => <ComingSoon />;

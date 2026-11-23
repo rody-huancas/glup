@@ -28,7 +28,6 @@ export const useSaveLocation = (): SaveLocation => {
   const choose = useCallback((mode: SaveMode) => {
     if (mode !== 'custom') {
       save({ ...view, saveMode: mode });
-      // save({ saveMode: mode, customFolder: view.customFolder, bundleZip: view.bundleZip });
       return;
     }
 
@@ -36,14 +35,12 @@ export const useSaveLocation = (): SaveLocation => {
     void pickFolder(view.customFolder)
       .then((folder) => {
         if (folder) save({ ...view, saveMode: 'custom', customFolder: folder });
-        // if (folder) save({ saveMode: 'custom', customFolder: folder, bundleZip: view.bundleZip });
       })
       .finally(() => setPicking(false));
   }, [view, save]);
 
   const setBundleZip = useCallback((bundle: boolean) => {
     save({ ...view, bundleZip: bundle });
-    // save({ saveMode: view.saveMode, customFolder: view.customFolder, bundleZip: bundle });
   }, [view, save]);
 
   const setReduceLevel = useCallback((level: ReduceLevel) => {

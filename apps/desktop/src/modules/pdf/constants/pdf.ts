@@ -38,7 +38,6 @@ export const PDF_TEXTS = {
   imagesTitle   : '¿En qué formato?',
   pageProgress  : (page: number, total: number) => `Página ${page} de ${total}`,
   password      : 'Primero quítale la contraseña',
-  // password      : 'Este PDF tiene contraseña, todavía no puedo abrirlo',
 };
 
 export const RANGE_ERRORS = {

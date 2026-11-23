@@ -19,19 +19,3 @@ export const AutostartToggle = () => {
     />
   );
 };
-
-// Previous version
-// export const AutostartToggle = () => {
-//   const autostart = useAutostart();
-//
-//   return (
-//     <div className="flex flex-col gap-1">
-//       {autostart.enabled === null && !autostart.failed ? (
-//         <Skeleton className="h-4 w-64" />
-//       ) : (
-//         <Switch label={GENERAL_TEXTS.autostart} checked={autostart.enabled ?? false} disabled={autostart.saving} onChange={autostart.change} />
-//       )}
-//       <p className="pl-9 text-[11px] text-muted">{autostart.failed ? GENERAL_TEXTS.autostartError : GENERAL_TEXTS.autostartHint}</p>
-//     </div>
-//   );
-// };

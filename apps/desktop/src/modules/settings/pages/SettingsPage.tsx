@@ -26,9 +26,6 @@ export const SettingsPage = ({ files }: PageProps) => (
         <div className="border-t border-line" />
         <VersionRow />
       </Card>
-      {/* <Card className="p-3.5">
-        <AutostartToggle />
-      </Card> */}
     </section>
     <section className="flex flex-col gap-2.5">
       <SectionLabel>{SAVE_TEXTS.defaultTitle}</SectionLabel>
@@ -39,5 +36,3 @@ export const SettingsPage = ({ files }: PageProps) => (
     <LearnedSection />
   </div>
 );
-
-// export const SettingsPage = () => <ComingSoon />;

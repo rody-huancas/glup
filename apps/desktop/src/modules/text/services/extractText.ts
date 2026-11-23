@@ -79,7 +79,6 @@ export const extractText = async ({ files, destination, onProgress, isCancelled 
   }
 
   onProgress({ current: 0, total: 0, name: '', active: 1, stage: 'saving' });
-  // onProgress({ current: total, total: Math.max(total, 1), name: '', active: 1 });
 
   const report = await finishText({ paths, files: read });
   return toTextResult({ report, paths, destination, cancelled: isCancelled() });
