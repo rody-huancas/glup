@@ -19,6 +19,12 @@ export interface AppSettings {
   screenTextShortcutOff : boolean;
   // "Guardar en el historial lo que copio de la pantalla" turned off (on by default).
   screenTextHistoryOff  : boolean;
+  // "Portapapeles": changed through its own commands (set_clipboard_*), which also trim and tell the screen.
+  clipboardOn           : boolean;
+  clipboardLimit        : number | null;
+  clipboardExcluded     : string[];
+  clipboardShortcut     : string | null;
+  clipboardShortcutOff  : boolean;
 }
 
 export interface SettingsView extends AppSettings {

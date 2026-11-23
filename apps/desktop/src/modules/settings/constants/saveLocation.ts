@@ -26,6 +26,11 @@ export const DEFAULT_SETTINGS: SettingsView = {
   screenTextShortcut    : null,
   screenTextShortcutOff : false,
   screenTextHistoryOff  : false,
+  clipboardOn           : false,
+  clipboardLimit        : null,
+  clipboardExcluded     : [],
+  clipboardShortcut     : null,
+  clipboardShortcutOff  : false,
   folderMissing         : false,
 };
 
