@@ -12,7 +12,9 @@ import { Skeleton } from '@/shared/components/Skeleton';
 export const LearnedSection = () => {
   const background = useLearned(LEARNABLES.background);
   const video      = useLearned(LEARNABLES.video);
-  const items      = [background, video];
+  const fast       = useLearned(LEARNABLES['transcribe-fast']);
+  const precise    = useLearned(LEARNABLES['transcribe-precise']);
+  const items      = [background, video, fast, precise];
   const installed  = items.filter((item) => item.status?.installed);
   const confirming = items.find((item) => item.confirming) ?? null;
   const loading    = items.some((item) => item.status === null);

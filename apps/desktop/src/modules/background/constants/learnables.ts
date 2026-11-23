@@ -1,6 +1,8 @@
 import { BACKGROUND_TEXTS, LEARNED_TEXTS } from '@/modules/background/constants/texts';
 import type { Learnable } from '@/modules/background/interfaces/learnable';
 import type { LearnableId } from '@/modules/background/types/learnableId';
+import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
+import { deleteTranscribeModel, downloadTranscribeModel, getTranscribeModel } from '@/modules/transcribe/services/transcribe';
 import { deleteBackgroundModel, downloadBackgroundModel, getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import { VIDEO_TOOL_TEXTS } from '@/modules/video/constants/texts';
 import { deleteVideoTool, downloadVideoTool, getVideoTool } from '@/modules/video/services/videoTool';
@@ -32,7 +34,33 @@ export const LEARNABLES: Record<LearnableId, Learnable> = {
     download  : downloadVideoTool,
     remove    : deleteVideoTool,
   },
+  'transcribe-fast'    : {
+    id        : 'transcribe-fast',
+    texts     : {
+      body       : TRANSCRIBE_TEXTS.learnBody,
+      learning   : TRANSCRIBE_TEXTS.learning,
+      taskTitle  : TRANSCRIBE_TEXTS.learnTask,
+      learned    : TRANSCRIBE_TEXTS.learnedFast,
+      deleteBody : TRANSCRIBE_TEXTS.deleteBody,
+    },
+    getStatus : () => getTranscribeModel('fast'),
+    download  : (taskId) => downloadTranscribeModel('fast', taskId),
+    remove    : () => deleteTranscribeModel('fast'),
+  },
+  'transcribe-precise' : {
+    id        : 'transcribe-precise',
+    texts     : {
+      body       : TRANSCRIBE_TEXTS.learnBody,
+      learning   : TRANSCRIBE_TEXTS.learning,
+      taskTitle  : TRANSCRIBE_TEXTS.learnTask,
+      learned    : TRANSCRIBE_TEXTS.learnedBest,
+      deleteBody : TRANSCRIBE_TEXTS.deleteBody,
+    },
+    getStatus : () => getTranscribeModel('precise'),
+    download  : (taskId) => downloadTranscribeModel('precise', taskId),
+    remove    : () => deleteTranscribeModel('precise'),
+  },
 };
 
 // In Ajustes, in this order.
-export const LEARNABLE_ORDER: LearnableId[] = ['background', 'video'];
+export const LEARNABLE_ORDER: LearnableId[] = ['background', 'video', 'transcribe-fast', 'transcribe-precise'];
