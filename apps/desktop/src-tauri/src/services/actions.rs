@@ -10,7 +10,7 @@ use std::{
 
 use chrono::Local;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
 use crate::services::{
     archive::{self, ZipEntry, ZipParams, ZIP_ERROR},
@@ -33,6 +33,7 @@ use crate::services::{
         split as pdf_split,
         watermark::{self as pdf_watermark, WatermarkOptions, EMPTY_TEXT, WATERMARK_SUFFIX},
     },
+    progress::{self, Stage},
     settings::SaveMode,
     signatures, tasks,
     video::{self, plan::VideoOptions, ReduceVideoParams, VideoResult, ALREADY_LIGHT, REDUCED_SUFFIX as VIDEO_SUFFIX, VIDEO_EXTENSION},
@@ -166,6 +167,8 @@ pub struct ActionProgress {
     pub active: usize,
     // Replaces "N de M" when the progress is not counted in files ("12 MB de 109 MB").
     pub detail: Option<String>,
+    // What it is doing now (services/progress.rs), the same for every task.
+    pub stage: Stage,
 }
 
 // Shared cancel flag: files in progress always finish, new ones are not started.
@@ -173,6 +176,24 @@ pub struct ActionProgress {
 pub struct ActionControl {
     // Shared with Limpieza, which runs through the same task queue.
     pub cancelled: AtomicBool,
+    // The task Cancelar was pressed for. A task made of several calls (a download, then the action)
+    // stays cancelled from one call to the next.
+    cancelled_task: Mutex<Option<String>>,
+}
+
+impl ActionControl {
+    // Every call of a task starts here: the flag is cleared unless this same task was cancelled.
+    pub fn begin(&self, task: &Option<String>) {
+        let same = task.is_some() && self.cancelled_task.lock().map(|cancelled| *cancelled == *task).unwrap_or(false);
+        self.cancelled.store(same, Ordering::SeqCst);
+    }
+
+    pub fn cancel(&self, task: Option<String>) {
+        if let Ok(mut cancelled) = self.cancelled_task.lock() {
+            *cancelled = task;
+        }
+        self.cancelled.store(true, Ordering::SeqCst);
+    }
 }
 
 struct Saved {
@@ -220,13 +241,15 @@ impl Run<'_> {
             name    : params.name.to_string(),
             active  : params.active,
             detail  : None,
+            stage   : Stage::Working,
         };
 
-        if let Some(task) = &self.task {
-            tasks::progress(self.app, task, &progress);
-        }
-
-        let _ = self.app.emit(ACTION_PROGRESS_EVENT, progress);
+        progress::emit(self.app, progress);
+        // if let Some(task) = &self.task {
+        //     tasks::progress(self.app, task, &progress);
+        // }
+        //
+        // let _ = self.app.emit(ACTION_PROGRESS_EVENT, progress);
     }
 
     // One by one (PDF pages, zip entries): reports the file in progress and stops between files once cancelled.
@@ -279,8 +302,9 @@ impl Run<'_> {
     }
 }
 
-pub fn cancel(app: &AppHandle) {
-    app.state::<ActionControl>().cancelled.store(true, Ordering::SeqCst);
+pub fn cancel(app: &AppHandle, task: Option<String>) {
+    app.state::<ActionControl>().cancel(task);
+    // app.state::<ActionControl>().cancelled.store(true, Ordering::SeqCst);
 }
 
 fn file_name(path: &Path) -> String {
@@ -413,6 +437,8 @@ fn run_compress(run: &Run) -> Collected {
 
 // One image at a time: the model already uses several cores (or the graphics card).
 fn run_remove_background(run: &Run, kind: BackgroundKind) -> Collected {
+    background::prepare(run.app, &run.task);
+
     let mut results = Vec::new();
     let cancelled   = run.each(|source| results.push(Some(remove_background_one(run, source, kind))));
     let detail      = |_: &Path, _: &Saved| REMOVED_DETAIL.to_string();
@@ -587,7 +613,8 @@ fn bundle(params: BundleParams) -> Collected {
 // Runs on a worker thread; one failure never stops the rest.
 pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, String> {
     let control = app.state::<ActionControl>();
-    control.cancelled.store(false, Ordering::SeqCst);
+    control.begin(&request.task_id);
+    // control.cancelled.store(false, Ordering::SeqCst);
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
@@ -647,6 +674,9 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
     //     ("zip", _)                => run_zip(&run),
     //     _                         => return Err(UNSUPPORTED_ERROR.to_string()),
     // };
+
+    // The counted part is over: writing the ZIP and the history is shown as "Guardando…".
+    progress::emit(app, ActionProgress::at(&run.task, Stage::Saving));
 
     let collected = if bundled { bundle(BundleParams { run: &run, collected, destination: &destination, action }) } else { collected };
 
@@ -1340,11 +1370,8 @@ fn video_progress(run: &Run, index: usize, done: f64, name: &str) {
     let detail  = if total > 1 { format!("Video {} de {total} · {percent} %", index + 1) } else { format!("{percent} %") };
     let overall = ((index as f64 + done) / total as f64 * 1000.0) as usize;
 
-    let progress = ActionProgress { task_id: run.task.clone(), current: overall, total: 1000, name: name.to_string(), active: 1, detail: Some(detail) };
-    if let Some(task) = &run.task {
-        tasks::progress(run.app, task, &progress);
-    }
-    let _ = run.app.emit(ACTION_PROGRESS_EVENT, progress);
+    let progress = ActionProgress { task_id: run.task.clone(), current: overall, total: 1000, name: name.to_string(), active: 1, detail: Some(detail), stage: Stage::Working };
+    progress::emit(run.app, progress);
 }
 
 fn reduce_video_one(run: &Run, index: usize, source: &Path, options: VideoOptions) -> Option<Result<FileResult, String>> {

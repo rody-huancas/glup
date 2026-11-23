@@ -15,6 +15,7 @@ pub mod naming;
 pub mod notify;
 pub mod parallel;
 pub mod pdf;
+pub mod progress;
 pub mod settings;
 pub mod signatures;
 pub mod startup;
