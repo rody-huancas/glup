@@ -1,14 +1,21 @@
 pub mod analysis;
+pub mod images;
 pub mod info;
 pub mod merge;
+pub mod numbering;
 pub mod organize;
+pub mod protect;
 pub mod reduce;
 pub mod save_images;
 pub mod sign;
 pub mod split;
+pub mod stamp;
+pub mod watermark;
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod extras_tests;
 
 use std::{collections::BTreeMap, path::Path};
 
@@ -16,7 +23,8 @@ use lopdf::{dictionary, Document, Object, ObjectId};
 
 pub type PdfResult<T> = Result<T, String>;
 
-pub const PASSWORD_ERROR: &str = "Este PDF tiene contraseña, todavía no puedo abrirlo";
+pub const PASSWORD_ERROR: &str = "Primero quítale la contraseña";
+// pub const PASSWORD_ERROR: &str = "Este PDF tiene contraseña, todavía no puedo abrirlo";
 pub const PDF_READ_ERROR: &str = "No pude leer el PDF";
 pub const PDF_WRITE_ERROR: &str = "No pude crear el PDF";
 
