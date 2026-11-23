@@ -188,6 +188,7 @@ pub struct IslandStatus {
     pub visible: bool,
     pub fullscreen: bool,
     pub tray_hidden: bool,
+    pub capturing: bool,
     pub area: IslandSize,
 }
 
@@ -198,6 +199,7 @@ pub fn status(window: &WebviewWindow) -> IslandStatus {
         visible     : window.is_visible().unwrap_or(false),
         fullscreen  : flags.fullscreen,
         tray_hidden : flags.user_hidden,
+        capturing   : flags.capturing,
         area        : stored_area(window).unwrap_or(INITIAL_AREA),
     }
 }

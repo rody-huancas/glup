@@ -12,6 +12,8 @@ export interface IslandMachine {
   locked     : boolean;
   fullscreen : boolean;
   trayHidden : boolean;
+  // "Copiar texto de la pantalla": a zone of the screen is being chosen.
+  capturing  : boolean;
   notice     : IslandNotice | null;
   // Bumped by every hard reset (tray, watchdog), so the view snaps back to a clean pill.
   resets     : number;
@@ -29,5 +31,6 @@ export type IslandEvent =
   | { type: 'notice-ended' }
   | { type: 'fullscreen'; on: boolean }
   | { type: 'tray'; hidden: boolean }
+  | { type: 'capture'; on: boolean }
   | { type: 'reset' }
   | { type: 'holds'; holds: HoldReason[] };

@@ -93,6 +93,14 @@ src-tauri/
     detector de rostros de «Foto tamaño carnet» (`Windows.Media.FaceAnalysis`) va igual
     (`services/id_photo/face.rs`). Notificaciones con `tauri-winrt-notification` (el plugin de
     notificaciones no avisa del clic en escritorio): `services/notify.rs`.
+    «Copiar texto de la pantalla» (`services/screen_text/`): la captura por monitor con GDI
+    (`BitBlt`) y el portapapeles con `windows-sys`, solo en memoria; el atajo global con
+    `tauri-plugin-global-shortcut` (Apache-2.0 o MIT), registrado y cambiado solo desde Rust
+    (`shortcut.rs`, por defecto Ctrl+Alt+Shift+T); si al arrancar otro programa lo tiene, una
+    notificación (`notify::alert`, aunque las de tareas estén apagadas) lleva a Ajustes. El texto
+    copiado va a `history.json` como línea con `text` (`history::text_entry`), salvo que
+    `screen_text_history_off` lo apague. Lo que decide (recorte, monitor bajo el cursor,
+    palabras) es puro en `region.rs` y `mod.rs`, con pruebas.
     «Pasar audio a texto»: whisper.cpp enlazado con `whisper-rs` (solo procesador: Vulkan obligaría a
     tener su SDK para compilar y haría que Glup no abra sin `vulkan-1.dll`). Compilarlo pide CMake y
     LLVM (libclang). La sesión del modelo vive en `services/transcribe/engine.rs`, se libera tras 5

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { RESULT_MOODS } from '@/modules/actions/constants/resultMoods';
+import { revealHistoryEntry } from '@/modules/history/store/historyReveal';
 import { useIslandAutoToggle } from '@/modules/island/hooks/useIslandAutoToggle';
 import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
 import { useIslandMachine } from '@/modules/island/hooks/useIslandMachine';
@@ -14,7 +16,11 @@ import { hoverEnabled, isHeldOpen, toIslandState } from '@/modules/island/utils/
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { useTaskNotices } from '@/modules/notices/hooks/useTaskNotices';
+import { notifyTask } from '@/modules/notices/services/notify';
 import { panelOpened } from '@/modules/notices/store/toastStore';
+import { useScreenTextDone } from '@/modules/screen-text/hooks/useScreenTextDone';
+import type { ScreenTextDone } from '@/modules/screen-text/interfaces/screenTextDone';
+import { screenTextNotice } from '@/modules/screen-text/utils/screenTextNotice';
 import { useTaskTransitions } from '@/modules/tasks/hooks/useTaskTransitions';
 import { useTasks } from '@/modules/tasks/hooks/useTasks';
 import { getTasks, markForReveal, takeReveals } from '@/modules/tasks/store/taskStore';
@@ -87,8 +93,9 @@ export const useIsland = () => {
   const onFullscreenEnter = useCallback(() => send({ type: 'fullscreen', on: true }), [send]);
   const onFullscreenExit  = useCallback(() => send({ type: 'fullscreen', on: false }), [send]);
   const onTrayVisibility  = useCallback((hidden: boolean) => send({ type: 'tray', hidden }), [send]);
+  const onCapture         = useCallback((on: boolean) => send({ type: 'capture', on }), [send]);
 
-  const { inside, dragging } = useIslandSignals({ onFullscreenEnter, onFullscreenExit, onOpenRequest: openPinned, onTrayVisibility });
+  const { inside, dragging } = useIslandSignals({ onFullscreenEnter, onFullscreenExit, onOpenRequest: openPinned, onTrayVisibility, onCapture });
 
   useLaunchOpen({ onOpen: openPinned });
 
@@ -162,6 +169,40 @@ export const useIsland = () => {
   // The end of a task is told once: a toast in the panel or a Windows notification.
   const notices = useTaskNotices({ phaseRef, insideRef, onNavigate: panel.navigate });
 
+  // "Copiar texto de la pantalla" is not a task (no toast): the pill's notice with Glup's face, or a
+  // Windows notification with the same words when Glup is hidden (tray, fullscreen app).
+  const avatarRef    = panel.avatarRef;
+  const onScreenText = useCallback((done: ScreenTextDone) => {
+    const notice = screenTextNotice(done);
+
+    if (phaseRef.current === 'hidden') {
+      if (done.entryId) revealHistoryEntry(done.entryId);
+      void notifyTask({ body: notice.message, page: done.entryId ? 'history' : 'tools' }).catch(() => undefined);
+      return;
+    }
+
+    send({ type: 'notice', notice });
+    avatarRef.current?.setState(RESULT_MOODS[notice.tone]);
+  }, [send, avatarRef]);
+
+  useScreenTextDone(onScreenText);
+
+  // "Ver" on the notice: Historial, with that line open.
+  const navigateTo   = panel.navigate;
+  const onNoticeView = useCallback((entryId: string) => {
+    revealHistoryEntry(entryId);
+    navigateTo('history');
+    openPinned();
+  }, [navigateTo, openPinned]);
+
+  // Hovering a notice with "Ver" opens the panel on that line too, as a task's notice opens its screen.
+  const noticeEntry = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (machine.phase === 'notice') noticeEntry.current = machine.notice?.entryId ?? null;
+    else if (machine.phase !== 'expanding') noticeEntry.current = null;
+  }, [machine.phase, machine.notice]);
+
   // A task that ends with the island collapsed: the next opening (hovering its notice included) shows
   // its owner screen.
   const onTaskFinish = useCallback((task: Task) => {
@@ -211,7 +252,13 @@ export const useIsland = () => {
       lifetime    : ISLAND_TIMING.lastPageLifetime,
     });
 
-    if (page !== pageRef.current) navigate(page);
+    if (noticeEntry.current) {
+      revealHistoryEntry(noticeEntry.current);
+      noticeEntry.current = null;
+      navigate('history');
+    } else if (page !== pageRef.current) {
+      navigate(page);
+    }
     // A toast that waited for the panel shows now (unless a Windows notification already told it).
     panelOpened();
   }, [machine.phase, navigate]);
@@ -232,5 +279,5 @@ export const useIsland = () => {
     [machine.pinned, togglePin, collapseNow],
   );
 
-  return { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection: state === 'collapsed' && pending, onMascotClick, onPanelPointerDown };
+  return { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection: state === 'collapsed' && pending, onMascotClick, onPanelPointerDown, onNoticeView };
 };

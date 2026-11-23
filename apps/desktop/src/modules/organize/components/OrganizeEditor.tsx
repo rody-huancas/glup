@@ -8,7 +8,7 @@ import type { OrganizeTarget } from '@/modules/organize/interfaces/organizeTarge
 import type { TileActions } from '@/modules/organize/interfaces/tileActions';
 import { summaryLine } from '@/modules/organize/utils/summary';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
-import { ConfirmDialog } from '@/modules/sign/components/ConfirmDialog';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 
 interface OrganizeEditorProps {
   target      : OrganizeTarget;

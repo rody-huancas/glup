@@ -104,6 +104,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper en el procesador, Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
+| Sin archivos (Herramientas, atajo o bandeja) | Copiar texto de la pantalla (solo Windows: se elige una zona sobre una imagen congelada y su texto va al portapapeles; no es una acción sobre archivos. El texto queda en el historial local para verlo y «Copiar de nuevo», salvo que se apague en Ajustes) |
 
 ## Checklist
 

@@ -1,20 +1,40 @@
+import { useId } from 'react';
+import type { ReactNode } from 'react';
 import { ToolIcon } from '@/modules/tools/components/ToolIcon';
 import type { Tool } from '@/modules/tools/types/tool';
-import { Card } from '@/shared/components/Card';
 
 interface ToolCardProps<T extends Tool> {
-  tool  : T;
-  title : string;
-  onRun : (tool: T) => void;
+  tool    : T;
+  title   : string;
+  onRun   : (tool: T) => void;
+  // Something of its own under the description, with its own controls (the shortcut of a command tool).
+  footer? : ReactNode;
 }
 
-// Names stay on one line; descriptions end with "…". Same card in Inicio and Herramientas.
-export const ToolCard = <T extends Tool>({ tool, title, onRun }: ToolCardProps<T>) => (
-  <Card onClick={() => onRun(tool)} className="flex h-[68px] w-full min-w-0 items-center gap-3 px-3.5">
-    <ToolIcon icon={tool.icon} />
-    <span className="flex min-w-0 flex-col">
-      <span className="whitespace-nowrap text-sm font-semibold text-text">{title}</span>
-      <span className="truncate text-xs text-muted">{tool.description}</span>
-    </span>
-  </Card>
-);
+// Same card in Inicio and Herramientas. The name wraps to a second line instead of spilling out; the
+// description ends with "…" and shows whole on hover (title) and to screen readers (it is all in the
+// page, only cut on screen). The name's button stretches over the whole card, so the footer can hold
+// buttons of its own without nesting them inside another button.
+export const ToolCard = <T extends Tool>({ tool, title, onRun, footer }: ToolCardProps<T>) => {
+  const descriptionId = useId();
+
+  return (
+    <div className="relative flex min-h-[68px] w-full min-w-0 items-center gap-3 rounded-[14px] border border-line bg-raised px-3.5 py-3 transition-colors hover:border-line-strong has-[>span>button:focus-visible]:outline-2 has-[>span>button:focus-visible]:outline-offset-2 has-[>span>button:focus-visible]:outline-lilac">
+      <ToolIcon icon={tool.icon} />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <button
+          type="button"
+          onClick={() => onRun(tool)}
+          aria-describedby={descriptionId}
+          className="cursor-pointer text-left text-sm leading-snug font-semibold text-text after:absolute after:inset-0 after:rounded-[14px] focus-visible:outline-none"
+        >
+          <span className="line-clamp-2 break-words">{title}</span>
+        </button>
+        <span id={descriptionId} title={tool.description} className="truncate text-xs text-muted">
+          {tool.description}
+        </span>
+        {footer && <span className="relative z-10 mt-1 flex min-w-0 items-center gap-2">{footer}</span>}
+      </span>
+    </div>
+  );
+};
