@@ -45,4 +45,5 @@ export const HISTORY_CHANGED_EVENT    = 'history-changed';
 export const OPEN_FILE                = 'open_file';
 export const REVEAL_FILE              = 'reveal_file';
 export const MISSING_FILE             = 'missing';
+export const OPEN_ISSUES              = 'open_issues';
 // export const OPEN_MAIN_WINDOW      = 'open_main_window';

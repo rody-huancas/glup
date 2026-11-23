@@ -5,6 +5,7 @@ pub mod cursor;
 pub mod files;
 pub mod history;
 pub mod island;
+pub mod links;
 pub mod settings;
 pub mod signatures;
 pub mod startup;
