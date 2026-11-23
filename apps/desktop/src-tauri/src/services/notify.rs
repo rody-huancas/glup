@@ -54,6 +54,11 @@ pub fn notify(app: &AppHandle, request: NotifyRequest) -> bool {
     show(app, request)
 }
 
+// Something the person has to fix (the shortcut was taken): shown even with the task notifications off.
+pub fn alert(app: &AppHandle, request: NotifyRequest) -> bool {
+    show(app, request)
+}
+
 #[cfg(windows)]
 fn show(app: &AppHandle, request: NotifyRequest) -> bool {
     use tauri_winrt_notification::{IconCrop, Toast};

@@ -41,6 +41,12 @@ pub struct Settings {
     pub notifications_off: bool,
     // "Pasar audio a texto": the last level chosen (Rápido or Más preciso).
     pub transcribe_level: crate::services::transcribe::model::Level,
+    // "Copiar texto de la pantalla": the shortcut chosen (None: Glup's own) and whether it was turned
+    // off. Kept in the negative so a first run has it on.
+    pub screen_text_shortcut: Option<String>,
+    pub screen_text_shortcut_off: bool,
+    // "Guardar en el historial lo que copio de la pantalla" turned off (on by default).
+    pub screen_text_history_off: bool,
 }
 
 fn already_seen() -> bool {
@@ -125,7 +131,7 @@ mod tests {
     use super::*;
 
     fn settings(mode: SaveMode, folder: Option<&str>) -> Settings {
-        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false, transcribe_level: Default::default() }
+        Settings { save_mode: mode, custom_folder: folder.map(str::to_string), bundle_zip: false, reduce_level: ReduceLevel::Normal, welcome_seen: true, notifications_off: false, transcribe_level: Default::default(), screen_text_shortcut: None, screen_text_shortcut_off: false, screen_text_history_off: false }
     }
 
     #[test]
