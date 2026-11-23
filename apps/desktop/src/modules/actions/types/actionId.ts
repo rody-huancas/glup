@@ -9,6 +9,7 @@ export type ActionId =
   | 'page-numbers'
   | 'extract-images'
   | 'extract-text'
+  | 'id-photo'
   | 'to-images'
   | 'merge'
   | 'convert'

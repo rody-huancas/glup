@@ -17,6 +17,10 @@ import { getSelectionSummary } from '@/modules/actions/utils/summary';
 import { getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
 import { nextLearnPhase } from '@/modules/background/utils/learnStep';
+import { ID_PHOTO_TEXTS } from '@/modules/id-photo/constants/idPhoto';
+import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
+import type { IdCrop } from '@/modules/id-photo/interfaces/idCrop';
+import { saveIdPhoto as saveIdPhotoFiles } from '@/modules/id-photo/services/idPhoto';
 import { PDF_TEXTS } from '@/modules/pdf/constants/pdf';
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
@@ -73,6 +77,8 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
   'learning-model' : 'choosing',
   background       : 'choosing',
   video            : 'choosing',
+  'id-format'      : 'choosing',
+  'id-preview'     : 'id-format',
   protect          : 'choosing',
   unlock           : 'choosing',
   watermark        : 'choosing',
@@ -87,6 +93,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
   const [phase, setPhase]         = useState<ActionsPhase>('choosing');
+  const [idChoice, setIdChoice]   = useState<IdChoice | null>(null);
   const timers                    = useRef<number[]>([]);
   const finishedRef               = useRef(onFinished);
   const destinationRef            = useRef(destination);
@@ -223,6 +230,15 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     }
 
     // "Quitar fondo" asks for permission to download what it needs the first time.
+    // "Foto tamaño carnet" also needs the background model: same question the first time.
+    if (actionId === 'id-photo') {
+      learnDone.current = 'id-format';
+      void getBackgroundModel()
+        .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing', 'id-format')))
+        .catch(() => setPhase((current) => nextLearnPhase(current, 'missing', 'id-format')));
+      return;
+    }
+
     if (actionId === 'remove-background') {
       learnDone.current = 'background';
       void getBackgroundModel()
@@ -308,6 +324,28 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     if (phase === 'numbering') execute({ actionId: 'page-numbers', options: { numbering } });
   }, [phase, execute]);
 
+  const chooseIdFormat = useCallback((choice: IdChoice) => {
+    if (phase !== 'id-format') return;
+    setIdChoice(choice);
+    setPhase('id-preview');
+  }, [phase]);
+
+  // "Listo": the files are written as a task (result, history and the notice at the end).
+  const saveIdPhoto = useCallback((session: number, crop: IdCrop) => {
+    if (!selection || phase !== 'id-preview' || !idChoice) return;
+
+    const destination = destinationRef.current;
+    const name        = selection.files[0]?.name ?? '';
+    enqueueTask({
+      title     : ID_PHOTO_TEXTS.taskTitle(name),
+      type      : 'image',
+      fileCount : 1,
+      owner     : 'home',
+      run       : ({ taskId }) => saveIdPhotoFiles({ session, crop, choice: idChoice, destination, taskId }),
+    });
+    finishedRef.current();
+  }, [selection, phase, idChoice]);
+
   const reduceVideo = useCallback((video: VideoOptions) => {
     if (phase === 'video') execute({ actionId: 'compress', options: { video } });
   }, [phase, execute]);
@@ -348,6 +386,9 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     watermarkPdf,
     numberPages,
     reduceVideo,
+    idChoice,
+    chooseIdFormat,
+    saveIdPhoto,
     chooseBackground,
     modelStarted,
     modelStopped,

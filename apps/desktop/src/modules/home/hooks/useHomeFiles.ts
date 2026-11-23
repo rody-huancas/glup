@@ -21,7 +21,7 @@ import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 // Steps with a list, a grid or a choice: the person is in the middle of them.
 // Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
-const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering', 'video'];
+const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering', 'video', 'id-format', 'id-preview'];
 // const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background'];
 // const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce'];
 
@@ -184,6 +184,9 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
       watermarkPdf     : actions.watermarkPdf,
       numberPages      : actions.numberPages,
       reduceVideo      : actions.reduceVideo,
+      idChoice         : actions.idChoice,
+      chooseIdFormat   : actions.chooseIdFormat,
+      saveIdPhoto      : actions.saveIdPhoto,
       modelStarted     : actions.modelStarted,
       modelStopped     : actions.modelStopped,
       modelReady       : actions.modelReady,

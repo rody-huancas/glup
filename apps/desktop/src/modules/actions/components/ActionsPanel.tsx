@@ -13,6 +13,8 @@ import { getActionsTitle, getSelectionSummary } from '@/modules/actions/utils/su
 import { BackgroundStep } from '@/modules/background/components/BackgroundStep';
 import { LearnModelStep } from '@/modules/background/components/LearnModelStep';
 import { LEARNABLES } from '@/modules/background/constants/learnables';
+import { IdFormatStep } from '@/modules/id-photo/components/IdFormatStep';
+import { IdPreviewStep } from '@/modules/id-photo/components/IdPreviewStep';
 import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
 import { NumberingStep } from '@/modules/pdf/components/NumberingStep';
 import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
@@ -33,7 +35,7 @@ interface ActionsPanelProps {
 }
 
 // Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
-const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock'];
+const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock', 'id-format', 'id-preview'];
 // const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model'];
 
 // The shortest PDF chosen, when every page count is known (numbering cannot start past it).
@@ -94,6 +96,14 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
 
   if (flow.phase === 'background') {
     return <BackgroundStep onChoose={flow.chooseBackground} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'id-format') {
+    return <IdFormatStep onNext={flow.chooseIdFormat} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'id-preview' && flow.idChoice) {
+    return <IdPreviewStep path={selection.paths[0]} choice={flow.idChoice} onDone={flow.saveIdPhoto} onBack={flow.back} />;
   }
 
   if (flow.phase === 'video') {
