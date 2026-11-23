@@ -8,4 +8,4 @@ export const TOOLS = toolsJson as Tool[];
 // Herramientas rápidas in Inicio: the action tools marked with a quickTitle.
 export const QUICK_TOOLS = TOOLS.filter((tool): tool is ActionTool => tool.kind === 'action' && Boolean(tool.quickTitle));
 
-export const TOOL_SECTIONS: ToolSection[] = ['pdf', 'images', 'files', 'pc'];
+export const TOOL_SECTIONS: ToolSection[] = ['pdf', 'images', 'videos', 'files', 'pc'];

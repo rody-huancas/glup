@@ -28,7 +28,7 @@ describe('filterTools', () => {
 
   it('needs every word, in any order', () => {
     expect(titles('peso foto')).toEqual(['compress-image']);
-    expect(titles('peso')).toEqual(['compress-pdf', 'compress-image']);
+    expect(titles('peso')).toEqual(['compress-pdf', 'compress-image', 'compress-video']);
   });
 
   it('finds nothing for what Glup cannot do', () => {
@@ -38,13 +38,14 @@ describe('filterTools', () => {
 
 describe('groupTools', () => {
   it('keeps the section order and drops empty sections', () => {
-    const groups = groupTools({ tools: filterTools(TOOLS, 'peso'), sections: TOOL_SECTIONS });
-    expect(groups.map((group) => group.section)).toEqual(['pdf', 'images']);
+    const groups = groupTools({ tools: filterTools(TOOLS, 'peso foto'), sections: TOOL_SECTIONS });
+    expect(groups.map((group) => group.section)).toEqual(['images']);
+    expect(groupTools({ tools: filterTools(TOOLS, 'peso'), sections: TOOL_SECTIONS }).map((group) => group.section)).toEqual(['pdf', 'images', 'videos']);
   });
 
   it('shows the four sections with everything', () => {
     const groups = groupTools({ tools: TOOLS, sections: TOOL_SECTIONS });
-    expect(groups.map((group) => group.section)).toEqual(['pdf', 'images', 'files', 'pc']);
+    expect(groups.map((group) => group.section)).toEqual(['pdf', 'images', 'videos', 'files', 'pc']);
   });
 });
 

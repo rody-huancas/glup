@@ -1,1 +1,1 @@
-export type ToolSection = 'pdf' | 'images' | 'files' | 'pc';
+export type ToolSection = 'pdf' | 'images' | 'videos' | 'files' | 'pc';
