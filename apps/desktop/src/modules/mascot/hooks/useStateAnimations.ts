@@ -12,15 +12,17 @@ interface UseStateAnimationsParams {
   elements : MascotElements;
   setFace  : Dispatch<SetStateAction<Face>>;
   setState : Dispatch<SetStateAction<MascotState>>;
+  // prefers-reduced-motion: the pose of each state, still, for the same time.
+  reduced  : boolean;
 }
 
-export const useStateAnimations = ({ state, elements, setFace, setState }: UseStateAnimationsParams) => {
+export const useStateAnimations = ({ state, elements, setFace, setState, reduced }: UseStateAnimationsParams) => {
   useEffect(() => {
-    const scope  = createAnimationScope();
+    const scope  = createAnimationScope(reduced);
     const finish = () => setState(IDLE_STATE);
 
     void STATE_RUNNERS[state.type]({ state, scope, elements, setFace, finish });
 
     return () => scope.cancel();
-  }, [state, elements, setFace, setState]);
+  }, [state, elements, setFace, setState, reduced]);
 };
