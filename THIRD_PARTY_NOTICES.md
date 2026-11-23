@@ -86,3 +86,28 @@ SOFTWARE.
 - **Licencia**: componente de Windows. Si algún día se empaqueta la versión redistribuible de
   `DirectML.dll` junto al instalador, se rige por los términos de Microsoft para DirectML (no es
   MIT) y hay que agregarlos aquí.
+
+## Videos
+
+### FFmpeg (el programa que reduce el peso de los videos)
+
+- **Qué es**: el programa que lee y vuelve a codificar los videos. Glup **no lo incluye en el
+  instalador ni lo enlaza**: lo descarga una sola vez, con permiso de la persona, la primera vez que
+  se reduce un video, y lo ejecuta como un programa aparte (`ffmpeg.exe`, en la carpeta `tools/` de
+  los datos de la app). Los videos nunca salen de la computadora.
+- **Versión**: FFmpeg n9.0.2-39-g7adfbe40dc, compilación `win64-lgpl-9.0` de
+  [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) (autobuild del 2026-10-31). De ese
+  paquete Glup baja solo `bin/ffmpeg.exe`, verificado con su SHA-256
+  (`apps/desktop/src-tauri/src/services/video/tool.rs`).
+- **Licencia**: GNU LGPL versión 3 (compilado con `--enable-version3`, sin `--enable-gpl` ni
+  `--enable-nonfree`; sin `libx264` ni `libx265`). Glup codifica con `h264_mf` (Media Foundation de
+  Windows) y el AAC propio de FFmpeg.
+- **Código fuente**: el de esa versión exacta está en
+  [FFmpeg/FFmpeg@7adfbe40dc](https://github.com/FFmpeg/FFmpeg/commit/7adfbe40dc) (rama `release/9.0`,
+  sobre la etiqueta [n9.0.2](https://github.com/FFmpeg/FFmpeg/releases/tag/n9.0.2)); los scripts con
+  que se compiló y las bibliotecas que incluye, con sus licencias, en
+  [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) y en el `LICENSE.txt` del paquete.
+- **Reemplazarlo**: como es un programa aparte, cualquiera puede cambiar ese `ffmpeg.exe` por otra
+  compilación de FFmpeg; Glup solo lo ejecuta.
+- **Texto de la licencia**: [GNU Lesser General Public License v3](https://www.gnu.org/licenses/lgpl-3.0.html).
+
