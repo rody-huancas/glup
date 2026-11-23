@@ -9,6 +9,7 @@ import {
   buildBreathSway,
   buildFootTap,
   buildGesture,
+  buildStillGesture,
   buildStateMotion,
   getSwayTargets,
   resetLimbs,
@@ -24,20 +25,23 @@ interface UseMascotLimbsParams {
 }
 
 // Arms and feet: breathing sway always, a motion per state, idle foot taps and gestures on demand.
-// With prefers-reduced-motion nothing moves; only the face changes.
+// With prefers-reduced-motion nothing swings: the face changes and the gestures that say something
+// (greeting, pointing at a button) keep their pose still for the same time.
 export const useMascotLimbs = ({ elements, state, enabled }: UseMascotLimbsParams) => {
-  const reduced   = usePrefersReducedMotion();
-  const active    = enabled && !reduced;
-  const motion    = useRef<gsap.core.Animation | null>(null);
-  const tapCall   = useRef<gsap.core.Tween | null>(null);
-  const gesture   = useRef<gsap.core.Timeline | null>(null);
-  const stateRef  = useRef(state);
-  const activeRef = useRef(active);
+  const reduced    = usePrefersReducedMotion();
+  const active     = enabled && !reduced;
+  const motion     = useRef<gsap.core.Animation | null>(null);
+  const tapCall    = useRef<gsap.core.Tween | null>(null);
+  const gesture    = useRef<gsap.core.Timeline | null>(null);
+  const stateRef   = useRef(state);
+  const enabledRef = useRef(enabled);
+  const reducedRef = useRef(reduced);
 
   useEffect(() => {
-    stateRef.current  = state;
-    activeRef.current = active;
-  }, [state, active]);
+    stateRef.current   = state;
+    enabledRef.current = enabled;
+    reducedRef.current = reduced;
+  }, [state, enabled, reduced]);
 
   useEffect(() => applyPivots(elements), [elements]);
 
@@ -52,6 +56,7 @@ export const useMascotLimbs = ({ elements, state, enabled }: UseMascotLimbsParam
     };
   }, [active, elements]);
 
+  // Also when Glup goes back to the pill: a still gesture cut short there must not leave a hand raised.
   useEffect(() => {
     const limbs = resolveLimbs(elements);
     if (!limbs) return;
@@ -85,19 +90,22 @@ export const useMascotLimbs = ({ elements, state, enabled }: UseMascotLimbsParam
       tapCall.current = null;
       motion.current  = null;
     };
-  }, [state, active, elements]);
+  }, [state, active, enabled, elements]);
 
   // Gestures only play while idle and visible; the promise resolves when they end (or right away if skipped).
   const play = useCallback((name: MascotGesture): Promise<void> => {
     const limbs = resolveLimbs(elements);
 
-    if (!limbs || !activeRef.current || stateRef.current.type !== 'idle') return Promise.resolve();
+    if (!limbs || !enabledRef.current || stateRef.current.type !== 'idle') return Promise.resolve();
+
+    const timeline = reducedRef.current ? buildStillGesture(name, limbs) : buildGesture(name, limbs);
+    if (!timeline) return Promise.resolve();
 
     motion.current?.kill();
     gesture.current?.kill();
 
     return new Promise((resolve) => {
-      gesture.current = buildGesture(name, limbs).eventCallback('onComplete', () => resolve());
+      gesture.current = timeline.eventCallback('onComplete', () => resolve());
     });
   }, [elements]);
 

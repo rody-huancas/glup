@@ -208,6 +208,39 @@ const buildTapDance = (limbs: LimbTargets): gsap.core.Timeline => {
   return timeline;
 };
 
+// How long a gesture lasts, in seconds (its still version with reduced motion lasts the same).
+export const gestureDuration = (gesture: MascotGesture): number => {
+  if (gesture === 'wave' || gesture === 'wave-once') {
+    const { beat, times, swap } = gesture === 'wave' ? LIMB_MOTION.wave : LIMB_MOTION.waveOnce;
+    return times * 2 * beat + swap;
+  }
+
+  const { reach, hold, back } = LIMB_MOTION.point;
+  return gesture === 'point' ? reach + hold + back : 0;
+};
+
+// Reduced motion: the gestures that say something (a raised hand to greet, the arm toward "Elegir
+// archivos") keep their pose, still, for as long as they would last. The idle ones (stretch,
+// tap-dance) are only movement, so they are skipped (null).
+export const buildStillGesture = (gesture: MascotGesture, limbs: LimbTargets): gsap.core.Timeline | null => {
+  const end = gestureDuration(gesture);
+
+  if (gesture === 'wave' || gesture === 'wave-once') {
+    return gsap
+      .timeline()
+      .set(limbs.armRight, { autoAlpha: 0 }, 0)
+      .set(limbs.armWave, { autoAlpha: 1, rotation: 0 }, 0)
+      .set(limbs.armWave, { autoAlpha: 0 }, end)
+      .set(limbs.armRight, { autoAlpha: 1 }, end);
+  }
+
+  if (gesture === 'point') {
+    return gsap.timeline().set(limbs.armRight, { rotation: LIMB_MOTION.point.angle }, 0).set(limbs.armRight, { rotation: 0 }, end);
+  }
+
+  return null;
+};
+
 export const buildGesture = (gesture: MascotGesture, limbs: LimbTargets): gsap.core.Timeline => {
   if (gesture === 'wave') return buildWave({ limbs, config: LIMB_MOTION.wave });
   if (gesture === 'wave-once') return buildWave({ limbs, config: LIMB_MOTION.waveOnce });
