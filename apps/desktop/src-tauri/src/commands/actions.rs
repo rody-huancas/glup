@@ -36,13 +36,6 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
     result
 }
 
-// #[tauri::command]
-// pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<ActionReport, String> {
-//     tauri::async_runtime::spawn_blocking(move || actions::run(&app, request))
-//         .await
-//         .map_err(|error| error.to_string())?
-// }
-
 // "Firmar" runs like any other action: registered task, blocking worker, result kept.
 #[tauri::command]
 pub async fn sign_pdf(app: AppHandle, request: SignRequest) -> Result<ActionReport, String> {

@@ -15,4 +15,3 @@ pub mod text;
 pub mod transcribe;
 pub mod updates;
 pub mod video;
-// pub mod main_window;
