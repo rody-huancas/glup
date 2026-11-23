@@ -17,6 +17,7 @@ pub mod settings;
 pub mod signatures;
 pub mod startup;
 pub mod tasks;
+pub mod text;
 // pub mod main_window;
 pub mod tray;
 pub mod updates;
