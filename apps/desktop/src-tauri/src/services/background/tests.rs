@@ -9,10 +9,11 @@ use std::{
 };
 
 use image::{DynamicImage, GenericImageView, ImageFormat, Rgb, RgbImage, Rgba, RgbaImage};
+use sha2::{Digest, Sha256};
 
 use super::{
     cutout,
-    download::{copy_chunks, download, matches_hash, sha256_of, CopyParams, Copied, DownloadEnd, DownloadParams, Fetched, CORRUPT_ERROR, NETWORK_ERROR},
+    download::{copy_chunks, download, matches_hash, sha256_of, CopyParams, Copied, DownloadEnd, DownloadParams, Fetched, HashWriter, CORRUPT_ERROR, NETWORK_ERROR},
     mask::{apply_mask, mask_from_logits, on_white, preprocess, Mask, MEAN, MODEL_SIDE, STD},
     model::{delete_in, model_path, part_path, status_in, ModelFile},
     session::{infer, is_idle, open, Device},
@@ -81,7 +82,7 @@ fn server(bytes: Vec<u8>, cut: Option<usize>, ranges: bool) -> impl Fn(u64) -> R
 
 fn run_download(folder: &Path, model: &ModelFile, fetch: &dyn Fn(u64) -> Result<Fetched, String>) -> Result<DownloadEnd, String> {
     let cancel = AtomicBool::new(false);
-    download(DownloadParams { folder, model, cancel: &cancel, on_progress: &|_| {}, fetch })
+    download(DownloadParams { folder, model, cancel: &cancel, on_progress: &|_| {}, on_verifying: &|| {}, fetch })
 }
 
 #[test]
@@ -201,6 +202,81 @@ fn a_good_download_is_installed() {
     assert!(status_in(&folder.0, &model).installed);
 }
 
+// The hash is computed while the bytes arrive; a resumed download reads its part from disk first.
+#[test]
+fn a_resumed_download_with_a_damaged_part_is_caught() {
+    let folder = Folder::new("damaged-part");
+    let bytes  = served_bytes();
+    let model  = fake_model(&folder.0, &bytes);
+
+    let _ = run_download(&folder.0, &model, &server(bytes.clone(), Some(1_200_000), true));
+    let part      = part_path(&folder.0, &model);
+    let mut saved = fs::read(&part).expect("part");
+    saved[10] ^= 0xFF;
+    fs::write(&part, saved).expect("damage the part");
+
+    assert_eq!(run_download(&folder.0, &model, &server(bytes, None, true)), Err(CORRUPT_ERROR.to_string()));
+    assert!(!model_path(&folder.0, &model).exists());
+    assert!(!part.exists());
+}
+
+#[test]
+fn a_whole_part_left_behind_is_only_checked() {
+    let folder = Folder::new("whole-part");
+    let bytes  = served_bytes();
+    let model  = fake_model(&folder.0, &bytes);
+    fs::write(part_path(&folder.0, &model), &bytes).expect("part");
+
+    let cancel = AtomicBool::new(false);
+    let checks = std::cell::Cell::new(0);
+    let end    = download(DownloadParams {
+        folder       : &folder.0,
+        model        : &model,
+        cancel       : &cancel,
+        on_progress  : &|_| {},
+        on_verifying : &|| checks.set(checks.get() + 1),
+        fetch        : &|_| Err("no network needed".to_string()),
+    });
+
+    assert_eq!(end, Ok(DownloadEnd::Installed));
+    assert_eq!(checks.get(), 1);
+}
+
+#[test]
+fn the_check_is_announced_once_after_the_last_byte() {
+    let folder   = Folder::new("verifying");
+    let bytes    = served_bytes();
+    let model    = fake_model(&folder.0, &bytes);
+    let cancel   = AtomicBool::new(false);
+    let last     = std::cell::Cell::new(0u64);
+    let checked  = std::cell::Cell::new(None);
+    let fetch    = server(bytes.clone(), None, true);
+
+    let end = download(DownloadParams {
+        folder       : &folder.0,
+        model        : &model,
+        cancel       : &cancel,
+        on_progress  : &|done| last.set(done),
+        on_verifying : &|| checked.set(Some(last.get())),
+        fetch        : &fetch,
+    });
+
+    assert_eq!(end, Ok(DownloadEnd::Installed));
+    assert_eq!(checked.get(), Some(bytes.len() as u64));
+}
+
+#[test]
+fn hash_writer_checks_what_went_through() {
+    let mut writer = HashWriter::new(Vec::new());
+    io::Write::write_all(&mut writer, b"glup").expect("write");
+    assert_eq!(writer.inner, b"glup");
+    assert!(!writer.matches("00"));
+
+    let mut good = HashWriter::new(Vec::new());
+    io::Write::write_all(&mut good, b"abc").expect("write");
+    assert!(good.matches("BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD"));
+}
+
 #[test]
 fn a_damaged_download_is_deleted_and_reported() {
     let folder    = Folder::new("damaged");
@@ -254,7 +330,7 @@ fn cancelling_keeps_the_part() {
     let mut file   = Vec::new();
     let cancel     = AtomicBool::new(true);
 
-    let copied = copy_chunks(CopyParams { reader: &mut reader, file: &mut file, start: 40, cancel: &cancel, on_progress: &|_| {} }).expect("copy");
+    let copied = copy_chunks(CopyParams { reader: &mut reader, file: &mut file, start: 40, cancel: &cancel, on_progress: &|_| {}, hasher: &mut Sha256::new() }).expect("copy");
     assert_eq!(copied, Copied::Cancelled(40));
 }
 
@@ -338,4 +414,15 @@ fn real_url_resumes_from_a_byte() {
 
     assert!(fetched.resumed);
     assert_eq!(rest.len(), 1_000_000);
+}
+
+// How long checking a big download takes when the whole file is read again (the old way), to compare
+// with the hash taken while it arrives. GLUP_HASH_FILE is any big file (a model).
+#[test]
+#[ignore]
+fn real_hash_speed() {
+    let file  = PathBuf::from(std::env::var("GLUP_HASH_FILE").unwrap());
+    let start = Instant::now();
+    let _     = sha256_of(&file).unwrap();
+    println!("leer y comprobar {} MB de nuevo: {} ms", fs::metadata(&file).unwrap().len() / 1_000_000, start.elapsed().as_millis());
 }
