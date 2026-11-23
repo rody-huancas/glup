@@ -10,17 +10,17 @@ mod tests;
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::AtomicBool,
 };
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Manager};
 
 use crate::services::{
-    actions::{ActionControl, ActionProgress, ACTION_PROGRESS_EVENT},
+    actions::ActionControl,
     background::download::{self, DownloadEnd, DownloadParams},
-    history::format_size,
-    tasks::{self, TaskSummary},
+    progress::{self as task_progress, DownloadSpan},
+    tasks::TaskSummary,
     video::{
         encode::{encode, EncodeParams, Encoded},
         plan::{ffmpeg_args, plan, retry_plan, ArgsParams, VideoOptions, VideoPlan},
@@ -37,42 +37,30 @@ pub const ALREADY_LIGHT: &str     = "Este video ya estaba liviano";
 pub const LEARNED_MESSAGE: &str   = "Listo, ya sé trabajar con videos";
 pub const CANCELLED_MESSAGE: &str = "Dejé la descarga a medias. La próxima vez sigo desde ahí.";
 
-fn emit(app: &AppHandle, progress: ActionProgress) {
-    if let Some(task) = &progress.task_id {
-        tasks::progress(app, task, &progress);
-    }
-    let _ = app.emit(ACTION_PROGRESS_EVENT, progress);
-}
-
 // "Aprender a trabajar con videos": the compressed ffmpeg.exe out of the FFmpeg zip, resumed if cut,
 // checked, unpacked and checked again.
 pub fn download_tool(app: &AppHandle, task: &Option<String>) -> Result<TaskSummary, String> {
+    download_tool_as(app, &DownloadSpan::single(task, FFMPEG_DOWNLOAD.size))
+}
+
+// The same download as part of a bigger one (FFmpeg and then the Whisper model, shown as one).
+pub fn download_tool_as(app: &AppHandle, span: &DownloadSpan) -> Result<TaskSummary, String> {
     let control = app.state::<ActionControl>();
-    control.cancelled.store(false, Ordering::SeqCst);
+    control.begin(&span.task);
+    // control.cancelled.store(false, Ordering::SeqCst);
 
     let folder = tools_folder(app)?;
     if tool::ffmpeg_in(&folder).is_file() {
         return Ok(TaskSummary::success(LEARNED_MESSAGE.to_string()));
     }
 
-    let total       = FFMPEG_DOWNLOAD.size;
-    let on_progress = |done: u64| {
-        emit(app, ActionProgress {
-            task_id : task.clone(),
-            current : done as usize,
-            total   : total as usize,
-            name    : String::new(),
-            active  : 1,
-            detail  : Some(format!("{} de {}", format_size(done), format_size(total))),
-        });
-    };
-
     let end = download::download(DownloadParams {
-        folder      : &folder,
-        model       : &FFMPEG_DOWNLOAD,
-        cancel      : &control.cancelled,
-        on_progress : &on_progress,
-        fetch       : &tool::fetch_range,
+        folder       : &folder,
+        model        : &FFMPEG_DOWNLOAD,
+        cancel       : &control.cancelled,
+        on_progress  : &|done| task_progress::emit(app, span.downloading(done)),
+        on_verifying : &|| task_progress::emit(app, span.verifying()),
+        fetch        : &tool::fetch_range,
     })?;
 
     match end {

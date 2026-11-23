@@ -409,11 +409,12 @@ fn real_download_gets_only_ffmpeg_exe() {
 
     // First try: stopped halfway, as a cut connection would leave it.
     let first = download(DownloadParams {
-        folder      : &folder,
-        model       : &FFMPEG_DOWNLOAD,
-        cancel      : &cancel,
-        on_progress : &|done| if done >= halfway { cancel.store(true, Ordering::SeqCst) },
-        fetch       : &fetch_range,
+        folder       : &folder,
+        model        : &FFMPEG_DOWNLOAD,
+        cancel       : &cancel,
+        on_progress  : &|done| if done >= halfway { cancel.store(true, Ordering::SeqCst) },
+        on_verifying : &|| {},
+        fetch        : &fetch_range,
     })
     .unwrap();
     assert_eq!(first, DownloadEnd::Cancelled);
@@ -422,11 +423,12 @@ fn real_download_gets_only_ffmpeg_exe() {
     // Second try: goes on from there.
     cancel.store(false, Ordering::SeqCst);
     let second = download(DownloadParams {
-        folder      : &folder,
-        model       : &FFMPEG_DOWNLOAD,
-        cancel      : &cancel,
-        on_progress : &|done| seen.store(done, Ordering::SeqCst),
-        fetch       : &fetch_range,
+        folder       : &folder,
+        model        : &FFMPEG_DOWNLOAD,
+        cancel       : &cancel,
+        on_progress  : &|done| seen.store(done, Ordering::SeqCst),
+        on_verifying : &|| {},
+        fetch        : &fetch_range,
     })
     .unwrap();
     assert_eq!(second, DownloadEnd::Installed);

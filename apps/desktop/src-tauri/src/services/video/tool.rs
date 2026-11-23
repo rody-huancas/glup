@@ -2,7 +2,7 @@
 // with permission, and run as its own process. LGPL build (no GPL or nonfree parts), pinned below.
 use std::{
     fs::{self, File},
-    io::{self, BufReader, BufWriter},
+    io::{self, BufReader, BufWriter, Write},
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -12,7 +12,7 @@ use tauri::{AppHandle, Manager};
 use ureq::Agent;
 
 use crate::services::background::{
-    download::{matches_hash, Fetched, NETWORK_ERROR, WRITE_ERROR},
+    download::{HashWriter, Fetched, NETWORK_ERROR, WRITE_ERROR},
     model::{ModelFile, ModelStatus},
 };
 
@@ -120,14 +120,17 @@ pub fn unpack(folder: &Path) -> Result<(), String> {
     let target = ffmpeg_in(folder);
     let temp   = folder.join(format!("{FFMPEG_NAME}.tmp"));
 
-    let inflate = || -> io::Result<()> {
+    // The hash of ffmpeg.exe is taken while it is written, not by reading it again.
+    let inflate = || -> io::Result<bool> {
         let mut reader = DeflateDecoder::new(BufReader::new(File::open(&source)?));
-        let mut writer = BufWriter::new(File::create(&temp)?);
+        let mut writer = HashWriter::new(BufWriter::new(File::create(&temp)?));
         io::copy(&mut reader, &mut writer)?;
-        Ok(())
+        writer.flush()?;
+        Ok(writer.matches(FFMPEG_EXE_SHA256))
     };
 
-    let unpacked = inflate().is_ok() && matches_hash(&temp, FFMPEG_EXE_SHA256);
+    let unpacked = inflate().unwrap_or(false);
+    // let unpacked = inflate().is_ok() && matches_hash(&temp, FFMPEG_EXE_SHA256);
     let _        = fs::remove_file(&source);
 
     if !unpacked {
