@@ -32,7 +32,7 @@ de la parte que toques:
 ```bash
 pnpm install
 pnpm dev                                   # tauri dev (la primera compilación de Rust tarda)
-pnpm build                                 # instalador
+pnpm build                                 # instalador (release: solo si se pide)
 pnpm version:set 0.2.0                     # versión (Cargo.toml manda; package.json la sigue)
 
 pnpm --filter desktop typecheck            # tsc
@@ -50,6 +50,8 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - No inventes funciones del producto: si algo no está claro, pregunta.
 - No hagas commits ni push salvo que se pidan. Tampoco tags: un tag `v*.*.*` dispara la publicación.
 - Antes de terminar: typecheck, vitest, cargo check y cargo test en verde.
+- Nunca se compila en release en local (`cargo build --release`, `cargo test --release`,
+  `tauri build`) salvo que la persona lo pida: el instalador lo arma el workflow de Release.
 - Cuidar el disco: si en la tarea se corrió `cargo test` o se compiló en release (`cargo build
   --release`, `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` en
   `apps/desktop/src-tauri` (antes, detener `glup.exe` y `tauri dev` si están corriendo).

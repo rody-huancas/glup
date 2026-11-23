@@ -157,6 +157,8 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
   (`[profile.dev.package."*"] debug = false`), así que `target` no guarda un `.pdb` por crate. Los
   crates de imagen, `ort`, `whisper-rs-sys` y los de las descargas (`sha2`, `rustls`, `ring`,
   `flate2`, `zlib-rs`) siguen con `opt-level = 3`.
+- **Nunca se compila en release en local** (`cargo build --release`, `cargo test --release`,
+  `tauri build`) salvo que la persona lo pida: el instalador lo arma el workflow de Release.
 - Si en la tarea se corrió `cargo test` o se compiló en release (`cargo build --release`,
   `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` (todo `target`, no
   solo `--release`): las compilaciones de prueba también pesan varios GB. Antes se detienen
