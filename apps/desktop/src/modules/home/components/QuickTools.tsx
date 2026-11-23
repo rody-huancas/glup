@@ -1,13 +1,16 @@
 import { QuickToolCard } from '@/modules/home/components/QuickToolCard';
 import { HOME_TEXTS } from '@/modules/home/constants/home';
-import { QUICK_TOOLS } from '@/modules/home/constants/quickTools';
+// import { QUICK_TOOLS } from '@/modules/home/constants/quickTools';
 // import { useQuickTools } from '@/modules/home/hooks/useQuickTools';
-import type { QuickTool } from '@/modules/home/interfaces/quickTool';
+// import type { QuickTool } from '@/modules/home/interfaces/quickTool';
+import { QUICK_TOOLS } from '@/modules/tools/constants/tools';
+import type { ActionTool } from '@/modules/tools/interfaces/actionTool';
 import { SectionLabel } from '@/shared/components/SectionLabel';
 import { REVEAL_PROPS } from '@/shared/constants/reveal';
 
 interface QuickToolsProps {
-  onRun: (tool: QuickTool) => void;
+  onRun: (tool: ActionTool) => void;
+  // onRun: (tool: QuickTool) => void;
 }
 
 // Runs through the home flow so the result shows in the panel, like a drop.

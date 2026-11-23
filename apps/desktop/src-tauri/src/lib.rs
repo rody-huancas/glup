@@ -39,6 +39,7 @@ pub fn run() {
             commands::files::get_files_info,
             commands::files::open_file,
             commands::files::reveal_file,
+            commands::links::open_issues,
             commands::actions::run_action,
             commands::actions::cancel_action,
             commands::actions::begin_page_images,

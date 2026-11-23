@@ -10,12 +10,13 @@ import { useChewing } from '@/modules/home/hooks/useChewing';
 import { useDropZoneGestures } from '@/modules/home/hooks/useDropZoneGestures';
 // import { useEatingSequence } from '@/modules/home/hooks/useEatingSequence';
 import type { HomeFiles } from '@/modules/home/interfaces/homeFiles';
-import type { QuickTool } from '@/modules/home/interfaces/quickTool';
+// import type { QuickTool } from '@/modules/home/interfaces/quickTool';
 import { holdWhile } from '@/modules/island/store/islandHolds';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { useSaveLocation } from '@/modules/settings/hooks/useSaveLocation';
+import type { ActionTool } from '@/modules/tools/interfaces/actionTool';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 // Steps with a list, a grid or a choice: the person is in the middle of them.
@@ -112,15 +113,25 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
     });
   }, [handlePaths]);
 
-  // Quick tools go through the same flow (Glup eats the files) and then pick their action on their own.
-  const runTool = useCallback((tool: QuickTool) => {
-    void holdWhile(() => openFileDialog({ type: tool.fileType, multiple: tool.multiple })).then((paths) => {
-      if (paths.length === 0) return;
+  // Tools go through the same flow (Glup eats the files) and then pick their action on their own.
+  // Resolves true once files were chosen, so Herramientas can bring the person to Inicio.
+  const runTool = useCallback(async (tool: ActionTool): Promise<boolean> => {
+    const paths = await holdWhile(() => openFileDialog({ type: tool.fileType, multiple: tool.multiple }));
+    if (paths.length === 0) return false;
 
-      pendingAction.current = tool.actionId;
-      void handlePaths(paths);
-    });
+    pendingAction.current = tool.actionId;
+    void handlePaths(paths);
+    return true;
   }, [handlePaths]);
+
+  // const runTool = useCallback((tool: QuickTool) => {
+  //   void holdWhile(() => openFileDialog({ type: tool.fileType, multiple: tool.multiple })).then((paths) => {
+  //     if (paths.length === 0) return;
+  //
+  //     pendingAction.current = tool.actionId;
+  //     void handlePaths(paths);
+  //   });
+  // }, [handlePaths]);
 
   const choose  = actions.choose;
   const visible = actions.selection;
@@ -131,7 +142,9 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign }: UseHome
     if (!visible || !pending) return;
 
     pendingAction.current = null;
-    choose(pending);
+    // Files that do not fit the tool (one PDF for "Unir") just show what can be done with them, like a drop.
+    if (visible.actions.some((action) => action.id === pending)) choose(pending);
+    // choose(pending);
   }, [visible, choose]);
 
   // Real runs set Glup's mood from the task store (useTaskMood); here only the "learning" answer.
