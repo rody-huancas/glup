@@ -20,6 +20,7 @@ export type ActionsPhase =
   | 'video'
   | 'id-format'
   | 'id-preview'
+  | 'transcribe'
   | 'working'
   | 'learning'
   | 'result';

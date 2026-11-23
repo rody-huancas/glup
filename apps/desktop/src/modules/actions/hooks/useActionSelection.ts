@@ -16,6 +16,7 @@ import { createSelection } from '@/modules/actions/utils/selection';
 import { getSelectionSummary } from '@/modules/actions/utils/summary';
 import { getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
+import type { LearnableId } from '@/modules/background/types/learnableId';
 import { nextLearnPhase } from '@/modules/background/utils/learnStep';
 import { ID_PHOTO_TEXTS } from '@/modules/id-photo/constants/idPhoto';
 import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
@@ -32,6 +33,10 @@ import type { SaveDestination } from '@/modules/settings/interfaces/appSettings'
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
 import { enqueueTask } from '@/modules/tasks/store/taskStore';
 import { extractText } from '@/modules/text/services/extractText';
+import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
+import type { TranscribeOptions } from '@/modules/transcribe/interfaces/transcribeOptions';
+import { getTranscribeModel, transcribeAudio } from '@/modules/transcribe/services/transcribe';
+import { toTranscribeResult } from '@/modules/transcribe/utils/transcribe';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 import { getVideoTool } from '@/modules/video/services/videoTool';
 
@@ -79,6 +84,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
   video            : 'choosing',
   'id-format'      : 'choosing',
   'id-preview'     : 'id-format',
+  transcribe       : 'choosing',
   protect          : 'choosing',
   unlock           : 'choosing',
   watermark        : 'choosing',
@@ -94,6 +100,9 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const [slow, setSlow]           = useState(false);
   const [phase, setPhase]         = useState<ActionsPhase>('choosing');
   const [idChoice, setIdChoice]   = useState<IdChoice | null>(null);
+  const [learnable, setLearnable] = useState<LearnableId>('background');
+  // Options chosen before learning: they run as soon as the download ends.
+  const pendingTranscribe         = useRef<TranscribeOptions | null>(null);
   const timers                    = useRef<number[]>([]);
   const finishedRef               = useRef(onFinished);
   const destinationRef            = useRef(destination);
@@ -220,9 +229,12 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     // "Reducir peso" asks for a level only with PDFs.
     if (actionId === 'compress' && selection.type === 'pdf') return setPhase('reduce');
 
+    if (actionId === 'transcribe') return setPhase('transcribe');
+
     // With videos it asks what they are for; the first time, Glup has to learn (download FFmpeg).
     if (actionId === 'compress' && selection.type === 'video') {
       learnDone.current = 'video';
+      setLearnable('video');
       void getVideoTool()
         .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing', 'video')))
         .catch(() => setPhase((current) => nextLearnPhase(current, 'missing', 'video')));
@@ -233,6 +245,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     // "Foto tamaño carnet" also needs the background model: same question the first time.
     if (actionId === 'id-photo') {
       learnDone.current = 'id-format';
+      setLearnable('background');
       void getBackgroundModel()
         .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing', 'id-format')))
         .catch(() => setPhase((current) => nextLearnPhase(current, 'missing', 'id-format')));
@@ -241,6 +254,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
 
     if (actionId === 'remove-background') {
       learnDone.current = 'background';
+      setLearnable('background');
       void getBackgroundModel()
         .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing')))
         .catch(() => setPhase((current) => nextLearnPhase(current, 'missing')));
@@ -346,6 +360,47 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     finishedRef.current();
   }, [selection, phase, idChoice]);
 
+  // Runs it as a task; the result shows the text like "Sacar texto", with its subtitles.
+  const runTranscribe = useCallback((options: TranscribeOptions) => {
+    if (!selection) return;
+
+    const paths       = selection.paths;
+    const destination = destinationRef.current;
+    const name        = getSelectionSummary(selection).label;
+    enqueueTask({
+      title     : TRANSCRIBE_TEXTS.taskTitle(name),
+      type      : selection.type,
+      fileCount : paths.length,
+      owner     : 'home',
+      run       : ({ taskId }) => transcribeAudio({ paths, options, taskId }).then((report) => toTranscribeResult({ report, paths, destination })),
+    });
+    finishedRef.current();
+  }, [selection]);
+
+  // The level's model (and FFmpeg) the first time: the learning step, then it runs on its own.
+  const startTranscribe = useCallback((options: TranscribeOptions) => {
+    if (phase !== 'transcribe') return;
+
+    void getTranscribeModel(options.level)
+      .then((status) => {
+        if (status.installed) return runTranscribe(options);
+
+        pendingTranscribe.current = options;
+        learnDone.current         = 'transcribe';
+        setLearnable(options.level === 'fast' ? 'transcribe-fast' : 'transcribe-precise');
+        setPhase('learn-model');
+      })
+      .catch(() => runTranscribe(options));
+  }, [phase, runTranscribe]);
+
+  useEffect(() => {
+    const pendingOptions = pendingTranscribe.current;
+    if (phase !== 'transcribe' || !pendingOptions) return;
+
+    pendingTranscribe.current = null;
+    runTranscribe(pendingOptions);
+  }, [phase, runTranscribe]);
+
   const reduceVideo = useCallback((video: VideoOptions) => {
     if (phase === 'video') execute({ actionId: 'compress', options: { video } });
   }, [phase, execute]);
@@ -386,6 +441,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     watermarkPdf,
     numberPages,
     reduceVideo,
+    startTranscribe,
+    learnable,
     idChoice,
     chooseIdFormat,
     saveIdPhoto,

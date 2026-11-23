@@ -10,6 +10,7 @@ export type ActionId =
   | 'extract-images'
   | 'extract-text'
   | 'id-photo'
+  | 'transcribe'
   | 'to-images'
   | 'merge'
   | 'convert'

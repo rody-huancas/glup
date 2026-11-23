@@ -4,11 +4,13 @@ import type { ImageFormat } from '@/modules/actions/types/imageFormat';
 import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
 import type { IdCrop } from '@/modules/id-photo/interfaces/idCrop';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
+import type { LearnableId } from '@/modules/background/types/learnableId';
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
+import type { TranscribeOptions } from '@/modules/transcribe/interfaces/transcribeOptions';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 
 // Everything the actions panel needs to show a step and react to it. Progress and results moved to
@@ -35,6 +37,9 @@ export interface ActionFlow {
   idChoice         : IdChoice | null;
   chooseIdFormat   : (choice: IdChoice) => void;
   saveIdPhoto      : (session: number, crop: IdCrop) => void;
+  startTranscribe  : (options: TranscribeOptions) => void;
+  // What the learning step downloads now.
+  learnable        : LearnableId;
   // The learning step ("Quitar fondo" or videos): download started, stopped (cancel or error), finished.
   modelStarted     : () => void;
   modelStopped     : () => void;
