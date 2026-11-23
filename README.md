@@ -21,6 +21,7 @@ glup/
 - [Node.js](https://nodejs.org) 20 o superior
 - [pnpm](https://pnpm.io/installation) 10
 - En Windows: [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) con la carga de trabajo "Desarrollo para el escritorio con C++", y WebView2 (ya viene instalado en Windows 10/11).
+- [CMake](https://cmake.org/) y [LLVM](https://llvm.org/) (por libclang), para compilar whisper.cpp: `winget install Kitware.CMake LLVM.LLVM`.
 
 Más detalles en los [prerrequisitos de Tauri](https://tauri.app/start/prerequisites/).
 

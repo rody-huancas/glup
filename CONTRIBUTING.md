@@ -23,6 +23,8 @@ archivos, gratis y sin subir nada a internet.
 ## Preparar el entorno
 
 Requisitos: Rust (stable, con `rustup`), Node.js 20+, pnpm 10 y, en Windows, las Build Tools de C++.
+Para compilar whisper.cpp («Pasar audio a texto») también hacen falta **CMake** y **LLVM** (por libclang):
+`winget install Kitware.CMake LLVM.LLVM`. El CI de GitHub ya los trae.
 Más detalles en el `README.md`.
 
 ```bash
