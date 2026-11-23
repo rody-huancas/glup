@@ -101,6 +101,15 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 }
 ```
 
+## Espacio en disco
+
+- `[profile.dev]` usa `debug = "line-tables-only"`: los errores muestran archivo y línea, y `target`
+  pesa mucho menos. Los crates de imagen y `ort` siguen con `opt-level = 3`.
+- Después de compilar en release para medir o probar algo (`cargo build --release`, `cargo test
+  --release`, `tauri build`), correr `cargo clean --release`.
+- Al terminar una tarea no quedan copias del proyecto (worktrees, clones), carpetas de compilación
+  extra (otro `CARGO_TARGET_DIR`) ni archivos temporales pesados.
+
 ## Checklist de un cambio en Rust
 
 - [ ] Comando delgado, registrado en `lib.rs` y con su nombre en `events.ts`.
@@ -109,3 +118,4 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 - [ ] Ningún original modificado; nombres de salida con `naming.rs`.
 - [ ] Pruebas con archivos generados en una carpeta temporal.
 - [ ] `cargo check` y `cargo test` sin errores ni warnings.
+- [ ] Sin compilaciones release, copias del proyecto ni carpetas de compilación extra al terminar.
