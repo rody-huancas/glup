@@ -14,7 +14,7 @@ import { preventSelectionStart } from '@/shared/utils/selection';
 
 // The panel is clipped to the SVG silhouette, so the content and Glup never spill past its outline.
 export const Island = () => {
-  const { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection, onMascotClick, onPanelPointerDown } = useIsland();
+  const { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection, onMascotClick, onPanelPointerDown, onNoticeView } = useIsland();
   const expanded = state === 'expanded';
 
   return (
@@ -30,7 +30,7 @@ export const Island = () => {
           <MainPanel panel={panel} controls={controls} avatarAnchorRef={elements.avatarAnchor} />
         </IslandContent>
         <IslandPillAnchor anchorRef={elements.pillAnchor} />
-        <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={notice} />
+        <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={notice} onView={onNoticeView} />
         <IslandPillProgress visible={progress.visible} fraction={progress.fraction} />
         <IslandPillDot visible={pendingSelection && notice === null} />
         <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash} hidden={panel.fullScreen || panel.welcome.visible}>
