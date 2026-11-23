@@ -1,7 +1,6 @@
 import armLeft from '@/modules/mascot/assets/arm-left.png';
 import armRight from '@/modules/mascot/assets/arm-right.png';
 import armWave from '@/modules/mascot/assets/arm-wave.png';
-// The previous body, with arms and feet drawn in: assets/body-legacy.png.
 import body from '@/modules/mascot/assets/body.png';
 import eyeHappyLeft from '@/modules/mascot/assets/eye-happy-left.png';
 import eyeHappyRight from '@/modules/mascot/assets/eye-happy-right.png';
