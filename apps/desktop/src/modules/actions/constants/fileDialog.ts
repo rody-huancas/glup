@@ -14,4 +14,5 @@ export const DIALOG_FILTERS: Record<DialogFileType, DialogFilter[]> = {
   pdf   : [PDF_FILTER],
   image : [IMAGE_FILTER],
   any   : [ANY_FILTER, PDF_FILTER, IMAGE_FILTER],
+  files : [],
 };
