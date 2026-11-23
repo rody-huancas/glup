@@ -18,7 +18,9 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
    según el tipo de archivo (`pdf`, `image`, `pdf-mixed`, `any`) y la cantidad
    (`single`, `multiple`, `any`). Una es la principal (botón mint).
 3. **Paso intermedio** (opcional): elegir formato, nivel, orden de archivos o páginas. Con "Volver".
-   Mientras hay un paso con lista o cuadrícula, la isla queda fijada.
+   Mientras hay un paso con lista o cuadrícula, la isla queda fijada. Las acciones que necesitan una
+   pantalla entera (Firmar, Organizar páginas) ocultan el menú lateral, retienen la isla
+   (`panel.fullScreen`) y preguntan antes de salir si hay cambios.
 4. **Guardar en**: misma carpeta, carpeta "Glup" junto al original o una carpeta elegida. Se elige
    **antes** de ejecutar y se recuerda en `settings.json`. Con varios archivos, el interruptor
    «Entregar todo en un ZIP».
@@ -70,7 +72,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | Tipo | Acciones |
 | --- | --- |
 | Imagen | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso, A PDF, Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
-| PDF (1) | Reducir peso (Normal, Al máximo, peso objetivo), Firmar, Separar páginas, A imágenes |
+| PDF (1) | Reducir peso (Normal, Al máximo, peso objetivo), Firmar, Separar páginas, Organizar páginas (girar, quitar y reordenar), A imágenes |
 | PDF (2+) | Unir, Reducir peso, Juntar en ZIP |
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
 | Cualquier mezcla (2+) | Juntar en ZIP |

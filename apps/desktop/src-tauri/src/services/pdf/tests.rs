@@ -7,6 +7,7 @@ use lopdf::{dictionary, Document, Object};
 use super::{
     assemble, info, load, load_bytes,
     merge::{merge, page_count, pick},
+    organize::{combined_rotation, detail, is_valid, organize, summarize, OrganizeParams, OrganizeSummary, OrganizedPage},
     reduce::{reduce, NORMAL_PROFILE},
     split::{extract_page, extract_pages, page_stem, ranges_label, selection_stem},
     PagePick,
@@ -185,4 +186,108 @@ fn reduces_a_pdf_with_photos() {
 
     assert!(after < before);
     assert_eq!(load_bytes(&reduced).unwrap().get_pages().len(), 3);
+}
+
+fn pick_pages(pages: &[(u32, u32)]) -> Vec<OrganizedPage> {
+    pages.iter().map(|&(page, rotation)| OrganizedPage { page, rotation }).collect()
+}
+
+fn rotations(bytes: &[u8]) -> Vec<i64> {
+    let document = load_bytes(bytes).unwrap();
+
+    document
+        .get_pages()
+        .values()
+        .map(|&id| document.get_dictionary(id).unwrap().get(b"Rotate").and_then(Object::as_i64).unwrap_or(0))
+        .collect()
+}
+
+// Page 1 links to page 3; `rotated_at` gives one page its own /Rotate.
+fn sample_with_link(widths: &[i64], rotated_at: Option<(u32, i64)>) -> Document {
+    let mut document = sample(widths);
+    let pages        = document.get_pages();
+    let target       = pages[&3];
+    let link         = document.add_object(dictionary! {
+        "Type"    => "Annot",
+        "Subtype" => "Link",
+        "Rect"    => vec![0.into(), 0.into(), 100.into(), 100.into()],
+        "Dest"    => vec![target.into(), "Fit".into()],
+    });
+
+    document.get_dictionary_mut(pages[&1]).unwrap().set("Annots", vec![Object::Reference(link)]);
+    if let Some((page, rotation)) = rotated_at {
+        document.get_dictionary_mut(pages[&page]).unwrap().set("Rotate", rotation);
+    }
+    document
+}
+
+#[test]
+fn organizes_pages_in_the_new_order() {
+    let bytes = organize(OrganizeParams { document: sample(&[201, 202, 203, 204]), pages: &pick_pages(&[(4, 0), (2, 0), (1, 0), (3, 0)]) }).unwrap();
+    assert_eq!(widths(&bytes), vec![204, 202, 201, 203]);
+    assert!(has_own_resources(&bytes));
+}
+
+#[test]
+fn organizing_drops_the_removed_pages() {
+    let bytes = organize(OrganizeParams { document: sample(&[201, 202, 203, 204, 205]), pages: &pick_pages(&[(1, 0), (3, 0), (5, 0)]) }).unwrap();
+    assert_eq!(widths(&bytes), vec![201, 203, 205]);
+}
+
+#[test]
+fn rotation_adds_to_the_one_a_page_already_had() {
+    let document = sample_with_link(&[201, 202, 203], Some((2, 270)));
+    let bytes    = organize(OrganizeParams { document, pages: &pick_pages(&[(1, 90), (2, 180), (3, 0)]) }).unwrap();
+
+    assert_eq!(rotations(&bytes), vec![90, 90, 0]);
+    assert_eq!(combined_rotation(-90, 90), 0);
+    assert_eq!(combined_rotation(450, 0), 90);
+}
+
+#[test]
+fn rotation_inherited_from_the_page_tree_is_kept() {
+    let mut document = sample(&[201, 202]);
+    let pages_id     = document.catalog().unwrap().get(b"Pages").unwrap().as_reference().unwrap();
+    document.get_dictionary_mut(pages_id).unwrap().set("Rotate", 90);
+
+    let bytes = organize(OrganizeParams { document, pages: &pick_pages(&[(2, 90), (1, 0)]) }).unwrap();
+    assert_eq!(rotations(&bytes), vec![180, 90]);
+}
+
+#[test]
+fn reorders_removes_and_rotates_together_keeping_links() {
+    let document = sample_with_link(&[201, 202, 203, 204], Some((3, 90)));
+    let bytes    = organize(OrganizeParams { document, pages: &pick_pages(&[(3, 90), (1, 0), (4, 270)]) }).unwrap();
+
+    assert_eq!(widths(&bytes), vec![203, 201, 204]);
+    assert_eq!(rotations(&bytes), vec![180, 0, 270]);
+
+    // The link on the old page 1 (now the second) still points at the old page 3 (now the first).
+    let result = load_bytes(&bytes).unwrap();
+    let pages  = result.get_pages();
+    let annots = result.get_dictionary(pages[&2]).unwrap().get(b"Annots").unwrap().as_array().unwrap().clone();
+    let link   = result.get_dictionary(annots[0].as_reference().unwrap()).unwrap();
+    let dest   = link.get(b"Dest").unwrap().as_array().unwrap();
+    assert_eq!(dest[0].as_reference().unwrap(), pages[&1]);
+}
+
+#[test]
+fn validates_the_organized_pages() {
+    assert!(is_valid(&pick_pages(&[(2, 0), (1, 270)]), 3));
+    assert!(!is_valid(&[], 3));
+    assert!(!is_valid(&pick_pages(&[(4, 0)]), 3));
+    assert!(!is_valid(&pick_pages(&[(0, 0)]), 3));
+    assert!(!is_valid(&pick_pages(&[(1, 0), (1, 90)]), 3));
+    assert!(!is_valid(&pick_pages(&[(1, 45)]), 3));
+    assert!(!is_valid(&pick_pages(&[(1, 360)]), 3));
+}
+
+#[test]
+fn describes_what_was_organized() {
+    let summary = summarize(&pick_pages(&[(1, 90), (3, 0), (4, 180), (5, 270)]), 6);
+    assert_eq!(summary, OrganizeSummary { kept: 4, removed: 2, rotated: 3 });
+    assert_eq!(detail(summary), "Organizado · 4 páginas (2 quitadas, 3 giradas)");
+    assert_eq!(detail(OrganizeSummary { kept: 12, removed: 0, rotated: 0 }), "Organizado · 12 páginas");
+    assert_eq!(detail(OrganizeSummary { kept: 1, removed: 1, rotated: 0 }), "Organizado · 1 página (1 quitada)");
+    assert_eq!(detail(OrganizeSummary { kept: 3, removed: 0, rotated: 1 }), "Organizado · 3 páginas (1 girada)");
 }

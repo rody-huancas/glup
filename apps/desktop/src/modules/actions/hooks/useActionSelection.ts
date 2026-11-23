@@ -31,6 +31,8 @@ interface UseActionSelectionParams {
   bundle      : boolean;
   // "Firmar" opens the signing screen with this PDF.
   onSign      : (path: string) => void;
+  // "Organizar páginas" opens its own screen too.
+  onOrganize  : (path: string) => void;
 }
 
 interface ExecuteParams {
@@ -64,7 +66,8 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle, onSign }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize }: UseActionSelectionParams) => {
+// export const useActionSelection = ({ onFinished, destination, bundle, onSign }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -74,6 +77,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
   const destinationRef            = useRef(destination);
   const bundleRef                 = useRef(bundle);
   const signRef                   = useRef(onSign);
+  const organizeRef               = useRef(onOrganize);
   const loadId                    = useRef(0);
 
   useEffect(() => {
@@ -81,7 +85,9 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
     destinationRef.current = destination;
     bundleRef.current      = bundle;
     signRef.current        = onSign;
-  }, [onFinished, destination, bundle, onSign]);
+    organizeRef.current    = onOrganize;
+  }, [onFinished, destination, bundle, onSign, onOrganize]);
+  // }, [onFinished, destination, bundle, onSign]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -167,6 +173,13 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign }: 
     // The signing screen takes over the panel; the selection is done.
     if (actionId === 'sign') {
       signRef.current(selection.paths[0]);
+      finishedRef.current();
+      return;
+    }
+
+    // So does the organizing screen.
+    if (actionId === 'organize-pages') {
+      organizeRef.current(selection.paths[0]);
       finishedRef.current();
       return;
     }

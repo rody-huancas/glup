@@ -49,7 +49,9 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - No inventes funciones del producto: si algo no está claro, pregunta.
 - No hagas commits ni push salvo que se pidan. Tampoco tags: un tag `v*.*.*` dispara la publicación.
 - Antes de terminar: typecheck, vitest, cargo check y cargo test en verde.
-- Cuidar el disco: después de compilar en release para medir o probar algo, correr
-  `cargo clean --release` en `apps/desktop/src-tauri`. Al terminar una tarea no quedan copias del
+- Cuidar el disco: si en la tarea se corrió `cargo test` o se compiló en release (`cargo build
+  --release`, `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` en
+  `apps/desktop/src-tauri` (antes, detener `glup.exe` y `tauri dev` si están corriendo).
+  Al terminar una tarea no quedan copias del
   proyecto (worktrees, clones), carpetas de compilación extra (otro `CARGO_TARGET_DIR`) ni archivos
   temporales pesados (modelos, entornos de Python, imágenes de prueba).

@@ -4,7 +4,7 @@ use tauri::{
 };
 
 use crate::services::{
-    actions::{self, ActionReport, ActionRequest, FinishPageImagesRequest, PageImagesRequest, SignRequest},
+    actions::{self, ActionReport, ActionRequest, FinishPageImagesRequest, OrganizeRequest, PageImagesRequest, SignRequest},
     pdf::save_images::{self, PageImageSessions, SavePageParams, PAGE_ERROR},
     tasks::{self, TaskRecord},
 };
@@ -54,6 +54,28 @@ pub async fn sign_pdf(app: AppHandle, request: SignRequest) -> Result<ActionRepo
 
     let worker = app.clone();
     let result = tauri::async_runtime::spawn_blocking(move || actions::sign_pdf(&worker, request))
+        .await
+        .map_err(|error| error.to_string())
+        .and_then(|result| result);
+
+    if let Some(task) = &task {
+        tasks::finish(&app, task, &result);
+    }
+
+    result
+}
+
+// "Organizar páginas", like "Firmar": registered task, blocking worker, result kept.
+#[tauri::command]
+pub async fn organize_pdf(app: AppHandle, request: OrganizeRequest) -> Result<ActionReport, String> {
+    let task = request.task_id.clone();
+
+    if let Some(task) = &task {
+        tasks::start(&app, task, "organize-pages");
+    }
+
+    let worker = app.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || actions::organize_pdf(&worker, request))
         .await
         .map_err(|error| error.to_string())
         .and_then(|result| result);
