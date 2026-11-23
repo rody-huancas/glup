@@ -32,8 +32,9 @@ de la parte que toques:
 ```bash
 pnpm install
 pnpm dev                                   # tauri dev (la primera compilación de Rust tarda)
-pnpm build                                 # instalador
+pnpm build                                 # instalador (release: solo si se pide)
 pnpm version:set 0.2.0                     # versión (Cargo.toml manda; package.json la sigue)
+pnpm sweep                                 # borra de target lo que no se usó en 3 días (sweep:dry solo lista)
 
 pnpm --filter desktop typecheck            # tsc
 pnpm --filter desktop test                 # vitest
@@ -50,9 +51,13 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - No inventes funciones del producto: si algo no está claro, pregunta.
 - No hagas commits ni push salvo que se pidan. Tampoco tags: un tag `v*.*.*` dispara la publicación.
 - Antes de terminar: typecheck, vitest, cargo check y cargo test en verde.
-- Cuidar el disco: si en la tarea se corrió `cargo test` o se compiló en release (`cargo build
-  --release`, `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` en
-  `apps/desktop/src-tauri` (antes, detener `glup.exe` y `tauri dev` si están corriendo).
+- Nunca se compila en release en local (`cargo build --release`, `cargo test --release`,
+  `tauri build`) salvo que la persona lo pida: el instalador lo arma el workflow de Release.
+- Cuidar el disco sin perder la compilación incremental: al terminar una tarea en la que se compiló,
+  se corre `pnpm sweep` (borra de `target/*/build` y `target/*/incremental` lo que no se usó en 3
+  días; `pnpm sweep:dry` solo lista lo que borraría). `cargo clean` solo si quedan menos de 20 GB
+  libres en C: (antes, detener `glup.exe` y `tauri dev` si están corriendo, porque bloquean archivos
+  de `target`).
   Al terminar una tarea no quedan copias del
   proyecto (worktrees, clones), carpetas de compilación extra (otro `CARGO_TARGET_DIR`) ni archivos
   temporales pesados (modelos, entornos de Python, imágenes de prueba).

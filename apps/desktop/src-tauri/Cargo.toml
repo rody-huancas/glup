@@ -6,9 +6,19 @@ authors     = ["Glup contributors"]
 license     = "MIT"
 edition     = "2021"
 
+# Desktop only (Windows, and Mac and Linux if they come): the app links the library as an rlib. The
+# staticlib and cdylib of the Tauri template are for iOS and Android, and cost about 0,8 GB per build.
+# No doctests: the tests are unit tests inside the library.
 [lib]
 name       = "glup_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["rlib"]
+doctest    = false
+
+# main.rs only calls glup_lib::run and has no tests: no test binary is linked for it.
+[[bin]]
+name = "glup"
+path = "src/main.rs"
+test = false
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -58,6 +68,12 @@ windows     = { version = "0.62", features = ["Foundation", "Foundation_Collecti
 # Errors still show file and line, but the debug info weighs far less (target grew to tens of GB).
 [profile.dev]
 debug = "line-tables-only"
+
+# Dependencies carry no debug info at all: a panic still points at our files and lines (glup keeps
+# line-tables-only above), and target loses the .pdb of every crate. Package sections below only set
+# opt-level, so this applies to them too.
+[profile.dev.package."*"]
+debug = false
 
 # Image encoders (rav1e, oxipng) are very slow unoptimized; keep them fast in dev builds.
 [profile.dev.package.rav1e]

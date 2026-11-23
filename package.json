@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "pnpm --filter desktop tauri dev",
     "build": "pnpm --filter desktop tauri build",
-    "version:set": "node scripts/set-version.mjs"
+    "version:set": "node scripts/set-version.mjs",
+    "sweep": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sweep-target.ps1",
+    "sweep:dry": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sweep-target.ps1 -DryRun"
   }
 }
