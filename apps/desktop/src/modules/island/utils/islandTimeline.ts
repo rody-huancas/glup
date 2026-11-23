@@ -14,7 +14,7 @@ import {
   REVEAL_TO,
 } from '@/modules/island/constants/islandTimeline';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
-import type { HoverTweenParams, IslandPoseParams, IslandTimelineParams } from '@/modules/island/interfaces/islandTimeline';
+import type { HoverTweenParams, IslandPoseParams, IslandTimelineParams, NoticeTimelineParams } from '@/modules/island/interfaces/islandTimeline';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { addFlightFlourish } from '@/modules/island/utils/mascotFlight';
 import { getOvershootEnd } from '@/modules/island/utils/overshoot';
@@ -244,12 +244,23 @@ export const setCollapsedPose = ({ elements, shape, onRender }: IslandPoseParams
 };
 
 // Live notice: the pill grows (same elastic as the panel), Glup moves to its left end and the result shows.
-// Reversing it brings everything back to the pill.
-export const buildNoticeTimeline = ({ elements, shape, onRender }: IslandPoseParams): gsap.core.Timeline | null => {
+// Reversing it brings everything back to the pill. With reduced motion the wide pill and Glup's place are
+// set at once and only the text fades: the same notice, for the same time, with the same buttons.
+export const buildNoticeTimeline = ({ elements, shape, style, onRender }: NoticeTimelineParams): gsap.core.Timeline | null => {
   const [flyer, anchor, text] = [elements.flyer.current, elements.noticeAnchor.current, elements.noticeText.current];
   if (!flyer || !anchor || !text) return null;
 
   const { grow, flight, text: reveal } = NOTICE_MOTION;
+
+  if (style === 'fade') {
+    const { duration, ease } = REDUCED_MOTION.fade;
+
+    return gsap
+      .timeline({ paused: true, onUpdate: onRender })
+      .set(shape, { ...NOTICE_SHAPE }, 0)
+      .set(flyer, getFitVars(flyer, anchor), 0)
+      .fromTo(text, { opacity: 0, x: 0 }, { opacity: 1, x: 0, duration, ease }, 0);
+  }
 
   return gsap
     .timeline({ paused: true, onUpdate: onRender })

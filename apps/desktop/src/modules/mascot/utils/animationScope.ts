@@ -1,6 +1,9 @@
 import type { AnimateParams, AnimationScope } from '@/modules/mascot/interfaces/animationScope';
+import { stillKeyframes, stillOptions } from '@/modules/mascot/utils/stillMotion';
 
-export const createAnimationScope = (): AnimationScope => {
+// reduced: prefers-reduced-motion. Every animation becomes its still pose for the same time, so the
+// states (and their faces) last the same and nothing is skipped.
+export const createAnimationScope = (reduced: boolean = false): AnimationScope => {
   const animations = new Set<Animation>();
   const timers     = new Set<number>();
   let cancelled    = false;
@@ -8,7 +11,7 @@ export const createAnimationScope = (): AnimationScope => {
   const animate = ({ element, keyframes, options }: AnimateParams): Animation | null => {
     if (cancelled || !element) return null;
 
-    const animation = element.animate(keyframes, options);
+    const animation = reduced ? element.animate(stillKeyframes(keyframes, options), stillOptions(options)) : element.animate(keyframes, options);
     animations.add(animation);
     return animation;
   };

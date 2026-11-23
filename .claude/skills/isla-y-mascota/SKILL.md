@@ -113,7 +113,20 @@ Cada tarea declara su pantalla dueña (`owner`) al encolarse, y cada pantalla mu
   se reduce mientras quede algo visible del panel.
 - Duraciones, curvas y tamaños en `constants/` (`islandTimeline.ts`, `islandShape.ts`,
   `islandMascot.ts`, `limbs.ts`). Ningún número mágico dentro de un hook.
-- `prefers-reduced-motion`: solo fundidos cortos y cambios de cara; sin vuelos, rebotes ni gestos.
+- `prefers-reduced-motion`: solo fundidos cortos y cambios de cara; sin vuelos, rebotes ni balanceos.
+  **Reducir el movimiento quita o suaviza animaciones, nunca esconde información ni salta un estado**:
+  - la máquina hace el mismo recorrido con y sin movimiento reducido (`reducedMotion.test.ts`); solo
+    cambia cómo se anima;
+  - el aviso de la pastilla aparece igual (`planNotice`: la pastilla ancha y Glup se ponen de golpe y
+    el texto aparece con un fundido corto), dura lo mismo y tiene los mismos botones («Ver»);
+  - los gestos que dicen algo (saludar, señalar «Elegir archivos») mantienen su pose quieta el mismo
+    tiempo (`buildStillGesture`); los de espera (estirarse, zapatear) no se hacen.
+  - las animaciones del cuerpo de cada estado (saltar feliz, rascarse confundido, balancearse
+    trabajando, la sorpresa de `alert`, comer) pasan por `createAnimationScope(reduced)`, que las
+    cambia por su pose quieta el mismo tiempo (`stillMotion.ts`): la de su final si se queda ahí
+    (`fill: forwards`), si no la de reposo. El estado dura lo mismo y su cara cambia igual;
+  - la respiración y el rebote de la boca, que son solo movimiento, no se hacen. El parpadeo y la
+    mirada que sigue el cursor se quedan: son la cara.
 
 ## Glup
 
@@ -139,7 +152,7 @@ arma con piezas PNG apiladas y posicionadas en porcentajes según `constants/lay
 - Gestos especiales: saluda al abrir la isla, se despide al cerrarla a propósito, señala «Elegir
   archivos» y hace animaciones de espera (mirar a los lados, balancearse, estirarse, zapatear).
 - Un gesto nuevo se agrega en el hook de su grupo (`useMascotLimbs`, `useIslandMascot`), con sus
-  tiempos en `constants/` y su versión para movimiento reducido.
+  tiempos en `constants/` y su versión para movimiento reducido (quieta si el gesto dice algo).
 - En la pastilla no se animan brazos ni patitas: no se ven.
 
 ### Piezas nuevas
@@ -155,6 +168,6 @@ Las piezas salen del diseño original (estilo 3D suave, menta y lila). Una pieza
 
 - [ ] El cambio de comportamiento está en la máquina de estados, con prueba.
 - [ ] Las invariantes se siguen cumpliendo.
-- [ ] Animación interrumpible y con versión de movimiento reducido.
+- [ ] Animación interrumpible y con versión de movimiento reducido que no esconde nada.
 - [ ] Tiempos y tamaños en `constants/`.
 - [ ] Probado a mano: hover, arrastrar un archivo, recoger a mitad, pantalla completa y bandeja.

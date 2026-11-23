@@ -16,6 +16,7 @@ import type { IslandAreaKind } from '@/modules/island/utils/islandArea';
 import { renderIslandShape } from '@/modules/island/utils/islandShape';
 import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, setCollapsedPose } from '@/modules/island/utils/islandTimeline';
 import { logIsland } from '@/modules/island/utils/islandLog';
+import { planNotice } from '@/modules/island/utils/noticePlan';
 import { setIslandArea } from '@/modules/island/utils/islandWindow';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 
@@ -277,14 +278,16 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
           });
         };
 
-        if (noticeLine.current) {
+        const plan = planNotice({ live: noticeLine.current !== null, moving: motion.current !== null, settled: settled.current, reduced: reduced.current });
+
+        if (plan.action === 'replace' && noticeLine.current) {
           setNotice(next);
           noticeEnd.current = onEnd;
           hold(noticeLine.current.play());
           return;
         }
 
-        if (motion.current || settled.current !== 'collapsed' || reduced.current) {
+        if (plan.action === 'skip') {
           onEnd();
           return;
         }
@@ -296,7 +299,7 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
         void setArea('notice').then(() => {
           if (motion.current || noticeEnd.current !== onEnd) return;
 
-          const timeline = buildNoticeTimeline({ elements, shape: shape.current, onRender: render });
+          const timeline = buildNoticeTimeline({ elements, shape: shape.current, style: plan.style, onRender: render });
           if (!timeline) return end();
 
           noticeLine.current = timeline.play();

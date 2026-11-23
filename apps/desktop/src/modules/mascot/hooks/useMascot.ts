@@ -13,6 +13,7 @@ import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { createMascotElements } from '@/modules/mascot/utils/elements';
 import { getDisplayedFace } from '@/modules/mascot/utils/face';
 import { getFixedGaze } from '@/modules/mascot/utils/gaze';
+import { usePrefersReducedMotion } from '@/shared/hooks/usePrefersReducedMotion';
 import type { Point } from '@/shared/interfaces/point';
 
 export const useMascot = ({
@@ -35,6 +36,7 @@ export const useMascot = ({
     () => getDisplayedFace({ face, state, override: expression ? { ...faceOverride, ...expression } : faceOverride }),
     [face, state, faceOverride, expression],
   );
+  const reduced           = usePrefersReducedMotion();
   const pointerHandlers   = useMascotInteractions({ setState, onClick, reactToDrops });
   const { gesture }       = useMascotLimbs({ elements, state, enabled: limbs });
 
@@ -51,11 +53,12 @@ export const useMascot = ({
     [elements, gesture],
   );
 
-  useBreath(elements.breath);
+  // Reduced motion: still poses, no breathing nor pop. The blink and the gaze stay: they are the face.
+  useBreath(elements.breath, reduced);
   useBlink({ eyes: blinkingEyes, enabled: displayedFace.eyes === 'open' });
   useEyeTracking({ eyes: elements.eyes, fixedGaze });
-  useMouthPop({ mouth: displayedFace.mouth, mouths: elements.mouths });
-  useStateAnimations({ state, elements, setFace, setState });
+  useMouthPop({ mouth: displayedFace.mouth, mouths: elements.mouths, reduced });
+  useStateAnimations({ state, elements, setFace, setState, reduced });
 
   useEffect(() => {
     stateRef.current = state;
