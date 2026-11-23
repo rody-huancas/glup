@@ -1,0 +1,9 @@
+import { StrokeIcon } from '@/shared/icons/StrokeIcon';
+import type { IconProps } from '@/shared/interfaces/icon';
+
+export const RedoIcon = ({ className }: IconProps) => (
+  <StrokeIcon className={className}>
+    <path d="m15 14 5-5-5-5" />
+    <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
+  </StrokeIcon>
+);
