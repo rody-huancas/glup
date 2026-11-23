@@ -27,6 +27,7 @@ import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
 import { enqueueTask } from '@/modules/tasks/store/taskStore';
+import { extractText } from '@/modules/text/services/extractText';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 import { getVideoTool } from '@/modules/video/services/videoTool';
 
@@ -195,6 +196,13 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
       return;
     }
 
+    // "Sacar texto" goes page by page in the webview (pdf.js) and Rust (the OCR of Windows).
+    if (actionId === 'extract-text') {
+      const files       = selection.files;
+      const destination = destinationRef.current;
+      return enqueue('extract-text', ({ onProgress, isCancelled }) => extractText({ files, destination, onProgress, isCancelled }));
+    }
+
     // So does the organizing screen.
     if (actionId === 'organize-pages') {
       organizeRef.current(selection.paths[0]);
@@ -227,7 +235,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     if (step) return setPhase(step);
 
     execute({ actionId });
-  }, [selection, phase, learn, execute]);
+  }, [selection, phase, learn, execute, enqueue]);
 
   const chooseFormat = useCallback((format: ImageFormat) => {
     if (phase === 'formats') execute({ actionId: 'convert', options: { format } });

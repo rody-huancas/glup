@@ -177,6 +177,25 @@ pub fn append(app: &AppHandle, added: Vec<HistoryEntry>) -> Result<(), String> {
     Ok(())
 }
 
+// Points an entry at another file (the .txt saved after "Sacar texto"); the rest stays as it was.
+pub fn point_entry(mut entries: Vec<HistoryEntry>, id: &str, output: &Path) -> Vec<HistoryEntry> {
+    if let Some(entry) = entries.iter_mut().find(|entry| entry.id == id) {
+        entry.name = output.file_name().map(|value| value.to_string_lossy().into_owned()).unwrap_or_default();
+        entry.path = output.to_string_lossy().into_owned();
+    }
+    entries
+}
+
+pub fn point_to(app: &AppHandle, id: &str, output: &Path) -> Result<(), String> {
+    let store = app.state::<HistoryStore>();
+    let _lock = store.0.lock();
+    let path  = file_path(app).ok_or("no app data folder")?;
+
+    write_file(&path, &point_entry(read_file(&path), id, output))?;
+    let _ = app.emit(HISTORY_CHANGED_EVENT, ());
+    Ok(())
+}
+
 pub fn clear(app: &AppHandle) -> Result<(), String> {
     let store = app.state::<HistoryStore>();
     let _lock = store.0.lock();

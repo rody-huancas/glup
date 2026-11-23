@@ -7,6 +7,7 @@ import { TASK_TEXTS } from '@/modules/tasks/constants/tasks';
 import type { Task } from '@/modules/tasks/interfaces/task';
 import { cancelTask, dismissTaskResult } from '@/modules/tasks/store/taskStore';
 import { openResult, revealResult } from '@/modules/tasks/utils/outputs';
+import { TextResultView } from '@/modules/text/components/TextResultView';
 import { Card } from '@/shared/components/Card';
 import { FileChip } from '@/shared/components/FileChip';
 import { ChevronLeftIcon } from '@/shared/icons/ChevronLeftIcon';
@@ -38,7 +39,9 @@ export const TaskCard = ({ task, queued }: TaskCardProps) => {
           <FileChip icon={task.type ? getSelectionIcon(task.type) : null} label={task.title} />
           {done && <CloseButton onClose={() => dismissTaskResult(task.id)} />}
         </div>
-        {done && result ? (
+        {done && result?.text ? (
+          <TextResultView message={result.message} extracted={result.text} onBack={() => dismissTaskResult(task.id)} />
+        ) : done && result ? (
           <ActionResultView result={result} onOpen={() => openResult(result)} onReveal={() => revealResult(result)} />
         ) : (
           <div className="mt-3">

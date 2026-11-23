@@ -78,6 +78,8 @@ src-tauri/
     Videos: `ffmpeg.exe` se descarga una vez a `tools/` (solo sus bytes dentro del ZIP del build, con
     un `Range`; `flate2` lo descomprime) y se ejecuta como proceso aparte, sin ventana
     (`encode::hide_window`). Nunca se enlaza: ver la regla 12 de `convenciones`.
+    OCR con el crate `windows` (misma versión que trae Tauri) y `Windows.Media.Ocr`, detrás de
+    `#[cfg(windows)]` con una versión vacía para los demás sistemas (`services/text/ocr.rs`).
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio

@@ -46,6 +46,8 @@ flate2                       = { version = "1", default-features = false, featur
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_System_Com"] }
+# "Sacar texto": the OCR that comes with Windows (Windows.Media.Ocr). Same version Tauri already uses.
+windows     = { version = "0.62", features = ["Foundation", "Foundation_Collections", "Globalization", "Graphics_Imaging", "Media_Ocr", "Storage_Streams", "System_UserProfile", "Win32_System_WinRT"] }
 
 # Errors still show file and line, but the debug info weighs far less (target grew to tens of GB).
 [profile.dev]
