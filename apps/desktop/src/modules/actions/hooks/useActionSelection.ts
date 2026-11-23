@@ -17,6 +17,8 @@ import { getSelectionSummary } from '@/modules/actions/utils/summary';
 import { getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
 import type { LearnableId } from '@/modules/background/types/learnableId';
+import { LEARNABLES } from '@/modules/background/constants/learnables';
+import { withLearning } from '@/modules/background/utils/learnChain';
 import { nextLearnPhase } from '@/modules/background/utils/learnStep';
 import { ID_PHOTO_TEXTS } from '@/modules/id-photo/constants/idPhoto';
 import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
@@ -35,7 +37,8 @@ import { enqueueTask } from '@/modules/tasks/store/taskStore';
 import { extractText } from '@/modules/text/services/extractText';
 import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
 import type { TranscribeOptions } from '@/modules/transcribe/interfaces/transcribeOptions';
-import { getTranscribeModel, transcribeAudio } from '@/modules/transcribe/services/transcribe';
+import { transcribeAudio } from '@/modules/transcribe/services/transcribe';
+// import { getTranscribeModel, transcribeAudio } from '@/modules/transcribe/services/transcribe';
 import { toTranscribeResult } from '@/modules/transcribe/utils/transcribe';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 import { getVideoTool } from '@/modules/video/services/videoTool';
@@ -55,6 +58,19 @@ interface ExecuteParams {
   options? : RunActionOptions;
   // The merge order, when it differs from the drop order.
   paths?   : string[];
+  // What it needs downloaded first (asked once, then one task for both).
+  needs?   : LearnableId;
+}
+
+interface RunOrLearnParams {
+  spec  : TaskSpec;
+  needs : LearnableId;
+}
+
+// A task waiting for the "Descargar" of the learning step, and the step to go back to.
+interface ChainedRun {
+  spec : TaskSpec;
+  back : ActionsPhase;
 }
 
 // Actions that open a second step before running.
@@ -101,8 +117,9 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const [phase, setPhase]         = useState<ActionsPhase>('choosing');
   const [idChoice, setIdChoice]   = useState<IdChoice | null>(null);
   const [learnable, setLearnable] = useState<LearnableId>('background');
-  // Options chosen before learning: they run as soon as the download ends.
-  const pendingTranscribe         = useRef<TranscribeOptions | null>(null);
+  // An action whose download is being asked for: "Descargar" runs both as one task.
+  const [chained, setChained]     = useState<ChainedRun | null>(null);
+  // const pendingTranscribe         = useRef<TranscribeOptions | null>(null);
   const timers                    = useRef<number[]>([]);
   const finishedRef               = useRef(onFinished);
   const destinationRef            = useRef(destination);
@@ -181,7 +198,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const describe = useCallback((actionId: ActionId, current: FileSelection): Omit<TaskSpec, 'run'> => {
     const label = current.actions.find((action) => action.id === actionId)?.label ?? '';
 
-    return { title: `${label} · ${getSelectionSummary(current).label}`, type: current.type, fileCount: current.files.length, owner: 'home' };
+    return { title: `${label} · ${getSelectionSummary(current).label}`, actionId, type: current.type, fileCount: current.files.length, owner: 'home' };
   }, []);
 
   // Queued in the task store (one at a time); the selection is done and the panel shows the task.
@@ -192,14 +209,45 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     finishedRef.current();
   }, [selection, describe]);
 
-  const execute = useCallback(({ actionId, options, paths }: ExecuteParams) => {
+  // Already learned: it runs now. Otherwise the learning step asks first (size, "una sola vez") and
+  // keeps the task; "Descargar" then runs the download and the action as one task, under one card.
+  const runOrLearn = useCallback(({ spec, needs }: RunOrLearnParams) => {
+    void LEARNABLES[needs]
+      .getStatus()
+      .then((status) => status.installed)
+      .catch(() => false)
+      .then((installed) => {
+        if (installed) {
+          enqueueTask(spec);
+          finishedRef.current();
+          return;
+        }
+
+        setChained({ spec, back: phase });
+        setLearnable(needs);
+        setPhase('learn-model');
+      });
+  }, [phase]);
+
+  const acceptLearning = useCallback(() => {
+    if (!chained || phase !== 'learn-model') return;
+
+    enqueueTask({ ...chained.spec, run: withLearning({ learnable: LEARNABLES[learnable], run: chained.spec.run }) });
+    setChained(null);
+    finishedRef.current();
+  }, [chained, phase, learnable]);
+
+  const execute = useCallback(({ actionId, options, paths, needs }: ExecuteParams) => {
     if (!selection) return;
 
     const delivery = { destination: destinationRef.current, bundle: bundleRef.current && usesBundle(actionId) };
     const files    = paths ?? selection.paths;
+    const run: TaskSpec['run'] = ({ taskId }) => runAction({ actionId, paths: files, options: { ...options, ...delivery }, taskId });
 
-    enqueue(actionId, ({ taskId }) => runAction({ actionId, paths: files, options: { ...options, ...delivery }, taskId }));
-  }, [selection, enqueue]);
+    if (needs) return runOrLearn({ spec: { ...describe(actionId, selection), run }, needs });
+    enqueue(actionId, run);
+    // enqueue(actionId, ({ taskId }) => runAction({ actionId, paths: files, options: { ...options, ...delivery }, taskId }));
+  }, [selection, enqueue, describe, runOrLearn]);
 
   const choose = useCallback((actionId: ActionId) => {
     if (!selection || phase !== 'choosing') return;
@@ -252,14 +300,16 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
       return;
     }
 
-    if (actionId === 'remove-background') {
-      learnDone.current = 'background';
-      setLearnable('background');
-      void getBackgroundModel()
-        .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing')))
-        .catch(() => setPhase((current) => nextLearnPhase(current, 'missing')));
-      return;
-    }
+    // "Quitar fondo" chooses first; the download, if needed, is asked for after (and runs with it).
+    if (actionId === 'remove-background') return setPhase('background');
+    // if (actionId === 'remove-background') {
+    //   learnDone.current = 'background';
+    //   setLearnable('background');
+    //   void getBackgroundModel()
+    //     .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing')))
+    //     .catch(() => setPhase((current) => nextLearnPhase(current, 'missing')));
+    //   return;
+    // }
 
     const step = ACTION_STEPS[actionId];
     if (step) return setPhase(step);
@@ -272,7 +322,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   }, [phase, execute]);
 
   const chooseBackground = useCallback((background: BackgroundKind) => {
-    if (phase === 'background') execute({ actionId: 'remove-background', options: { background } });
+    if (phase === 'background') execute({ actionId: 'remove-background', options: { background }, needs: 'background' });
   }, [phase, execute]);
 
   // The learning step: downloading, back to the question (cancelled or failed), or ready.
@@ -352,6 +402,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     const name        = selection.files[0]?.name ?? '';
     enqueueTask({
       title     : ID_PHOTO_TEXTS.taskTitle(name),
+      actionId  : 'id-photo',
       type      : 'image',
       fileCount : 1,
       owner     : 'home',
@@ -360,55 +411,45 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     finishedRef.current();
   }, [selection, phase, idChoice]);
 
-  // Runs it as a task; the result shows the text like "Sacar texto", with its subtitles.
-  const runTranscribe = useCallback((options: TranscribeOptions) => {
-    if (!selection) return;
+  // A task whose result shows the text like "Sacar texto", with its subtitles. The level's model (and
+  // FFmpeg) the first time: asked for, then downloaded and listened to in the same task.
+  const startTranscribe = useCallback((options: TranscribeOptions) => {
+    if (!selection || phase !== 'transcribe') return;
 
     const paths       = selection.paths;
     const destination = destinationRef.current;
     const name        = getSelectionSummary(selection).label;
-    enqueueTask({
+    const spec: TaskSpec = {
       title     : TRANSCRIBE_TEXTS.taskTitle(name),
+      actionId  : 'transcribe',
       type      : selection.type,
       fileCount : paths.length,
       owner     : 'home',
       run       : ({ taskId }) => transcribeAudio({ paths, options, taskId }).then((report) => toTranscribeResult({ report, paths, destination })),
-    });
-    finishedRef.current();
-  }, [selection]);
+    };
 
-  // The level's model (and FFmpeg) the first time: the learning step, then it runs on its own.
-  const startTranscribe = useCallback((options: TranscribeOptions) => {
-    if (phase !== 'transcribe') return;
+    runOrLearn({ spec, needs: options.level === 'fast' ? 'transcribe-fast' : 'transcribe-precise' });
+  }, [selection, phase, runOrLearn]);
 
-    void getTranscribeModel(options.level)
-      .then((status) => {
-        if (status.installed) return runTranscribe(options);
-
-        pendingTranscribe.current = options;
-        learnDone.current         = 'transcribe';
-        setLearnable(options.level === 'fast' ? 'transcribe-fast' : 'transcribe-precise');
-        setPhase('learn-model');
-      })
-      .catch(() => runTranscribe(options));
-  }, [phase, runTranscribe]);
-
-  useEffect(() => {
-    const pendingOptions = pendingTranscribe.current;
-    if (phase !== 'transcribe' || !pendingOptions) return;
-
-    pendingTranscribe.current = null;
-    runTranscribe(pendingOptions);
-  }, [phase, runTranscribe]);
+  // Before, the download was its own task and the listening another one, started when it ended:
+  // const runTranscribe = useCallback((options: TranscribeOptions) => { … enqueueTask(…) }, [selection]);
+  // const startTranscribe = … getTranscribeModel(options.level) … pendingTranscribe.current = options; setPhase('learn-model');
+  // useEffect(() => { … runTranscribe(pendingTranscribe.current) once back on 'transcribe' … }, [phase, runTranscribe]);
 
   const reduceVideo = useCallback((video: VideoOptions) => {
     if (phase === 'video') execute({ actionId: 'compress', options: { video } });
   }, [phase, execute]);
 
+  // From the question of a chained download, back to the step that asked for it.
   const back = useCallback(() => {
+    if (phase === 'learn-model' && chained) {
+      setChained(null);
+      return setPhase(chained.back);
+    }
+
     const previous = BACK_STEPS[phase];
     if (previous) setPhase(previous);
-  }, [phase]);
+  }, [phase, chained]);
 
   // Only the selection is dropped; tasks already queued or running are not touched.
   const discard = useCallback(() => {
@@ -418,6 +459,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     setPending(null);
     setSlow(false);
     setPhase('choosing');
+    setChained(null);
   }, [clearTimers]);
 
   useEffect(() => clearTimers, [clearTimers]);
@@ -443,6 +485,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     reduceVideo,
     startTranscribe,
     learnable,
+    chained        : chained !== null,
+    acceptLearning,
     idChoice,
     chooseIdFormat,
     saveIdPhoto,

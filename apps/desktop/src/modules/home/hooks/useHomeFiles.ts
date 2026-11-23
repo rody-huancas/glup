@@ -189,6 +189,8 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
       saveIdPhoto      : actions.saveIdPhoto,
       startTranscribe  : actions.startTranscribe,
       learnable        : actions.learnable,
+      chained          : actions.chained,
+      acceptLearning   : actions.acceptLearning,
       modelStarted     : actions.modelStarted,
       modelStopped     : actions.modelStopped,
       modelReady       : actions.modelReady,
