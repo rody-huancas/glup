@@ -30,6 +30,10 @@ pub struct HistoryEntry {
     pub action: String,
     pub detail: String,
     pub date: String,
+    // "Copiar texto de la pantalla": what was read, to see it and copy it again (only in this file,
+    // which never leaves the computer).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
 }
 
 pub struct NewEntryParams<'a> {
@@ -117,6 +121,7 @@ pub fn new_entry(params: NewEntryParams) -> HistoryEntry {
         action : params.action.to_string(),
         detail : params.detail,
         date   : now.to_rfc3339(),
+        text   : None,
     }
 }
 
@@ -132,7 +137,13 @@ pub fn fileless_entry(params: FilelessEntryParams) -> HistoryEntry {
         action : params.action.to_string(),
         detail : params.detail,
         date   : now.to_rfc3339(),
+        text   : None,
     }
+}
+
+// An entry that keeps a text instead of pointing at a file (Copiar texto de la pantalla).
+pub fn text_entry(params: FilelessEntryParams, text: String) -> HistoryEntry {
+    HistoryEntry { text: Some(text), ..fileless_entry(params) }
 }
 
 fn file_path(app: &AppHandle) -> Option<PathBuf> {
@@ -192,12 +203,38 @@ pub fn point_to(app: &AppHandle, id: &str, output: &Path) -> Result<(), String> 
     Ok(())
 }
 
+// "Quitar seleccionados": the list without those entries, in the same order.
+pub fn without(entries: Vec<HistoryEntry>, ids: &[String]) -> Vec<HistoryEntry> {
+    entries.into_iter().filter(|entry| !ids.contains(&entry.id)).collect()
+}
+
+// Like clearing, it only rewrites Glup's list: the files of those entries stay where they are.
+pub fn remove_from_file(path: &Path, ids: &[String]) -> Result<(), String> {
+    write_file(path, &without(read_file(path), ids))
+}
+
+pub fn remove(app: &AppHandle, ids: &[String]) -> Result<(), String> {
+    let store = app.state::<HistoryStore>();
+    let _lock = store.0.lock();
+    let path  = file_path(app).ok_or("no app data folder")?;
+
+    remove_from_file(&path, ids)?;
+    let _ = app.emit(HISTORY_CHANGED_EVENT, ());
+    Ok(())
+}
+
+// "Limpiar historial": only Glup's list is emptied. The files its entries point at are never opened,
+// moved or deleted.
+pub fn clear_file(path: &Path) -> Result<(), String> {
+    write_file(path, &[])
+}
+
 pub fn clear(app: &AppHandle) -> Result<(), String> {
     let store = app.state::<HistoryStore>();
     let _lock = store.0.lock();
     let path  = file_path(app).ok_or("no app data folder")?;
 
-    write_file(&path, &[])?;
+    clear_file(&path)?;
     let _ = app.emit(HISTORY_CHANGED_EVENT, ());
     Ok(())
 }
@@ -215,6 +252,7 @@ mod tests {
             action : "compress".to_string(),
             detail : String::new(),
             date   : String::new(),
+            text   : None,
         }
     }
 
@@ -230,6 +268,66 @@ mod tests {
         assert_eq!(signed_detail(SignedDetailParams { signatures: 2, texts: 0, pages: 2 }), "Firmado · 2 firmas en 2 páginas");
         assert_eq!(signed_detail(SignedDetailParams { signatures: 1, texts: 1, pages: 1 }), "Firmado · 1 firma y 1 texto en 1 página");
         assert_eq!(signed_detail(SignedDetailParams { signatures: 0, texts: 3, pages: 1 }), "Firmado · 3 textos en 1 página");
+    }
+
+    #[test]
+    fn clearing_empties_the_list_and_leaves_the_files_alone() {
+        let folder = std::env::temp_dir().join(format!("glup-history-{}", std::process::id()));
+        let data   = folder.join("datos");
+        let output = folder.join("foto-comprimida.jpg");
+        let other  = folder.join("contrato.pdf");
+        fs::create_dir_all(&data).unwrap();
+        fs::write(&output, b"jpeg").unwrap();
+        fs::write(&other, b"pdf").unwrap();
+
+        let history = data.join(HISTORY_FILE);
+        let saved   = new_entry(NewEntryParams { output: &output, kind: "image", action: "compress", detail: String::new() });
+        write_file(&history, &[saved]).unwrap();
+        assert_eq!(read_file(&history).len(), 1);
+
+        clear_file(&history).unwrap();
+
+        assert!(read_file(&history).is_empty());
+        assert_eq!(fs::read(&output).unwrap(), b"jpeg");
+        assert_eq!(fs::read(&other).unwrap(), b"pdf");
+        let mut left: Vec<_> = fs::read_dir(&folder).unwrap().map(|item| item.unwrap().file_name()).collect();
+        left.sort();
+        assert_eq!(left, ["contrato.pdf", "datos", "foto-comprimida.jpg"]);
+
+        fs::remove_dir_all(&folder).unwrap();
+    }
+
+    #[test]
+    fn removing_some_entries_keeps_the_rest_and_the_files() {
+        let folder = std::env::temp_dir().join(format!("glup-history-remove-{}", std::process::id()));
+        let output = folder.join("foto-comprimida.jpg");
+        fs::create_dir_all(&folder).unwrap();
+        fs::write(&output, b"jpeg").unwrap();
+
+        let history = folder.join(HISTORY_FILE);
+        let saved   = new_entry(NewEntryParams { output: &output, kind: "image", action: "compress", detail: String::new() });
+        let copied  = text_entry(FilelessEntryParams { name: "Texto de la pantalla", kind: "screen-text", action: "screen-text", detail: "2 palabras".to_string() }, "Hola Glup".to_string());
+        let kept    = entry("kept");
+        write_file(&history, &[saved.clone(), copied.clone(), kept]).unwrap();
+
+        remove_from_file(&history, &[saved.id.clone(), copied.id.clone()]).unwrap();
+
+        let left: Vec<_> = read_file(&history).into_iter().map(|entry| entry.id).collect();
+        assert_eq!(left, ["kept"]);
+        assert_eq!(fs::read(&output).unwrap(), b"jpeg");
+
+        fs::remove_dir_all(&folder).unwrap();
+    }
+
+    #[test]
+    fn a_copied_text_is_kept_and_old_entries_read_without_one() {
+        let copied = text_entry(FilelessEntryParams { name: "Texto de la pantalla", kind: "screen-text", action: "screen-text", detail: String::new() }, "Hola".to_string());
+        let json   = serde_json::to_string(&copied).unwrap();
+        assert!(json.contains("\"text\":\"Hola\""));
+
+        let old: HistoryEntry = serde_json::from_str(r#"{ "id": "1", "name": "a.jpg", "path": "C:/a.jpg", "type": "image", "action": "compress", "detail": "", "date": "" }"#).unwrap();
+        assert_eq!(old.text, None);
+        assert!(!serde_json::to_string(&old).unwrap().contains("text"));
     }
 
     #[test]
