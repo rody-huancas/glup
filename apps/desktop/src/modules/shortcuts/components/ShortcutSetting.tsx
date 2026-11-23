@@ -1,33 +1,38 @@
 import { useEffect, useRef } from 'react';
-import { ShortcutKeys } from '@/modules/screen-text/components/ShortcutKeys';
-import { SHORTCUT_TEXTS } from '@/modules/screen-text/constants/texts';
-import { useShortcutSetting } from '@/modules/screen-text/hooks/useShortcutSetting';
-import { takeShortcutFocus } from '@/modules/screen-text/store/shortcutFocus';
+import { ShortcutKeys } from '@/modules/shortcuts/components/ShortcutKeys';
+import { SHORTCUT_LABELS, SHORTCUT_TEXTS } from '@/modules/shortcuts/constants/texts';
+import { useShortcutSetting } from '@/modules/shortcuts/hooks/useShortcutSetting';
+import { takeShortcutFocus } from '@/modules/shortcuts/store/shortcutFocus';
+import type { ShortcutTarget } from '@/modules/shortcuts/types/shortcutTarget';
 import { Button } from '@/shared/components/Button';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { Switch } from '@/shared/components/Switch';
 
-// Ajustes › General: the shortcut that opens "Copiar texto de la pantalla" from any app.
-export const ShortcutSetting = () => {
-  const setting    = useShortcutSetting();
+interface ShortcutSettingProps {
+  target: ShortcutTarget;
+}
+
+// Ajustes: a shortcut of Glup that works from any app (Copiar texto de la pantalla, Portapapeles).
+export const ShortcutSetting = ({ target }: ShortcutSettingProps) => {
+  const setting    = useShortcutSetting(target);
   const view       = setting.view;
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // Arriving from "Cambiar" in Herramientas: in view, with the focus on its first control.
   useEffect(() => {
-    if (!view || !takeShortcutFocus()) return;
+    if (!view || !takeShortcutFocus(target)) return;
 
     sectionRef.current?.scrollIntoView({ block: 'center' });
     sectionRef.current?.querySelector<HTMLButtonElement>(view.enabled ? '[data-shortcut-change] button' : '[role="switch"]')?.focus();
-  }, [view]);
+  }, [view, target]);
 
   if (!view) return setting.failed ? <p className="text-[11px] text-lilac-soft">{SHORTCUT_TEXTS.failed}</p> : <Skeleton className="h-9 w-72" />;
 
   return (
     <div ref={sectionRef} className="flex flex-col gap-2">
       <Switch
-        label={SHORTCUT_TEXTS.label}
-        hint={view.taken ? SHORTCUT_TEXTS.taken : SHORTCUT_TEXTS.hint}
+        label={SHORTCUT_LABELS[target].label}
+        hint={view.taken ? SHORTCUT_TEXTS.taken : SHORTCUT_LABELS[target].hint}
         checked={view.enabled}
         disabled={setting.saving || setting.listening}
         onChange={setting.toggle}

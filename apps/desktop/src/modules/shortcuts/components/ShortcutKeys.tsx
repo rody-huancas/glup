@@ -1,5 +1,5 @@
-import { SHORTCUT_TEXTS } from '@/modules/screen-text/constants/texts';
-import { shortcutKeys } from '@/modules/screen-text/utils/shortcut';
+import { SHORTCUT_TEXTS } from '@/modules/shortcuts/constants/texts';
+import { shortcutKeys } from '@/modules/shortcuts/utils/shortcut';
 
 interface ShortcutKeysProps {
   shortcut: string;

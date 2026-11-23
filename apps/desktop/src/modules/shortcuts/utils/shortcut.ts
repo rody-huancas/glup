@@ -1,7 +1,7 @@
-import { MODIFIER_CODES, SHORTCUT_KEY } from '@/modules/screen-text/constants/screenText';
-import { SHORTCUT_TEXTS } from '@/modules/screen-text/constants/texts';
-import type { KeyPress } from '@/modules/screen-text/interfaces/keyPress';
-import type { ShortcutPress } from '@/modules/screen-text/types/shortcutPress';
+import { MODIFIER_CODES, SHORTCUT_KEY } from '@/modules/shortcuts/constants/keys';
+import { SHORTCUT_TEXTS } from '@/modules/shortcuts/constants/texts';
+import type { KeyPress } from '@/modules/shortcuts/interfaces/keyPress';
+import type { ShortcutPress } from '@/modules/shortcuts/types/shortcutPress';
 
 // The keys pressed in Ajustes as Rust registers them: "Ctrl+Alt+Shift+KeyT". Shift alone is not
 // enough, it would get in the way of typing.

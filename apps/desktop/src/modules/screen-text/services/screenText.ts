@@ -1,17 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { CAPTURE_WINDOW_PREFIX } from '@/modules/screen-text/constants/screenText';
-import type { ShortcutView } from '@/modules/screen-text/interfaces/shortcutView';
 import type { Zone } from '@/modules/screen-text/interfaces/zone';
 import {
   CANCEL_SCREEN_TEXT,
   CAPTURE_READY,
   COPY_SCREEN_TEXT,
   GET_CAPTURE_IMAGE,
-  GET_SCREEN_TEXT_SHORTCUT,
-  PAUSE_SCREEN_TEXT_SHORTCUT,
   READ_SCREEN_TEXT,
-  SET_SCREEN_TEXT_SHORTCUT,
   START_SCREEN_TEXT,
 } from '@/shared/constants/events';
 
@@ -33,11 +29,3 @@ export const cancelScreenText = (): Promise<void> => invoke(CANCEL_SCREEN_TEXT);
 
 // "Copiar de nuevo" in the history: Rust writes the clipboard, as with the capture.
 export const copyScreenText = (text: string): Promise<void> => invoke(COPY_SCREEN_TEXT, { text });
-
-export const getScreenTextShortcut = (): Promise<ShortcutView> => invoke<ShortcutView>(GET_SCREEN_TEXT_SHORTCUT);
-
-// shortcut null keeps the one chosen before (to turn it on or off).
-export const setScreenTextShortcut = (shortcut: string | null, enabled: boolean): Promise<ShortcutView> =>
-  invoke<ShortcutView>(SET_SCREEN_TEXT_SHORTCUT, { request: { shortcut, enabled } });
-
-export const pauseScreenTextShortcut = (paused: boolean): Promise<void> => invoke(PAUSE_SCREEN_TEXT_SHORTCUT, { paused });

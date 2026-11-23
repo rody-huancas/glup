@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { shortcutConflict } from '@/modules/screen-text/utils/shortcutConflict';
+import { shortcutConflict } from '@/modules/shortcuts/utils/shortcutConflict';
 
 describe('shortcutConflict', () => {
   it('names what a well-known shortcut does', () => {

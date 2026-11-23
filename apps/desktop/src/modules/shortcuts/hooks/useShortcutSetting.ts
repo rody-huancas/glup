@@ -1,30 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useIslandHold } from '@/modules/island/hooks/useIslandHold';
-import { SHORTCUT_TEXTS } from '@/modules/screen-text/constants/texts';
-import { useShortcutView } from '@/modules/screen-text/hooks/useShortcutView';
-import type { ShortcutWarning } from '@/modules/screen-text/interfaces/shortcutWarning';
-import { pauseScreenTextShortcut, setScreenTextShortcut } from '@/modules/screen-text/services/screenText';
-import { shortcutFromPress } from '@/modules/screen-text/utils/shortcut';
-import { shortcutConflict } from '@/modules/screen-text/utils/shortcutConflict';
+import { SHORTCUT_TEXTS } from '@/modules/shortcuts/constants/texts';
+import { useShortcutView } from '@/modules/shortcuts/hooks/useShortcutView';
+import type { ShortcutWarning } from '@/modules/shortcuts/interfaces/shortcutWarning';
+import { pauseShortcuts, setShortcut } from '@/modules/shortcuts/services/shortcuts';
+import type { ShortcutTarget } from '@/modules/shortcuts/types/shortcutTarget';
+import { shortcutFromPress } from '@/modules/shortcuts/utils/shortcut';
+import { shortcutConflict } from '@/modules/shortcuts/utils/shortcutConflict';
 
-// Ajustes › the shortcut of "Copiar texto de la pantalla": on or off, and "Cambiar" listens for the
-// next combination. A well-known one (Ctrl+C, Alt+F4…) waits for "Guardar igual"; Rust tries it before
-// saving, so one another program already has is refused with its reason.
-export const useShortcutSetting = () => {
-  const { view, setView, failed } = useShortcutView();
+// Ajustes › one of Glup's shortcuts: on or off, and "Cambiar" listens for the next combination. A
+// well-known one (Ctrl+C, Alt+F4…) waits for "Guardar igual"; Rust tries it before saving, so one another
+// program (or another shortcut of Glup) already has is refused with its reason.
+export const useShortcutSetting = (target: ShortcutTarget) => {
+  const { view, setView, failed } = useShortcutView(target);
   const [listening, setListening] = useState(false);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState<string | null>(null);
   const [warning, setWarning]     = useState<ShortcutWarning | null>(null);
 
-  // While listening or deciding the island stays open, and the current shortcut does not open the capture.
+  // While listening or deciding the island stays open, and Glup's shortcuts do not fire.
   useIslandHold(listening || warning !== null);
 
   useEffect(() => {
     if (!listening) return;
 
-    void pauseScreenTextShortcut(true).catch(() => undefined);
-    return () => void pauseScreenTextShortcut(false).catch(() => undefined);
+    void pauseShortcuts(true).catch(() => undefined);
+    return () => void pauseShortcuts(false).catch(() => undefined);
   }, [listening]);
 
   const save = useCallback((shortcut: string | null, enabled: boolean) => {
@@ -32,14 +33,14 @@ export const useShortcutSetting = () => {
     setError(null);
     setWarning(null);
 
-    void setScreenTextShortcut(shortcut, enabled)
+    void setShortcut({ target, shortcut, enabled })
       .then((next) => {
         setView(next);
         setListening(false);
       })
       .catch((message: unknown) => setError(typeof message === 'string' ? message : SHORTCUT_TEXTS.failed))
       .finally(() => setSaving(false));
-  }, [setView]);
+  }, [target, setView]);
 
   // Captured before anything else, so Esc stops listening instead of collapsing the island.
   useEffect(() => {

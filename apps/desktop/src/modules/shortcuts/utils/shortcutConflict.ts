@@ -1,6 +1,6 @@
-import { KNOWN_SHORTCUTS, TAB_DIGIT } from '@/modules/screen-text/constants/knownShortcuts';
-import { SHORTCUT_TEXTS } from '@/modules/screen-text/constants/texts';
-import { shortcutKeys } from '@/modules/screen-text/utils/shortcut';
+import { KNOWN_SHORTCUTS, TAB_DIGIT } from '@/modules/shortcuts/constants/knownShortcuts';
+import { SHORTCUT_TEXTS } from '@/modules/shortcuts/constants/texts';
+import { shortcutKeys } from '@/modules/shortcuts/utils/shortcut';
 
 const ALT_GR_KEY = /^(Key[A-Z]|Digit[0-9])$/;
 

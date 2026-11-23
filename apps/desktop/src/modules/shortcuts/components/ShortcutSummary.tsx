@@ -1,15 +1,17 @@
-import { SHORTCUT_TEXTS } from '@/modules/screen-text/constants/texts';
-import { useShortcutView } from '@/modules/screen-text/hooks/useShortcutView';
-import { shortcutKeys } from '@/modules/screen-text/utils/shortcut';
+import { SHORTCUT_TEXTS } from '@/modules/shortcuts/constants/texts';
+import { useShortcutView } from '@/modules/shortcuts/hooks/useShortcutView';
+import type { ShortcutTarget } from '@/modules/shortcuts/types/shortcutTarget';
+import { shortcutKeys } from '@/modules/shortcuts/utils/shortcut';
 
 interface ShortcutSummaryProps {
-  onChange: () => void;
+  target   : ShortcutTarget;
+  onChange : (target: ShortcutTarget) => void;
 }
 
 // On the card in Herramientas: the shortcut in use ("Ctrl+Alt+Shift+T") and "Cambiar", which opens it
 // in Ajustes.
-export const ShortcutSummary = ({ onChange }: ShortcutSummaryProps) => {
-  const { view } = useShortcutView();
+export const ShortcutSummary = ({ target, onChange }: ShortcutSummaryProps) => {
+  const { view } = useShortcutView(target);
 
   if (!view) return null;
 
@@ -22,7 +24,7 @@ export const ShortcutSummary = ({ onChange }: ShortcutSummaryProps) => {
       </span>
       <button
         type="button"
-        onClick={onChange}
+        onClick={() => onChange(target)}
         aria-label={SHORTCUT_TEXTS.changeLabel}
         className="shrink-0 cursor-pointer rounded-md text-[11px] font-semibold text-lilac underline-offset-2 hover:text-lilac-soft hover:underline"
       >

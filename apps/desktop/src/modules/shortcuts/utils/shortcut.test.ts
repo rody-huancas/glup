@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { KeyPress } from '@/modules/screen-text/interfaces/keyPress';
-import { shortcutFromPress, shortcutKeys } from '@/modules/screen-text/utils/shortcut';
+import type { KeyPress } from '@/modules/shortcuts/interfaces/keyPress';
+import { shortcutFromPress, shortcutKeys } from '@/modules/shortcuts/utils/shortcut';
 
 const press = (code: string, modifiers: Partial<Omit<KeyPress, 'code'>> = {}): KeyPress => ({
   code,
