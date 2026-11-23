@@ -59,6 +59,12 @@ windows     = { version = "0.62", features = ["Foundation", "Foundation_Collecti
 [profile.dev]
 debug = "line-tables-only"
 
+# Dependencies carry no debug info at all: a panic still points at our files and lines (glup keeps
+# line-tables-only above), and target loses the .pdb of every crate. Package sections below only set
+# opt-level, so this applies to them too.
+[profile.dev.package."*"]
+debug = false
+
 # Image encoders (rav1e, oxipng) are very slow unoptimized; keep them fast in dev builds.
 [profile.dev.package.rav1e]
 opt-level = 3

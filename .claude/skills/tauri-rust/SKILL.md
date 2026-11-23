@@ -152,9 +152,11 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 
 ## Espacio en disco
 
-- `[profile.dev]` usa `debug = "line-tables-only"`: los errores muestran archivo y línea, y `target`
-  pesa mucho menos. Los crates de imagen, `ort`, `whisper-rs-sys` y los de las descargas (`sha2`,
-  `rustls`, `ring`, `flate2`, `zlib-rs`) siguen con `opt-level = 3`.
+- `[profile.dev]` usa `debug = "line-tables-only"` solo para nuestro crate: los errores muestran
+  archivo y línea. Las dependencias van sin información de depuración
+  (`[profile.dev.package."*"] debug = false`), así que `target` no guarda un `.pdb` por crate. Los
+  crates de imagen, `ort`, `whisper-rs-sys` y los de las descargas (`sha2`, `rustls`, `ring`,
+  `flate2`, `zlib-rs`) siguen con `opt-level = 3`.
 - Si en la tarea se corrió `cargo test` o se compiló en release (`cargo build --release`,
   `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` (todo `target`, no
   solo `--release`): las compilaciones de prueba también pesan varios GB. Antes se detienen
