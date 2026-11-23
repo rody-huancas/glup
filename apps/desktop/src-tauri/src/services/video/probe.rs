@@ -60,6 +60,21 @@ fn rotation(text: &str) -> i64 {
     0
 }
 
+// Only the length (audio files have no picture).
+pub fn parse_duration(text: &str) -> Option<f64> {
+    text.lines().find_map(|line| {
+        let rest = line.trim().strip_prefix("Duration:")?;
+        parse_clock(rest.split(',').next()?)
+    })
+}
+
+pub fn probe_duration(ffmpeg: &Path, file: &Path) -> Option<f64> {
+    let mut command = Command::new(ffmpeg);
+    command.args(["-hide_banner", "-nostdin", "-i"]).arg(file).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
+    hide_window(&mut command);
+    parse_duration(&String::from_utf8_lossy(&command.output().ok()?.stderr))
+}
+
 // Parses the summary ffmpeg prints for an input. None if there is no video stream or no length.
 pub fn parse_probe(text: &str) -> Option<VideoInfo> {
     let duration = text.lines().find_map(|line| {
