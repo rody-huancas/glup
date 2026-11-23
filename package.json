@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.34.9",
   "scripts": {
     "dev": "pnpm --filter desktop tauri dev",
-    "build": "pnpm --filter desktop tauri build"
+    "build": "pnpm --filter desktop tauri build",
+    "version:set": "node scripts/set-version.mjs"
   }
 }
