@@ -1,4 +1,5 @@
 import { ACTIONS } from '@/modules/actions/constants/actions';
+import { PLATFORM_ACTIONS } from '@/modules/actions/constants/implemented';
 import type { ActionDefinition } from '@/modules/actions/interfaces/actionDefinition';
 import type { FileInfo } from '@/modules/actions/interfaces/fileInfo';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
@@ -41,6 +42,8 @@ export const getSelectionType = (files: FileInfo[]): Exclude<SelectionType, 'mix
 export const getActionsFor = ({ type, count }: ActionsForParams): ActionDefinition[] =>
   ACTIONS
     .filter((action) => (action.fileType === type || action.fileType === 'any') && matchesCount(action.fileCount, count))
+    // Not on this system (for now "Sacar texto" outside Windows).
+    .filter((action) => PLATFORM_ACTIONS[action.id]?.() ?? true)
     // .filter((action) => action.fileType === type && matchesCount(action.fileCount, count))
     .sort((a, b) => Number(b.primary) - Number(a.primary));
 
