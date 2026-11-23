@@ -24,7 +24,13 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 4. **Guardar en**: misma carpeta, carpeta "Glup" junto al original o una carpeta elegida. Se elige
    **antes** de ejecutar y se recuerda en `settings.json`. Con varios archivos, el interruptor
    «Entregar todo en un ZIP».
-5. **Trabajar**: tarea en segundo plano con progreso («N de M»), barra y Cancelar. La isla puede
+5. **Trabajar**: tarea en segundo plano con su etapa en palabras llanas, barra y Cancelar:
+   «Descargando lo que necesito… 120 de 514 MB» → «Comprobando la descarga…» → «Preparándome…» →
+   la acción («Pasando a texto… 35 %», «N de M») → «Guardando…». La barra solo se llena mientras algo
+   se cuenta; si no, se mueve sola, y nunca queda llena y quieta. Si la acción necesita descargar algo
+   la primera vez, primero se eligen las opciones, después se pide permiso y «Descargar» lanza **una
+   sola tarea** (descarga y acción), con una sola tarjeta y un solo Cancelar (`withLearning`). Las
+   palabras de cada acción van en `WORKING_TEXTS` y las de las etapas en `STAGE_TEXTS`. La isla puede
    recogerse; la tarea sigue y avisa al terminar.
 6. **Resultado**: al terminar avisa una sola vez (toast en el panel o notificación de Windows, ver
    `isla-y-mascota`). Glup feliz, «Listo · de 2,4 MB a 680 KB», con Abrir y Ver en carpeta. Errores

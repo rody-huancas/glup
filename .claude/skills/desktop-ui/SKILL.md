@@ -72,7 +72,10 @@ Módulos actuales: `island` (la isla y su máquina de estados), `mascot` (Glup y
     `shared/`.
 11. **Estados completos.** Cada pantalla y panel contempla carga (skeleton con `shimmer`, nunca un
     hueco vacío), error (Glup confundido y un texto que dice qué hacer), vacío honesto y contenido.
-    Las esperas de más de unos segundos muestran progreso y permiten cancelar.
+    Las esperas de más de unos segundos muestran progreso y permiten cancelar. Las tareas se muestran
+    siempre con `WorkingStatus` (`modules/actions/utils/progressView.ts` decide palabras y barra); una
+    etapa sin conteo usa la barra indeterminada (`ProgressBar` con `null`), que con movimiento
+    reducido no se desplaza: queda al centro y cambia de intensidad.
 12. **Sin scroll en el panel** salvo en listas que lo necesitan (historial, miniaturas), con la
     utilidad `scroll-thin`. El panel mide 1040x640: el contenido se diseña para entrar.
 13. **Animaciones.** GSAP (`gsap` + `@gsap/react` con `useGSAP`) para la isla y las transiciones; la

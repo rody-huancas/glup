@@ -34,10 +34,17 @@ src-tauri/
    `async`.
 3. **Tareas.** Una acción larga se registra al empezar (`tasks::start`) y guarda su resultado al
    terminar (`tasks::finish`), aunque nadie esté escuchando: así sobrevive a que la isla se recoja.
-   El progreso se emite como evento (`ACTION_PROGRESS_EVENT`) con «N de M» y lo que se está haciendo.
+   El progreso tiene **un solo formato** (`services/progress.rs`): `ActionProgress` con su `stage`
+   (`Downloading`, `Verifying`, `Preparing`, `Working`, `Saving`) y, si se puede contar, `current`
+   / `total` / `detail`. Se emite siempre con `progress::emit`. Toda espera sin conteo se anuncia con
+   su etapa (`ActionProgress::at(task, Stage::…)`): cargar un modelo es `Preparing`; escribir, la red
+   de seguridad, el ZIP y el historial, `Saving`; el hash y desempaquetar, `Verifying`. Varias
+   descargas de una tarea se cuentan como una sola con `DownloadSpan`.
 4. **Cancelación** con una bandera compartida (`ActionControl`) que se revisa entre archivos o
-   páginas. Al cancelar: lo que ya terminó se conserva y se informa; un archivo único a medio
-   escribir (un ZIP o un PDF unido) se borra.
+   páginas. Cada llamada de una tarea empieza con `control.begin(&task_id)` (nunca
+   `cancelled.store(false)`): así una tarea hecha de varias llamadas (descargar y luego la acción)
+   sigue cancelada de una a otra. Al cancelar: lo que ya terminó se conserva y se informa; un archivo
+   único a medio escribir (un ZIP o un PDF unido) se borra.
 5. **Paralelismo** con `rayon`, limitado por `services/parallel.rs` (la mitad de los núcleos, mínimo
    1 y máximo 8) para que la PC no se ponga lenta. Lo que depende del orden (páginas de un PDF) va en
    secuencia.
@@ -63,7 +70,10 @@ src-tauri/
 12. **Ventana de la isla.** El tamaño y la región visible se manejan en `services/island_window.rs`,
     expuestos con el comando `set_island_area` (`commands/island.rs`); los vigilantes (`island_watchdog.rs`) corrigen desajustes. Las APIs de
     Windows van detrás de `#[cfg(windows)]`, con una versión vacía para los demás sistemas.
-13. **Crates.** Solo licencias permisivas (skill `convenciones`, regla 12). Preferir crates en Rust
+13. **Descargas** (`background/download.rs`): el SHA-256 se calcula mientras llegan los bytes; al
+    reanudar se lee una vez la parte que ya estaba en disco. No se vuelve a leer el archivo entero
+    al final. Lo que se desempaqueta se comprueba al escribirlo (`HashWriter`).
+14. **Crates.** Solo licencias permisivas (skill `convenciones`, regla 12). Preferir crates en Rust
     puro; un crate que necesita una librería de C instalada aparte en Windows se discute antes.
     Excepción acordada: `ort` (ONNX Runtime, para «Quitar fondo»), que baja ONNX Runtime ya compilado
     al compilar y lo enlaza estático; no hay que instalar nada aparte ni empaquetar DLLs (DirectML lo
@@ -88,11 +98,11 @@ src-tauri/
     LLVM (libclang). La sesión del modelo vive en `services/transcribe/engine.rs`, se libera tras 5
     minutos sin uso; cancelar usa `set_abort_callback` con una bandera, no `set_abort_callback_safe`
     (en whisper-rs 0.16 convierte mal el puntero).
-14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
+15. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio
     por canal), no solo el peso.
-15. **Formato manual** (sin `cargo fmt`), 4 espacios, constantes y brazos de `match` alineados,
+16. **Formato manual** (sin `cargo fmt`), 4 espacios, constantes y brazos de `match` alineados,
     comentarios esenciales en inglés.
 
 ## Cómo se ve un comando
@@ -123,7 +133,8 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
 ## Espacio en disco
 
 - `[profile.dev]` usa `debug = "line-tables-only"`: los errores muestran archivo y línea, y `target`
-  pesa mucho menos. Los crates de imagen y `ort` siguen con `opt-level = 3`.
+  pesa mucho menos. Los crates de imagen, `ort`, `whisper-rs-sys` y los de las descargas (`sha2`,
+  `rustls`, `ring`, `flate2`, `zlib-rs`) siguen con `opt-level = 3`.
 - Si en la tarea se corrió `cargo test` o se compiló en release (`cargo build --release`,
   `cargo test --release`, `tauri build`), al terminarla se corre `cargo clean` (todo `target`, no
   solo `--release`): las compilaciones de prueba también pesan varios GB. Antes se detienen
