@@ -45,7 +45,7 @@ describe('groupTools', () => {
 
   it('shows the four sections with everything', () => {
     const groups = groupTools({ tools: TOOLS, sections: TOOL_SECTIONS });
-    expect(groups.map((group) => group.section)).toEqual(['pdf', 'images', 'videos', 'files', 'pc']);
+    expect(groups.map((group) => group.section)).toEqual(['pdf', 'images', 'videos', 'text', 'files', 'pc']);
   });
 });
 
