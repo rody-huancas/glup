@@ -42,6 +42,7 @@ solo traduce cada fase en animación, región y foco.
 | La persona está en medio de algo | No se recoge al salir el cursor: fijada, archivo arrastrándose encima, paso con lista o cuadrícula (ordenar, páginas, formato, nivel), pantalla de firma o un diálogo abierto (confirmación de Limpieza, crear firma, selector de archivos o carpetas) |
 | Recoger o Esc | Se recoge con despedida de Glup |
 | Tarea termina con la isla recogida | Aviso ancho 4 s con el resultado |
+| Tarea termina (cualquiera) | Toast arriba del contenido del panel o notificación de Windows, nunca los dos (`decideNotice`) |
 | Pantalla completa en el monitor principal | `hidden` |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
@@ -49,6 +50,11 @@ solo traduce cada fase en animación, región y foco.
   le envía con el evento `holds`. Un diálogo nuevo
   la retiene con `useIslandHold(abierto)` o `holdWhile(...)` para los selectores nativos. Que Glup
   coma o trabaje **no** la retiene.
+- **Avisos de fin de tarea** (`modules/notices`): con el panel abierto y la persona ahí (cursor encima
+  o Glup al frente) o una tarea de menos de 3 s, un toast arriba del contenido (Glup en miniatura,
+  el resultado, «Ver», se va a los 5 s). Si no está mirando, una notificación de Windows
+  (`tauri-winrt-notification`; el clic despliega la isla en la pantalla dueña) y ningún toast. Si
+  las notificaciones están apagadas en Ajustes, el toast espera a que se abra el panel.
 - Recoger **no** reinicia la navegación ni el estado de las secciones. Una selección de archivos con
   sus acciones a la vista (sin ejecutar) queda **pendiente**: la pastilla recogida muestra un puntito
   lila y, al abrir, Inicio la muestra tal como estaba. Se descarta solo al cerrarla (x o «Volver»), al

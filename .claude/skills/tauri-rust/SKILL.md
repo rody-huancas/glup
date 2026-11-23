@@ -79,7 +79,10 @@ src-tauri/
     un `Range`; `flate2` lo descomprime) y se ejecuta como proceso aparte, sin ventana
     (`encode::hide_window`). Nunca se enlaza: ver la regla 12 de `convenciones`.
     OCR con el crate `windows` (misma versión que trae Tauri) y `Windows.Media.Ocr`, detrás de
-    `#[cfg(windows)]` con una versión vacía para los demás sistemas (`services/text/ocr.rs`).
+    `#[cfg(windows)]` con una versión vacía para los demás sistemas (`services/text/ocr.rs`). El
+    detector de rostros de «Foto tamaño carnet» (`Windows.Media.FaceAnalysis`) va igual
+    (`services/id_photo/face.rs`). Notificaciones con `tauri-winrt-notification` (el plugin de
+    notificaciones no avisa del clic en escritorio): `services/notify.rs`.
 14. **Pruebas.** `#[cfg(test)] mod tests` en el mismo archivo, o `tests.rs` en las áreas con carpeta.
     Los archivos de prueba (imágenes, PDFs, ZIP) se generan por código en una carpeta temporal y se
     borran al terminar. Lo que verifica calidad visual compara contenido (por ejemplo error medio
