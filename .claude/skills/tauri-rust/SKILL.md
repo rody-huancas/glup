@@ -101,6 +101,12 @@ src-tauri/
     detector de rostros de «Foto tamaño carnet» (`Windows.Media.FaceAnalysis`) va igual
     (`services/id_photo/face.rs`). Notificaciones con `tauri-winrt-notification` (el plugin de
     notificaciones no avisa del clic en escritorio): `services/notify.rs`.
+    «Ordenar una carpeta» (`services/folder_sort/`): lo que decide es puro y con pruebas en carpetas
+    temporales (`classify.rs` lee `categories.json` con `include_str!`; `filters.rs`, `plan.rs`); mover
+    es `mover.rs` (renombrar sin reemplazar, o copiar y comparar si cruza de disco) y deshacer,
+    `journal.rs` (el registro en `orden/` de la carpeta de datos, con un `.log` que crece archivo por
+    archivo; al iniciar, `spawn_recovery` recupera los que quedaron sin terminar). El último plan vive
+    en `FolderSortState`: solo él se puede mover, una vez.
     «Copiar texto de la pantalla» (`services/screen_text/`): la captura por monitor con GDI
     (`BitBlt`), solo en memoria. El texto
     copiado va a `history.json` como línea con `text` (`history::text_entry`), salvo que
