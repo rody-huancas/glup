@@ -1,7 +1,10 @@
 pub mod compress;
 pub mod convert;
 pub mod decode;
+pub mod guard;
+pub mod heif;
 pub mod ico;
+pub mod metadata;
 pub mod to_pdf;
 
 #[cfg(test)]
@@ -70,6 +73,8 @@ pub enum SourceFormat {
     Bmp,
     Tiff,
     Avif,
+    // HEIC and HEIF (iPhone photos): read, never written.
+    Heic,
 }
 
 impl SourceFormat {
@@ -77,14 +82,15 @@ impl SourceFormat {
         let extension = path.extension()?.to_string_lossy().to_lowercase();
 
         match extension.as_str() {
-            "png"          => Some(Self::Png),
-            "jpg" | "jpeg" => Some(Self::Jpeg),
-            "webp"         => Some(Self::Webp),
-            "gif"          => Some(Self::Gif),
-            "bmp"          => Some(Self::Bmp),
-            "tif" | "tiff" => Some(Self::Tiff),
-            "avif"         => Some(Self::Avif),
-            _              => None,
+            "png"                   => Some(Self::Png),
+            "jpg" | "jpeg"          => Some(Self::Jpeg),
+            "webp"                  => Some(Self::Webp),
+            "gif"                   => Some(Self::Gif),
+            "bmp"                   => Some(Self::Bmp),
+            "tif" | "tiff"          => Some(Self::Tiff),
+            "avif"                  => Some(Self::Avif),
+            "heic" | "heif" | "hif" => Some(Self::Heic),
+            _                       => None,
         }
     }
 

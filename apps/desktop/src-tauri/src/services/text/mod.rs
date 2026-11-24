@@ -47,7 +47,8 @@ pub fn support() -> TextSupport {
 
 // An image file, decoded and read.
 pub fn read_image(path: &Path) -> Result<String, String> {
-    let image = image::open(path).map_err(|_| READ_ERROR.to_string())?.to_rgba8();
+    // The same reading as every image tool (HEIC and AVIF included), with its own messages.
+    let image = crate::services::image::decode::decode(path)?.to_rgba8();
     ocr::recognize(image)
 }
 
