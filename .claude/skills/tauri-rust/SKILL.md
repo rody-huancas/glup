@@ -108,6 +108,12 @@ src-tauri/
     (`colour.rs`: nclx o perfil ICC de matriz, como Display P3). Las pruebas usan `fixtures/heif`.
     `image/metadata.rs` vuelve a escribir la fecha (y el GPS si «Quitar ubicación» está apagado) en
     JPG, PNG y WebP; `image/guard.rs` es la red de seguridad de «A JPG».
+    «Rendimiento» (`services/performance/`): lo puro con pruebas (`apps.rs` agrupa los procesos por la
+    app que los inició y dice qué está protegido: Windows, otras sesiones y Glup; `startup.rs` lee y
+    escribe la marca de StartupApproved). Los procesos salen de **una** llamada
+    (`NtQuerySystemInformation`, como el Administrador de tareas) y solo se abre un proceso nuevo para
+    leer su ruta; una lectura cuesta unos 10 ms de procesador (la prueba lo mide). «Cerrar» manda
+    `WM_CLOSE` a sus ventanas y espera; forzar (`TerminateProcess`) solo si se pide después.
     «Ordenar una carpeta» (`services/folder_sort/`): lo que decide es puro y con pruebas en carpetas
     temporales (`classify.rs` lee `categories.json` con `include_str!`; `filters.rs`, `plan.rs`); mover
     es `mover.rs` (renombrar sin reemplazar, o copiar y comparar si cruza de disco) y deshacer,
