@@ -8,7 +8,8 @@ description: Reglas de la isla de Glup (la pastilla pegada a un borde o una esqu
 ## La isla
 
 Glup vive en una ventana transparente, siempre encima y sin ícono en la barra de tareas, pegada a un
-borde o una esquina de una pantalla (por defecto, arriba al centro de la principal; ver «Posición»).
+borde o una esquina de una pantalla (por defecto, arriba al centro de la principal; ver «Posición») o
+flotando como burbuja (ver «Modo burbuja»).
 **Nunca hay dos Glup abiertos**: con `tauri-plugin-single-instance`, abrirlo otra vez (acceso directo,
 menú Inicio) no lanza otro; el que ya está despliega la isla fijada, como «Abrir Glup» de la bandeja.
 La ventana tiene el tamaño del pico de la animación para su borde y **una región de Windows recorta lo
@@ -43,15 +44,16 @@ visible y clicable** al estado actual, para que los clics alrededor lleguen a la
   acomoda sola. La pantalla completa que la oculta es la de **su** pantalla.
 - Ajustes › General › «Posición de Glup» (`DockPositionSetting`): un dibujo de la pantalla para elegir
   con un clic (o con sus ocho botones), la pantalla si hay varias y «Volver arriba al centro».
-- La etapa que viene (burbuja flotante) es otro `DockKind` y otro estado de la máquina: la posición ya
-  no asume «arriba al centro» en ningún lado.
+- La posición no asume «arriba al centro» en ningún lado: la burbuja es otro `DockKind` (`'bubble'`) y
+  otra forma de reposo de la misma máquina.
 
 ### Modo oculto
 
-- Ajustes › General › «Cómo se muestra»: «Isla» (como siempre) u «Oculta» (`islandHidden` en
-  `settings.json`), en cualquier borde o esquina. La máquina lo sabe como su **forma de reposo**
-  (`rest: 'pill' | 'hidden'`): la fase de reposo sigue siendo `collapsed` y `hidden` sigue siendo solo la
-  ventana oculta (pantalla completa, bandeja, captura).
+- Ajustes › General › «Cómo se muestra»: «Isla» (como siempre), «Oculta» o «Burbuja» (`islandRest` en
+  `settings.json`: `pill`, `hidden`, `bubble`), en cualquier borde o esquina. La máquina lo sabe como su
+  **forma de reposo** (`rest`): la fase de reposo sigue siendo `collapsed` y `hidden` sigue siendo solo
+  la ventana oculta (pantalla completa, bandeja, captura). Cambiar de forma descarta el aviso y el
+  arrastre de la forma anterior; el panel abierto sigue abierto.
 - **Oculta no se ve nada**: las formas de reposo (`collapsed`, `hover`, `settle`) miden 0, así que el
   panel sale del borde mismo con la burbuja de siempre (con movimiento reducido, el fundido) y vuelve a
   él. Sin pastilla no hay aviso ancho (la máquina lo ignora: avisa la notificación de Windows, según su
@@ -69,6 +71,42 @@ visible y clicable** al estado actual, para que los clics alrededor lleguen a la
   como isla»). Si la barra de tareas se oculta sola en ese borde (`get_taskbar_state`,
   `competesWithTaskbar`), Ajustes avisa que compiten y sugiere otro borde.
 
+### Modo burbuja
+
+- «Burbuja»: un círculo flotante de **56 px CSS** (un ícono grande: 56 px a 100 %, 84 px a 150 %, nítido
+  porque se dibuja, no es un mapa de bits), con la cara de Glup, el mismo color de la pastilla y una
+  sombra suave. Las formas están en `DOCK_SHAPES.bubble` (sin orejas: un rectángulo redondeado que es
+  un círculo en reposo) y las medidas en `BUBBLE`.
+- **La ventana es toda el área de trabajo de su pantalla** (`placeBubble`): moverla dentro de una
+  pantalla solo mueve la región (`set_island_frame` no recoloca la ventana si el marco no cambió). En
+  reposo la región es **redonda** (`regionShape` → `round`, `CreateEllipticRgn`): el círculo con 8 px
+  para la sombra y el anillo; nada más bloquea clics. Mientras se abre, la región es solo lo que el
+  panel puede alcanzar, no la pantalla entera.
+- **Se arrastra a cualquier lado** y en cualquier pantalla: el centro sigue al cursor desde donde se
+  tomó (`dragBubble`) y queda donde se suelta, sin pegarse al borde; si quedaría en parte afuera, se
+  acomoda adentro (`fitBubble`). Se guarda como `islandBubble`
+  (pantalla + centro en fracciones del área de trabajo); `resolveBubble` la lleva al lugar equivalente
+  de la principal si su pantalla ya no está, y siempre dentro de la pantalla.
+- **El panel y el aviso salen hacia donde hay más espacio** (`bubbleLayout`: derecha o izquierda,
+  abajo o arriba) desde el lado de la burbuja, con la misma animación, y nunca se salen de la pantalla
+  (`bubbleBox` los empuja adentro). Hasta el tamaño del hover la forma queda centrada en la burbuja.
+  El aviso es una pestaña al costado con el texto y «Ver»; Glup se queda en la burbuja.
+- Progreso: un **anillo** mint alrededor (`IslandBubbleRing`), lleno según la fracción o con un arco que
+  gira si no se sabe cuánto falta (con movimiento reducido, el anillo entero más suave). La sombra
+  (`IslandBubbleShadow`) y el anillo van fuera del recorte de la silueta.
+- **Se abre con un clic, no con hover** (`hoverOpens` es falso para la burbuja): presionar y soltar sin
+  mover (menos de `DRAG_THRESHOLD` px) la abre; presionar y mover la arrastra, y mientras se arrastra
+  nunca se abre. Al pasar el cursor solo se agranda un poco (la forma `hover`; con movimiento reducido,
+  nada) y el cursor es la mano. La burbuja en reposo es un **botón** («Abrir Glup»,
+  `IslandBubbleButton`) que responde a Enter y Espacio con el foco.
+- **Abierta, no se cierra al salir el cursor** (`closesOnLeave`): se cierra con un clic afuera (la
+  ventana pierde el foco → evento `outside`, salvo que algo la retenga, como un diálogo nativo), con
+  Esc, con el atajo o con un clic en Glup. Al abrirse toma el foco para eso.
+- Lo demás es igual que la pastilla: el atajo, la bandeja, soltar archivos (la abre al instante),
+  pantalla completa, vigilantes y movimiento reducido. En Ajustes, el dibujo de «Posición de
+  Glup» la muestra donde está (un clic la lleva ahí) y «Traer la burbuja al centro» la lleva al medio de
+  la principal.
+
 ### Máquina de estados
 
 La isla es una **máquina de estados pura** (`modules/island/utils/islandMachine.ts`), con fases
@@ -85,7 +123,7 @@ solo traduce cada fase en animación, región y foco.
   - fijada solo estando abierta;
   - arrastrada (`moving`) solo estando recogida: mientras se arrastra no se abre, ni con hover, y un
     aviso que llega en ese momento no ensancha la pastilla (igual se cuenta por su toast o notificación);
-  - oculta en reposo (`rest: 'hidden'`), ni aviso ancho ni arrastre.
+  - oculta en reposo (`rest: 'hidden'`), ni aviso ancho ni arrastre (la burbuja sí los tiene).
   Se comprueban con las formas de arriba al centro: las reglas son las mismas en todos los bordes.
 - Los temporizadores (abrir, recoger) usan callbacks estables: un render no los reinicia.
 - **Vigilantes** cada 2 s (Rust y frontend) corrigen si el estado y la ventana real no coinciden, y
@@ -106,6 +144,10 @@ solo traduce cada fase en animación, región y foco.
 | Pantalla completa en la pantalla de la isla | `hidden` |
 | Pastilla presionada y arrastrada | `moving`: sigue al borde más cercano con un halo; al soltar queda ahí |
 | Oculta: cursor contra su borde el retraso de Ajustes, su atajo o la bandeja | Sale el panel completo desde ese borde; al recogerse vuelve a no verse nada |
+| Burbuja presionada y arrastrada | `moving`: sigue al cursor por la pantalla (y a otra); al soltar queda ahí, dentro de la pantalla |
+| Burbuja: cursor encima | Se agranda un poco, sin abrirse |
+| Burbuja: clic (o Enter/Espacio), atajo, bandeja o un archivo arrastrado | El panel sale de la burbuja hacia donde hay más espacio |
+| Burbuja abierta: clic afuera, Esc, atajo o clic en Glup | Se recoge a la burbuja (salir con el cursor no la cierra) |
 | «Copiar texto de la pantalla» (atajo, bandeja o Herramientas) | `hidden` mientras se elige la zona; vuelve como pastilla limpia y muestra el aviso («Copié 42 palabras» con «Ver», que abre esa línea del Historial, Glup feliz; «No encontré texto ahí», confundido). Con Glup oculto (bandeja, pantalla completa), una notificación de Windows con las mismas palabras |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
