@@ -13,7 +13,7 @@ pub fn spawn(app: AppHandle) {
         let mut last = false;
 
         loop {
-            let current = is_foreground_fullscreen();
+            let current = is_foreground_fullscreen(&app);
 
             if current != last {
                 last = current;
@@ -26,15 +26,18 @@ pub fn spawn(app: AppHandle) {
     });
 }
 
+// A fullscreen app on the island's own screen (wherever it is docked) hides it; on another, it does not.
 #[cfg(windows)]
-fn is_foreground_fullscreen() -> bool {
+fn is_foreground_fullscreen(app: &AppHandle) -> bool {
+    use tauri::Manager;
     use windows_sys::Win32::{
         Foundation::RECT,
-        Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST},
-        UI::WindowsAndMessaging::{
-            GetClassNameW, GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId,
-            MONITORINFOF_PRIMARY,
-        },
+        Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST, MONITOR_DEFAULTTOPRIMARY},
+        UI::WindowsAndMessaging::{GetClassNameW, GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId},
+    };
+
+    let Some(island) = app.get_webview_window(crate::ISLAND_WINDOW_LABEL).and_then(|window| window.hwnd().ok()) else {
+        return false;
     };
 
     const IGNORED_CLASSES: [&str; 4] = ["Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd"];
@@ -68,10 +71,11 @@ fn is_foreground_fullscreen() -> bool {
         }
 
         let monitor               = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+        let island_monitor        = MonitorFromWindow(island.0 as _, MONITOR_DEFAULTTOPRIMARY);
         let mut info: MONITORINFO = std::mem::zeroed();
         info.cbSize               = std::mem::size_of::<MONITORINFO>() as u32;
 
-        if GetMonitorInfoW(monitor, &mut info) == 0 || info.dwFlags & MONITORINFOF_PRIMARY == 0 {
+        if monitor != island_monitor || GetMonitorInfoW(monitor, &mut info) == 0 {
             return false;
         }
 
@@ -85,6 +89,6 @@ fn is_foreground_fullscreen() -> bool {
 }
 
 #[cfg(not(windows))]
-fn is_foreground_fullscreen() -> bool {
+fn is_foreground_fullscreen(_app: &AppHandle) -> bool {
     false
 }
