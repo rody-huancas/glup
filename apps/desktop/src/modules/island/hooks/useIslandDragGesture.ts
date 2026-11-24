@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { PointerEvent } from 'react';
 import { DRAG_THRESHOLD } from '@/modules/island/constants/island';
+import type { PressEvent } from '@/modules/island/types/pressEvent';
+import { logBubble } from '@/modules/island/utils/islandLog';
+import { INITIAL_PRESS, pressStep } from '@/modules/island/utils/pressGesture';
 import type { Point } from '@/shared/interfaces/point';
 import { distance } from '@/shared/utils/math';
 
@@ -14,11 +17,17 @@ const MAIN_BUTTON = 0;
 
 // Press on the pill and move: from a few pixels on (or as soon as the cursor leaves the pill with the
 // button down) it is a drag, and Rust follows the cursor from there. A press without moving is still a
-// click (it opens the island); the click that ends a drag is swallowed.
+// click (it opens the island); the click that ends a drag is swallowed, and only that one (pressStep).
 export const useIslandDragGesture = ({ enabled, onDragStart }: UseIslandDragGestureParams) => {
-  const start   = useRef<Point | null>(null);
-  const dragged = useRef(false);
-  const stop    = useRef<(() => void) | null>(null);
+  const start = useRef<Point | null>(null);
+  const press = useRef(INITIAL_PRESS);
+  const stop  = useRef<(() => void) | null>(null);
+
+  const step = useCallback((event: PressEvent): boolean => {
+    const next    = pressStep(press.current, event);
+    press.current = next.state;
+    return next.click;
+  }, []);
 
   const release = useCallback(() => {
     stop.current?.();
@@ -28,12 +37,17 @@ export const useIslandDragGesture = ({ enabled, onDragStart }: UseIslandDragGest
 
   const begin = useCallback(() => {
     release();
-    dragged.current = true;
+    step({ type: 'drag' });
+    logBubble('arrastre');
     onDragStart();
-  }, [release, onDragStart]);
+  }, [release, step, onDragStart]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
-    if (!enabled || event.button !== MAIN_BUTTON) return;
+    if (event.button !== MAIN_BUTTON) return;
+
+    // A new press starts clean, even where it cannot be dragged.
+    step({ type: 'down' });
+    if (!enabled) return;
 
     release();
     start.current = { x: event.screenX, y: event.screenY };
@@ -55,16 +69,16 @@ export const useIslandDragGesture = ({ enabled, onDragStart }: UseIslandDragGest
       window.removeEventListener('pointerup', release);
       document.documentElement.removeEventListener('pointerleave', onLeave);
     };
-  }, [enabled, release, begin]);
+  }, [enabled, release, begin, step]);
 
   useEffect(() => release, [release]);
 
-  // True once after a drag: the click it ends with must not open the island.
+  // True for the click that ends a drag: it must not open the island.
   const consumeClick = useCallback((): boolean => {
-    const was       = dragged.current;
-    dragged.current = false;
-    return was;
-  }, []);
+    const swallowed = !step({ type: 'click' });
+    if (swallowed) logBubble('clic tragado: terminaba un arrastre');
+    return swallowed;
+  }, [step]);
 
   return { onPointerDown, consumeClick };
 };
