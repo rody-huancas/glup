@@ -26,6 +26,13 @@ describe('progress bar', () => {
 });
 
 describe('progress words', () => {
+  it('says whether the card or the processor is listening', () => {
+    expect(progressLabel({ progress: line({ via: 'gpu', current: 10, total: 1000 }), actionId: 'transcribe', cancelling: false })).toBe('Pasando a texto… (con la tarjeta de video)');
+    expect(progressLabel({ progress: line({ via: 'cpu', current: 10, total: 1000 }), actionId: 'transcribe', cancelling: false })).toBe('Pasando a texto… (con el procesador)');
+    expect(progressLabel({ progress: line({ current: 10, total: 1000 }), actionId: 'transcribe', cancelling: false })).toBe('Pasando a texto…');
+    expect(progressLabel({ progress: line({ via: 'gpu', stage: 'preparing' }), actionId: 'transcribe', cancelling: false })).toBe('Preparándome…');
+  });
+
   it('says the stage, or the action while it works', () => {
     expect(progressLabel({ progress: line({ stage: 'downloading', current: 1, total: 9 }), actionId: 'transcribe', cancelling: false })).toBe('Descargando lo que necesito…');
     expect(progressLabel({ progress: line({ stage: 'verifying' }), actionId: 'transcribe', cancelling: false })).toBe('Comprobando la descarga…');

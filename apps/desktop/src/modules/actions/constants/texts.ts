@@ -1,5 +1,6 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ProgressStage } from '@/modules/actions/types/progressStage';
+import type { ProgressVia } from '@/modules/actions/types/progressVia';
 
 export const ACTIONS_TEXTS = {
   titleSingle   : '¿Qué hago con él?',
@@ -49,6 +50,12 @@ export const STAGE_TEXTS: Record<Exclude<ProgressStage, 'working'>, string> = {
   verifying   : 'Comprobando la descarga…',
   preparing   : 'Preparándome…',
   saving      : 'Guardando…',
+};
+
+// Added to the words of the work when it can go one way or the other: "Pasando a texto… (con la tarjeta de video)".
+export const VIA_TEXTS: Record<ProgressVia, string> = {
+  gpu : '(con la tarjeta de video)',
+  cpu : '(con el procesador)',
 };
 
 // The work itself, in the words of each action (ACTIONS_TEXTS.working when it has none).

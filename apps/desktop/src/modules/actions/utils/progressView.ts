@@ -1,4 +1,4 @@
-import { ACTIONS_TEXTS, STAGE_TEXTS, WORKING_TEXTS } from '@/modules/actions/constants/texts';
+import { ACTIONS_TEXTS, STAGE_TEXTS, VIA_TEXTS, WORKING_TEXTS } from '@/modules/actions/constants/texts';
 import type { ActionProgress } from '@/modules/actions/interfaces/actionReport';
 import type { ActionId } from '@/modules/actions/types/actionId';
 
@@ -30,7 +30,8 @@ export const progressLabel = ({ progress, actionId, cancelling }: LabelParams): 
   if (stage !== 'working') return STAGE_TEXTS[stage];
   if (progress && countDone(progress)) return STAGE_TEXTS.saving;
 
-  return actionId ? WORKING_TEXTS[actionId] : ACTIONS_TEXTS.working;
+  const words = actionId ? WORKING_TEXTS[actionId] : ACTIONS_TEXTS.working;
+  return progress?.via ? `${words} ${VIA_TEXTS[progress.via]}` : words;
 };
 
 // The line under the bar: "120 MB de 514 MB", "35 %", or nothing (the "N de M" row covers files).
