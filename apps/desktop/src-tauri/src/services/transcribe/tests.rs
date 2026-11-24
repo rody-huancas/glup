@@ -221,3 +221,81 @@ fn real_voice_note_stages() {
     println!("audio {:.1} s · leer el sonido {decoded} ms · cargar el modelo {loaded} ms · escuchar {heard} ms · armar el texto {composed} ms · segundo audio, cargar {reused} ms", seconds_of(&samples));
     println!("{text}");
 }
+
+
+// Processor against graphics card, both levels, on the same note: GLUP_WHISPER_DIR (the models as Glup
+// names them), GLUP_FFMPEG, GLUP_WHISPER_NOTE and GLUP_VOZ (target/debug/glup-voz.exe, built apart).
+// cargo test transcribe::tests::real_card -- --ignored --nocapture --test-threads=1
+#[test]
+#[ignore]
+fn real_card_against_processor() {
+    let folder  = PathBuf::from(std::env::var("GLUP_WHISPER_DIR").unwrap());
+    let ffmpeg  = PathBuf::from(std::env::var("GLUP_FFMPEG").unwrap());
+    let note    = PathBuf::from(std::env::var("GLUP_WHISPER_NOTE").unwrap());
+    let samples = decode(&ffmpeg, &note, &AtomicBool::new(false)).unwrap().unwrap();
+    let scratch = std::env::temp_dir().join(format!("glup-voz-{}.f32", std::process::id()));
+    let session = Arc::new(TranscribeSession::default());
+    println!("tarjetas: {:?}", session.gpu_devices().unwrap());
+
+    for name in ["whisper-small-q5_1.bin", "whisper-medium-q5_0.bin"] {
+        let model = folder.join(name);
+        let params = || ListenParams { model: &model, samples: &samples, language: Some("es"), cancel: Arc::new(AtomicBool::new(false)), on_progress: Box::new(|_| {}) };
+
+        let start = Instant::now();
+        session.prepare(&model).unwrap();
+        let cpu_load = start.elapsed().as_secs_f64();
+        let start = Instant::now();
+        let Listened::Segments(cpu) = session.listen(params()).unwrap() else { panic!("cancelled") };
+        let cpu_time = start.elapsed().as_secs_f64();
+        session.release();
+
+        let start = Instant::now();
+        session.gpu_prepare(&model).unwrap();
+        let gpu_load = start.elapsed().as_secs_f64();
+        let mut times = Vec::new();
+        let mut text  = String::new();
+        for _ in 0..3 {
+            let start = Instant::now();
+            let Listened::Segments(gpu) = session.gpu_listen(&mut params(), &scratch).unwrap() else { panic!("cancelled") };
+            times.push(format!("{:.1}", start.elapsed().as_secs_f64()));
+            text = paragraphs(&gpu);
+        }
+        // The model stays on the card for the next audio, as on the processor.
+        assert!(session.gpu_is_loaded(&model));
+
+        println!("{name} · {:.1} s de audio · procesador: cargar {cpu_load:.1} s, escuchar {cpu_time:.1} s · tarjeta: cargar {gpu_load:.1} s, escuchar {} s", seconds_of(&samples), times.join(" / "));
+        println!("  procesador: {}", paragraphs(&cpu));
+        println!("  tarjeta:    {text}");
+        session.release();
+    }
+}
+
+// glup-voz dies halfway (GLUP_VOZ_CRASH_AT=50, as a broken driver): Glup is still here, the card says
+// it failed, and the processor listens to the same audio. Same variables as above.
+#[test]
+#[ignore]
+fn real_card_dies_halfway_and_the_processor_finishes() {
+    std::env::set_var("GLUP_VOZ_CRASH_AT", "50");
+    let folder  = PathBuf::from(std::env::var("GLUP_WHISPER_DIR").unwrap());
+    let ffmpeg  = PathBuf::from(std::env::var("GLUP_FFMPEG").unwrap());
+    let note    = PathBuf::from(std::env::var("GLUP_WHISPER_NOTE").unwrap());
+    let samples = decode(&ffmpeg, &note, &AtomicBool::new(false)).unwrap().unwrap();
+    let scratch = std::env::temp_dir().join(format!("glup-voz-crash-{}.f32", std::process::id()));
+    let model   = folder.join("whisper-small-q5_1.bin");
+    let session = Arc::new(TranscribeSession::default());
+    let seen    = Arc::new(std::sync::Mutex::new(Vec::new()));
+    let log     = seen.clone();
+    let mut params = ListenParams { model: &model, samples: &samples, language: Some("es"), cancel: Arc::new(AtomicBool::new(false)), on_progress: Box::new(move |percent| log.lock().unwrap().push(percent)) };
+
+    let failed = session.gpu_listen(&mut params, &scratch);
+    std::env::remove_var("GLUP_VOZ_CRASH_AT");
+    assert!(matches!(failed, Err(crate::services::transcribe::gpu::GpuFailure::Failed(_))), "{:?}", failed.err());
+    assert!(!session.gpu_is_loaded(&model));
+    assert!(!scratch.exists());
+    println!("la tarjeta llegó a {:?} % antes de caerse", seen.lock().unwrap().last());
+
+    let Listened::Segments(segments) = session.listen(params).unwrap() else { panic!("cancelled") };
+    let text = paragraphs(&segments);
+    println!("el procesador terminó: {text}");
+    assert!(!text.trim().is_empty());
+}
