@@ -1,8 +1,8 @@
 // "Pasar audio a texto": the text with paragraphs and the subtitles, made from Whisper's segments. Pure.
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 // A piece of speech with its time, in milliseconds from the start of the file.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Segment {
     pub start : u64,
