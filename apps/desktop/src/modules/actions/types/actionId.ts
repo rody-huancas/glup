@@ -14,6 +14,7 @@ export type ActionId =
   | 'to-images'
   | 'merge'
   | 'convert'
+  | 'to-jpg'
   | 'to-pdf'
   | 'remove-background'
   | 'zip';

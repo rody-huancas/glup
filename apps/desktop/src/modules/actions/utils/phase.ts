@@ -21,6 +21,7 @@ const PHASE_MESSAGES: Record<ActionsPhase, string | null> = {
   'id-format'      : null,
   'id-preview'     : null,
   transcribe       : null,
+  'jpg-quality'    : null,
   working          : ACTIONS_TEXTS.working,
   learning         : ACTIONS_TEXTS.learning,
   result           : null,

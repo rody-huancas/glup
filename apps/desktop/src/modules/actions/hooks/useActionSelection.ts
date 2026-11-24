@@ -31,6 +31,9 @@ import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions
 import { exportPdfPages } from '@/modules/pdf/services/pageImages';
 import { checkPdfPassword } from '@/modules/pdf/services/password';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
+import { getHeifSupport } from '@/modules/photos/services/photos';
+import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
+import { needsPhotoTool } from '@/modules/photos/utils/photos';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
 import { enqueueTask } from '@/modules/tasks/store/taskStore';
@@ -75,6 +78,7 @@ interface ChainedRun {
 // Actions that open a second step before running.
 const ACTION_STEPS: Partial<Record<ActionId, ActionsPhase>> = {
   convert       : 'formats',
+  'to-jpg'      : 'jpg-quality',
   merge         : 'order',
   'split-pages' : 'split',
   'to-images'   : 'image-format',
@@ -87,6 +91,7 @@ const ACTION_STEPS: Partial<Record<ActionId, ActionsPhase>> = {
 // Where "Volver" goes from each step.
 const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
   formats          : 'choosing',
+  'jpg-quality'    : 'choosing',
   order            : 'choosing',
   split            : 'choosing',
   'image-format'   : 'choosing',
@@ -240,7 +245,13 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     const run: TaskSpec['run'] = ({ taskId }) => runAction({ actionId, paths: files, options: { ...options, ...delivery }, taskId });
 
     if (needs) return runOrLearn({ spec: { ...describe(actionId, selection), run }, needs });
-    enqueue(actionId, run);
+
+    // A HEIC or AVIF this Windows cannot open: FFmpeg is asked for first, then it runs in the same task.
+    const current = selection;
+    void getHeifSupport()
+      .then((support) => needsPhotoTool(current.files, support))
+      .catch(() => false)
+      .then((learnFirst) => (learnFirst ? runOrLearn({ spec: { ...describe(actionId, current), run }, needs: 'photos' }) : enqueue(actionId, run)));
   }, [selection, enqueue, describe, runOrLearn]);
 
   const choose = useCallback((actionId: ActionId) => {
@@ -305,6 +316,10 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
 
   const chooseFormat = useCallback((format: ImageFormat) => {
     if (phase === 'formats') execute({ actionId: 'convert', options: { format } });
+  }, [phase, execute]);
+
+  const chooseJpgQuality = useCallback((jpg: JpgQuality) => {
+    if (phase === 'jpg-quality') execute({ actionId: 'to-jpg', options: { jpg } });
   }, [phase, execute]);
 
   const chooseBackground = useCallback((background: BackgroundKind) => {
@@ -450,6 +465,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     load,
     choose,
     chooseFormat,
+    chooseJpgQuality,
     merge,
     splitAll,
     pickPages,
