@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { DockArea } from '@/modules/dock/types/dockArea';
-import { dockRegion, isClickable } from '@/modules/dock/utils/dockLayout';
+import { dockRegion, regionShape } from '@/modules/dock/utils/dockLayout';
 import { dockShape } from '@/modules/dock/utils/placement';
 import { NOTICE_MOTION, REDUCED_MOTION } from '@/modules/island/constants/islandTimeline';
 import { useIslandMascot } from '@/modules/island/hooks/useIslandMascot';
@@ -86,7 +86,7 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
     area.current = area.current
       .then(() => {
         logIsland(`región → ${kind}`);
-        return setIslandArea(dockRegion(placementRef.current, kind), isClickable(placementRef.current, kind));
+        return setIslandArea(dockRegion(placementRef.current, kind), regionShape(placementRef.current, kind));
       })
       .catch(() => undefined);
     return area.current;
