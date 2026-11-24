@@ -1,0 +1,132 @@
+// The few registry calls "Al encender la PC" needs: list the values of a key, read and write one binary
+// value. Nothing is ever deleted (only the tests remove their own key).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Root {
+    // HKEY_CURRENT_USER: this person's.
+    User,
+    // HKEY_LOCAL_MACHINE: everyone's (changing it needs an administrator).
+    Machine,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Value {
+    pub name : String,
+    pub data : Vec<u8>,
+    // REG_SZ or REG_EXPAND_SZ, as text.
+    pub text : Option<String>,
+}
+
+#[cfg(windows)]
+mod engine {
+    use std::ptr::{null, null_mut};
+
+    use windows_sys::Win32::{
+        Foundation::{ERROR_SUCCESS, ERROR_MORE_DATA},
+        System::Registry::{
+            RegCloseKey, RegCreateKeyExW, RegEnumValueW, RegOpenKeyExW, RegSetValueExW, HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_QUERY_VALUE, KEY_READ,
+            KEY_SET_VALUE, REG_BINARY, REG_EXPAND_SZ, REG_OPTION_NON_VOLATILE, REG_SZ,
+        },
+    };
+
+    use super::{Root, Value};
+
+    fn wide(text: &str) -> Vec<u16> {
+        text.encode_utf16().chain(Some(0)).collect()
+    }
+
+    fn hkey(root: Root) -> HKEY {
+        match root {
+            Root::User    => HKEY_CURRENT_USER,
+            Root::Machine => HKEY_LOCAL_MACHINE,
+        }
+    }
+
+    struct Key(HKEY);
+
+    impl Drop for Key {
+        fn drop(&mut self) {
+            unsafe { RegCloseKey(self.0) };
+        }
+    }
+
+    fn open(root: Root, path: &str, access: u32) -> Option<Key> {
+        let mut key: HKEY = null_mut();
+        let status        = unsafe { RegOpenKeyExW(hkey(root), wide(path).as_ptr(), 0, access, &mut key) };
+        (status == ERROR_SUCCESS).then_some(Key(key))
+    }
+
+    fn create(root: Root, path: &str) -> Option<Key> {
+        let mut key: HKEY = null_mut();
+        let status        = unsafe { RegCreateKeyExW(hkey(root), wide(path).as_ptr(), 0, null(), REG_OPTION_NON_VOLATILE, KEY_SET_VALUE | KEY_QUERY_VALUE, null(), &mut key, null_mut()) };
+        (status == ERROR_SUCCESS).then_some(Key(key))
+    }
+
+    fn text_of(data: &[u8]) -> String {
+        let units: Vec<u16> = data.chunks_exact(2).map(|pair| u16::from_le_bytes([pair[0], pair[1]])).take_while(|unit| *unit != 0).collect();
+        String::from_utf16_lossy(&units)
+    }
+
+    pub fn values(root: Root, path: &str) -> Vec<Value> {
+        let Some(key) = open(root, path, KEY_READ) else { return Vec::new() };
+        let mut found = Vec::new();
+
+        for index in 0.. {
+            let mut name      = vec![0_u16; 512];
+            let mut data      = vec![0_u8; 8192];
+            let mut name_size = name.len() as u32;
+            let mut data_size = data.len() as u32;
+            let mut kind      = 0_u32;
+            let status = unsafe { RegEnumValueW(key.0, index, name.as_mut_ptr(), &mut name_size, null(), &mut kind, data.as_mut_ptr(), &mut data_size) };
+            if status == ERROR_MORE_DATA {
+                continue;
+            }
+            if status != ERROR_SUCCESS {
+                break;
+            }
+            data.truncate(data_size as usize);
+            let text = (kind == REG_SZ || kind == REG_EXPAND_SZ).then(|| text_of(&data));
+            found.push(Value { name: String::from_utf16_lossy(&name[..name_size as usize]), data, text });
+        }
+        found
+    }
+
+    pub fn set_binary(root: Root, path: &str, name: &str, data: &[u8]) -> bool {
+        let Some(key) = create(root, path) else { return false };
+        unsafe { RegSetValueExW(key.0, wide(name).as_ptr(), 0, REG_BINARY, data.as_ptr(), data.len() as u32) == ERROR_SUCCESS }
+    }
+
+    // Glup may write there (HKEY_LOCAL_MACHINE only with an administrator).
+    pub fn can_write(root: Root, path: &str) -> bool {
+        create(root, path).is_some()
+    }
+
+    #[cfg(test)]
+    pub fn delete_tree(root: Root, path: &str) {
+        unsafe { windows_sys::Win32::System::Registry::RegDeleteTreeW(hkey(root), wide(path).as_ptr()) };
+    }
+
+    #[cfg(test)]
+    pub fn set_text(root: Root, path: &str, name: &str, text: &str) {
+        let key  = create(root, path).unwrap();
+        let data = wide(text);
+        unsafe { RegSetValueExW(key.0, wide(name).as_ptr(), 0, REG_SZ, data.as_ptr().cast(), (data.len() * 2) as u32) };
+    }
+}
+
+#[cfg(windows)]
+pub use engine::*;
+
+#[cfg(not(windows))]
+pub fn values(_: Root, _: &str) -> Vec<Value> {
+    Vec::new()
+}
+
+#[cfg(not(windows))]
+pub fn set_binary(_: Root, _: &str, _: &str, _: &[u8]) -> bool {
+    false
+}
+
+#[cfg(not(windows))]
+pub fn can_write(_: Root, _: &str) -> bool {
+    false
+}
