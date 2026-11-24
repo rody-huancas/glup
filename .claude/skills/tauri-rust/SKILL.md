@@ -101,6 +101,13 @@ src-tauri/
     detector de rostros de «Foto tamaño carnet» (`Windows.Media.FaceAnalysis`) va igual
     (`services/id_photo/face.rs`). Notificaciones con `tauri-winrt-notification` (el plugin de
     notificaciones no avisa del clic en escritorio): `services/notify.rs`.
+    HEIC/HEIF y AVIF (`services/image/heif/`): `decode::decode` los manda ahí. `container.rs` lee las
+    cajas (imagen principal, mosaico, `irot`/`imir`, `clap`, `colr`, EXIF) sin decodificar; los píxeles
+    los da Windows (`wic.rs`, `Windows.Graphics.Imaging` con orientación y color a sRGB) y, si no
+    puede, el `ffmpeg.exe` descargado (`ffmpeg.rs`, a 16 bits), al que Glup pone derecho y pasa a sRGB
+    (`colour.rs`: nclx o perfil ICC de matriz, como Display P3). Las pruebas usan `fixtures/heif`.
+    `image/metadata.rs` vuelve a escribir la fecha (y el GPS si «Quitar ubicación» está apagado) en
+    JPG, PNG y WebP; `image/guard.rs` es la red de seguridad de «A JPG».
     «Ordenar una carpeta» (`services/folder_sort/`): lo que decide es puro y con pruebas en carpetas
     temporales (`classify.rs` lee `categories.json` con `include_str!`; `filters.rs`, `plan.rs`); mover
     es `mover.rs` (renombrar sin reemplazar, o copiar y comparar si cruza de disco) y deshacer,

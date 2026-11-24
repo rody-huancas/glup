@@ -55,6 +55,7 @@ export const STAGE_TEXTS: Record<Exclude<ProgressStage, 'working'>, string> = {
 export const WORKING_TEXTS: Record<ActionId, string> = {
   'compress'          : 'Reduciendo el peso…',
   'convert'           : 'Convirtiendo…',
+  'to-jpg'            : 'Pasando a JPG…',
   'to-pdf'            : 'Armando el PDF…',
   'remove-background' : 'Quitando el fondo…',
   'zip'               : 'Juntando en un ZIP…',

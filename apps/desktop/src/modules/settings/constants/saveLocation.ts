@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS: SettingsView = {
   saveMode              : 'same',
   customFolder          : null,
   bundleZip             : false,
+  keepLocation          : false,
   reduceLevel           : 'normal',
   // Seen until the real settings say otherwise, so the welcome never flashes.
   welcomeSeen           : true,

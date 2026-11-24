@@ -4,6 +4,7 @@ import type { LearnableId } from '@/modules/background/types/learnableId';
 import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
 import { deleteTranscribeModel, downloadTranscribeModel, getTranscribeModel } from '@/modules/transcribe/services/transcribe';
 import { deleteBackgroundModel, downloadBackgroundModel, getBackgroundModel } from '@/modules/background/services/backgroundModel';
+import { PHOTO_TEXTS } from '@/modules/photos/constants/photos';
 import { VIDEO_TOOL_TEXTS } from '@/modules/video/constants/texts';
 import { deleteVideoTool, downloadVideoTool, getVideoTool } from '@/modules/video/services/videoTool';
 
@@ -27,6 +28,19 @@ export const LEARNABLES: Record<LearnableId, Learnable> = {
       body       : VIDEO_TOOL_TEXTS.learnBody,
       learning   : VIDEO_TOOL_TEXTS.learning,
       taskTitle  : VIDEO_TOOL_TEXTS.taskTitle,
+      learned    : VIDEO_TOOL_TEXTS.learned,
+      deleteBody : VIDEO_TOOL_TEXTS.deleteBody,
+    },
+    getStatus : getVideoTool,
+    download  : downloadVideoTool,
+    remove    : deleteVideoTool,
+  },
+  photos     : {
+    id        : 'photos',
+    texts     : {
+      body       : PHOTO_TEXTS.learnBody,
+      learning   : PHOTO_TEXTS.learning,
+      taskTitle  : PHOTO_TEXTS.taskTitle,
       learned    : VIDEO_TOOL_TEXTS.learned,
       deleteBody : VIDEO_TOOL_TEXTS.deleteBody,
     },

@@ -5,6 +5,7 @@ import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { SplitOptions } from '@/modules/pdf/interfaces/splitOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
+import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 
@@ -20,6 +21,7 @@ export interface RunActionOptions {
   watermark?   : WatermarkOptions;
   numbering?   : NumberingOptions;
   video?       : VideoOptions;
+  jpg?         : JpgQuality;
 }
 
 export interface RunActionParams {

@@ -89,12 +89,14 @@ SOFTWARE.
 
 ## Videos
 
-### FFmpeg (el programa que reduce el peso de los videos)
+### FFmpeg (el programa que reduce el peso de los videos y abre fotos HEIC y AVIF)
 
 - **Qué es**: el programa que lee y vuelve a codificar los videos. Glup **no lo incluye en el
   instalador ni lo enlaza**: lo descarga una sola vez, con permiso de la persona, la primera vez que
   se reduce un video, y lo ejecuta como un programa aparte (`ffmpeg.exe`, en la carpeta `tools/` de
-  los datos de la app). Los videos nunca salen de la computadora.
+  los datos de la app). Los videos nunca salen de la computadora. También abre las fotos HEIC
+  (iPhone) y AVIF cuando Windows no puede (sin sus extensiones de Microsoft Store): las decodifica con
+  su decodificador HEVC propio y con `libdav1d` (BSD-2), y Glup las pone derechas y en sRGB.
 - **Versión**: FFmpeg n9.0.2-39-g7adfbe40dc, compilación `win64-lgpl-9.0` de
   [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) (autobuild del 2026-10-31). De ese
   paquete Glup baja solo `bin/ffmpeg.exe`, verificado con su SHA-256

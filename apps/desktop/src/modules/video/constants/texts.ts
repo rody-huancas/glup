@@ -3,8 +3,8 @@ export const VIDEO_TOOL_TEXTS = {
   learnBody  : (size: string) => `Para trabajar con videos necesito aprender algo nuevo. Es una descarga de ${size}, una sola vez. Tus videos nunca salen de tu PC.`,
   learning   : 'Aprendiendo a trabajar con videos…',
   taskTitle  : 'Aprender a trabajar con videos',
-  learned    : (size: string) => `Videos · ${size}`,
-  deleteBody : 'Libero ese espacio. Si vuelves a reducir un video, te pediré descargarlo otra vez.',
+  learned    : (size: string) => `Videos y fotos de iPhone · ${size}`,
+  deleteBody : 'Libero ese espacio. Si vuelves a reducir un video (o a abrir una foto que tu Windows no abre), te pediré descargarlo otra vez.',
 };
 
 export const VIDEO_TEXTS = {

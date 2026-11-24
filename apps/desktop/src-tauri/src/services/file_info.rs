@@ -6,7 +6,7 @@ use serde::Serialize;
 use crate::services::{pdf::info, video::{self, probe::VideoInfo}};
 
 const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
-const IMAGE_EXTENSIONS: [&str; 9] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif"];
+const IMAGE_EXTENSIONS: [&str; 12] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif", "heic", "heif", "hif"];
 const VIDEO_EXTENSIONS: [&str; 7] = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
 const AUDIO_EXTENSIONS: [&str; 9] = ["mp3", "m4a", "wav", "ogg", "opus", "aac", "flac", "wma", "amr"];
 
@@ -56,7 +56,8 @@ fn kind_of(extension: &str) -> FileKind {
 // Kind from the file signature (magic numbers).
 pub fn sniff_kind(head: &[u8]) -> FileKind {
     let starts = |signature: &[u8]| head.starts_with(signature);
-    let ftyp   = head.get(4..8) == Some(b"ftyp") && matches!(head.get(8..12), Some(b"avif" | b"avis"));
+    // AVIF, HEIC and HEIF are ISO boxes too, told apart by their brand.
+    let ftyp   = crate::services::image::heif::container::is_heif(head);
     let webp   = starts(b"RIFF") && head.get(8..12) == Some(b"WEBP");
     // MP4, MOV, 3GP and M4V share the ISO box format ("ftyp", or "moov"/"wide"/"mdat" in old QuickTime);
     // MKV and WebM start with EBML; AVI is RIFF.
@@ -162,6 +163,8 @@ mod tests {
         assert_eq!(sniff_kind(&[0xFF, 0xD8, 0xFF, 0xE0]), FileKind::Image);
         assert_eq!(sniff_kind(b"RIFF\0\0\0\0WEBPVP8 "), FileKind::Image);
         assert_eq!(sniff_kind(b"\0\0\0\x1cftypavif"), FileKind::Image);
+        assert_eq!(sniff_kind(b"\0\0\0\x18ftypheic"), FileKind::Image);
+        assert_eq!(sniff_kind(b"\0\0\0\x18ftypmif1"), FileKind::Image);
         assert_eq!(sniff_kind(b"\0\0\0\x18ftypmp42"), FileKind::Video);
         assert_eq!(sniff_kind(b"\0\0\0\x14ftypqt  "), FileKind::Video);
         assert_eq!(sniff_kind(&[0x1A, 0x45, 0xDF, 0xA3, 0x9F]), FileKind::Video);

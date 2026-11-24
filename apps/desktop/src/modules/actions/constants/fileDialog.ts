@@ -2,11 +2,13 @@ import type { DialogFilter } from '@tauri-apps/plugin-dialog';
 import { AUDIO_EXTENSIONS, VIDEO_EXTENSIONS } from '@/modules/actions/constants/video';
 import type { DialogFileType } from '@/modules/actions/types/fileType';
 import { FILE_EXTENSIONS } from '@/modules/mascot/constants/files';
+import { HEIC_EXTENSIONS } from '@/modules/photos/constants/photos';
 
 const PDF_FILTER: DialogFilter   = { name: 'PDF', extensions: FILE_EXTENSIONS.pdf };
 const IMAGE_FILTER: DialogFilter = { name: 'Imágenes', extensions: FILE_EXTENSIONS.image };
 const VIDEO_FILTER: DialogFilter = { name: 'Videos', extensions: VIDEO_EXTENSIONS };
 const AUDIO_FILTER: DialogFilter = { name: 'Audios', extensions: AUDIO_EXTENSIONS };
+const PHOTO_FILTER: DialogFilter = { name: 'Fotos de iPhone', extensions: HEIC_EXTENSIONS };
 
 const ANY_FILTER: DialogFilter = {
   name       : 'PDF, imágenes, videos y audios',
@@ -19,5 +21,6 @@ export const DIALOG_FILTERS: Record<DialogFileType, DialogFilter[]> = {
   video : [VIDEO_FILTER],
   audio : [AUDIO_FILTER, VIDEO_FILTER],
   any   : [ANY_FILTER, PDF_FILTER, IMAGE_FILTER, VIDEO_FILTER, AUDIO_FILTER],
-  files : [],
+  files  : [],
+  iphone : [PHOTO_FILTER, IMAGE_FILTER],
 };

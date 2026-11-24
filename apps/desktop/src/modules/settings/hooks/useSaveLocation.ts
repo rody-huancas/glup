@@ -43,6 +43,10 @@ export const useSaveLocation = (): SaveLocation => {
     save({ ...view, bundleZip: bundle });
   }, [view, save]);
 
+  const setKeepLocation = useCallback((keep: boolean) => {
+    save({ ...view, keepLocation: keep });
+  }, [view, save]);
+
   const setReduceLevel = useCallback((level: ReduceLevel) => {
     if (level !== view.reduceLevel) save({ ...view, reduceLevel: level });
   }, [view, save]);
@@ -59,9 +63,11 @@ export const useSaveLocation = (): SaveLocation => {
     picking,
     destination,
     bundleZip     : view.bundleZip,
+    keepLocation  : view.keepLocation,
     reduceLevel   : view.reduceLevel,
     choose,
     setBundleZip,
+    setKeepLocation,
     setReduceLevel,
   };
 };

@@ -17,12 +17,14 @@ import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
 import { NumberingStep } from '@/modules/pdf/components/NumberingStep';
 import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
 import { PageSelectionStep } from '@/modules/pdf/components/PageSelectionStep';
+import { JpgQualityStep } from '@/modules/photos/components/JpgQualityStep';
 import { ProtectStep } from '@/modules/pdf/components/ProtectStep';
 import { ReduceStep } from '@/modules/pdf/components/ReduceStep';
 import { SplitStep } from '@/modules/pdf/components/SplitStep';
 import { UnlockStep } from '@/modules/pdf/components/UnlockStep';
 import { WatermarkStep } from '@/modules/pdf/components/WatermarkStep';
 import { BundleZipToggle } from '@/modules/settings/components/BundleZipToggle';
+import { RemoveLocationToggle } from '@/modules/settings/components/RemoveLocationToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
 import { TranscribeStep } from '@/modules/transcribe/components/TranscribeStep';
 import { VideoGoalStep } from '@/modules/video/components/VideoGoalStep';
@@ -35,6 +37,9 @@ interface ActionsPanelProps {
 
 // Steps where the zip switch has no effect hide it (merge gives one PDF, picked pages too).
 const NO_BUNDLE_STEPS: ActionsPhase[] = ['order', 'pages', 'result', 'learn-model', 'learning-model', 'unlock', 'id-format', 'id-preview', 'transcribe'];
+
+// Where a photo's new file is decided: choosing, the format, the JPG quality ("Quitar ubicación").
+const LOCATION_STEPS: ActionsPhase[] = ['choosing', 'formats', 'jpg-quality'];
 
 // The shortest PDF chosen, when every page count is known (numbering cannot start past it).
 const shortestPdf = (selection: FileSelection): number | null =>
@@ -72,6 +77,10 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
         onBack={flow.back}
       />
     );
+  }
+
+  if (flow.phase === 'jpg-quality') {
+    return <JpgQualityStep onChoose={flow.chooseJpgQuality} onBack={flow.back} />;
   }
 
   if (flow.phase === 'image-format') {
@@ -154,6 +163,7 @@ export const ActionsPanel = ({ selection, flow }: ActionsPanelProps) => {
         <div className="mt-2.5 flex flex-col gap-2">
           <SaveLocationPicker location={flow.saveLocation} disabled={locked} />
           {canBundle(selection) && !NO_BUNDLE_STEPS.includes(flow.phase) && <BundleZipToggle location={flow.saveLocation} disabled={locked} />}
+          {selection.type === 'image' && LOCATION_STEPS.includes(flow.phase) && <RemoveLocationToggle location={flow.saveLocation} disabled={locked} />}
         </div>
       )}
       <ActionsStep selection={selection} flow={flow} />

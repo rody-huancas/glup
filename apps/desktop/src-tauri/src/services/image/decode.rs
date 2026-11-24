@@ -2,15 +2,13 @@ use std::path::Path;
 
 use image::{metadata::Orientation, DynamicImage, ImageDecoder, ImageReader, Rgba, RgbaImage};
 
-use super::{ImageResult, SourceFormat, READ_ERROR};
+use super::{heif, ImageResult, READ_ERROR};
 
-// AVIF decoding needs dav1d (a system C library), which is not bundled on Windows.
-pub const AVIF_READ_ERROR: &str = "Todavía no puedo leer imágenes AVIF";
-
-// Reads any supported image, upright according to its EXIF orientation.
+// Reads any supported image, upright according to its EXIF orientation. HEIC, HEIF and AVIF go to
+// Windows' decoders or FFmpeg (services/image/heif), upright and in sRGB too.
 pub fn decode(path: &Path) -> ImageResult<DynamicImage> {
-    if SourceFormat::from_path(path) == Some(SourceFormat::Avif) {
-        return Err(AVIF_READ_ERROR.to_string());
+    if heif::is_heif(path) {
+        return heif::decode(path);
     }
 
     let reader      = ImageReader::open(path).map_err(|_| READ_ERROR.to_string())?;

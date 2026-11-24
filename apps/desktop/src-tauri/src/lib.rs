@@ -78,6 +78,8 @@ pub fn run() {
             commands::signatures::save_signature,
             commands::signatures::delete_signature,
             commands::files::read_file_bytes,
+            commands::photos::get_heif_support,
+            commands::photos::get_image_preview,
             commands::settings::get_settings,
             commands::settings::update_settings,
             commands::background::get_background_model,
@@ -161,6 +163,9 @@ pub fn run() {
             services::shortcuts::apply_saved(app.handle());
             services::clipboard::spawn(app.handle().clone());
             services::folder_sort::spawn_recovery(app.handle().clone());
+            if let Ok(folder) = services::video::tool::tools_folder(app.handle()) {
+                services::image::heif::remember_tools(folder);
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

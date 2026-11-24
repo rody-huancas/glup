@@ -9,6 +9,8 @@ export interface AppSettings {
   saveMode              : SaveMode;
   customFolder          : string | null;
   bundleZip             : boolean;
+  // "Quitar ubicación" turned off: photos keep where they were taken (off by default: the place goes).
+  keepLocation          : boolean;
   reduceLevel           : ReduceLevel;
   // The first-run welcome was answered.
   welcomeSeen           : boolean;

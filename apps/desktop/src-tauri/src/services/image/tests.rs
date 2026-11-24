@@ -233,13 +233,17 @@ fn builds_a_pdf_one_page_per_image() {
     assert!(raw_jpeg, "the JPG bytes must be embedded as they are");
 }
 
+// Read by Windows when it has the AV1 extension; otherwise it says what to install.
 #[test]
-fn avif_input_is_reported() {
+fn avif_input_is_read_or_says_what_is_missing() {
     let samples = Samples::new("avif");
     let source  = samples.path("foto.avif");
     fs::write(&source, convert_to_avif(&samples)).unwrap();
 
-    assert!(decode(&source).is_err());
+    match decode(&source) {
+        Ok(image)  => assert_eq!((image.width(), image.height()), (200, 150)),
+        Err(error) => assert_eq!(error, super::heif::AVIF_MISSING),
+    }
 }
 
 fn convert_to_avif(samples: &Samples) -> Vec<u8> {

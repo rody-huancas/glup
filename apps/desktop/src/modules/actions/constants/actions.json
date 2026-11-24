@@ -13,6 +13,7 @@
   { "id": "extract-text", "label": "Sacar texto", "fileType": "pdf", "fileCount": "any", "primary": false },
   { "id": "unlock", "label": "Quitar contraseña", "fileType": "pdf-locked", "fileCount": "single", "primary": true },
   { "id": "convert", "label": "Convertir", "fileType": "image", "fileCount": "any", "primary": true },
+  { "id": "to-jpg", "label": "A JPG", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "compress", "label": "Reducir peso", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "to-pdf", "label": "A PDF", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "remove-background", "label": "Quitar fondo", "fileType": "image", "fileCount": "any", "primary": false },

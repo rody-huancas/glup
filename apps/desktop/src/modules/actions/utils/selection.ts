@@ -1,5 +1,5 @@
 import { ACTIONS } from '@/modules/actions/constants/actions';
-import { PLATFORM_ACTIONS } from '@/modules/actions/constants/implemented';
+import { FILE_ACTIONS, PLATFORM_ACTIONS } from '@/modules/actions/constants/implemented';
 import type { ActionDefinition } from '@/modules/actions/interfaces/actionDefinition';
 import type { FileInfo } from '@/modules/actions/interfaces/fileInfo';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
@@ -45,7 +45,7 @@ export const createSelection = ({ paths, files }: CreateSelectionParams): FileSe
   const type   = locked ? 'pdf-locked' : getSelectionType(files) ?? (files.length >= 2 ? 'mixed' : null);
   if (!type) return null;
 
-  const actions = getActionsFor({ type, count: files.length });
+  const actions = getActionsFor({ type, count: files.length }).filter((action) => FILE_ACTIONS[action.id]?.(files) ?? true);
   if (actions.length === 0) return null;
 
   return { paths, files, type, actions };

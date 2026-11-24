@@ -140,6 +140,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
       saveLocation,
       choose           : actions.choose,
       chooseFormat     : actions.chooseFormat,
+      chooseJpgQuality : actions.chooseJpgQuality,
       merge            : actions.merge,
       splitAll         : actions.splitAll,
       pickPages        : actions.pickPages,

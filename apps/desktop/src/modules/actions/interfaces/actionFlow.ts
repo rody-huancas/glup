@@ -9,6 +9,7 @@ import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
+import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
 import type { TranscribeOptions } from '@/modules/transcribe/interfaces/transcribeOptions';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
@@ -20,6 +21,7 @@ export interface ActionFlow {
   saveLocation     : SaveLocation;
   choose           : (actionId: ActionId) => void;
   chooseFormat     : (format: ImageFormat) => void;
+  chooseJpgQuality : (quality: JpgQuality) => void;
   merge            : (paths: string[]) => void;
   splitAll         : () => void;
   pickPages        : () => void;

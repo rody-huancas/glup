@@ -27,7 +27,8 @@ fn same_extension(path: &Path) -> String {
     path.extension().map(|value| value.to_string_lossy().to_lowercase()).unwrap_or_default()
 }
 
-// Keeps the format (BMP and TIFF become JPG, or PNG when transparent). Re-encoding drops EXIF data.
+// Keeps the format (BMP, TIFF and HEIC become JPG, or PNG when transparent: nothing writes HEIC).
+// Re-encoding drops the EXIF block; actions.rs puts the date back (and the location, if asked).
 pub fn compress(path: &Path, source: SourceFormat) -> ImageResult<Compressed> {
     let quality = COMPRESS_QUALITY;
 
@@ -39,7 +40,7 @@ pub fn compress(path: &Path, source: SourceFormat) -> ImageResult<Compressed> {
         SourceFormat::Jpeg => Ok(Compressed { bytes: encode_jpeg(&decode(path)?, quality.jpg)?, extension: same_extension(path) }),
         SourceFormat::Webp => Ok(Compressed { bytes: encode_webp(&decode(path)?, quality.webp)?, extension: same_extension(path) }),
         SourceFormat::Avif => Ok(Compressed { bytes: encode_avif(&decode(path)?, quality.avif)?, extension: same_extension(path) }),
-        SourceFormat::Bmp | SourceFormat::Tiff => {
+        SourceFormat::Bmp | SourceFormat::Tiff | SourceFormat::Heic => {
             let image = decode(path)?;
 
             if has_transparency(&image) {

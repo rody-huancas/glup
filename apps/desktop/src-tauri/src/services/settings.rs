@@ -30,6 +30,9 @@ pub struct Settings {
     pub custom_folder: Option<String>,
     // "Entregar todo en un ZIP".
     pub bundle_zip: bool,
+    // "Quitar ubicación" turned off: photos keep where they were taken. Kept in the negative so a
+    // missing value (and a first run) takes the place out.
+    pub keep_location: bool,
     // Last "Reducir peso" level chosen for PDFs.
     pub reduce_level: ReduceLevel,
     // The welcome was answered. A settings.json from before it existed counts as seen: only a first

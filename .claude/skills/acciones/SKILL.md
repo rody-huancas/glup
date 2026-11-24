@@ -75,6 +75,15 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   ni en el historial, ni en logs) y Rust no las imprime. «Quitar contraseña» solo funciona con la
   contraseña correcta (se comprueba antes con `check_pdf_password`): nada de adivinar ni forzar. El
   cifrado es AES-256 (PDF 2.0, revisión 6) con lopdf y una clave aleatoria (`getrandom`).
+- **Fotos de iPhone (HEIC/HEIF) y AVIF**: entran en todas las herramientas de imágenes. Las abre
+  Windows con sus extensiones de Microsoft Store («Extensiones de imagen HEIF» + «Extensiones de vídeo
+  HEVC», «Extensión de vídeo AV1»); si no puede, el mismo FFmpeg de los videos. Antes de una acción, si
+  Windows no puede y FFmpeg no está, se pide descargarlo (`photos` en `LEARNABLES`, el mismo FFmpeg)
+  y corre en la misma tarea. Siempre derechas, la principal de una ráfaga, el mosaico entero y en
+  sRGB. Las miniaturas las hace Rust (`get_image_preview`): el webview no muestra HEIC.
+- **Fecha y ubicación**: Convertir, Reducir peso y A JPG guardan en la salida la fecha de la foto, la
+  cámara y, solo si «Quitar ubicación» está apagado (encendido por defecto, en `settings.json` como
+  `keepLocation`), el GPS. Solo JPG, PNG y WebP; AVIF, ICO y PDF no llevan EXIF.
 - **Videos**: FFmpeg (LGPL, aparte; skill `convenciones`, regla 12) con `h264_mf` y `aac`, nunca
   `libx264`. Todo lo que decide (tamaño de imagen, tasas de bits, argumentos) es puro en
   `services/video/plan.rs`; el proceso se lanza en `encode.rs`, con progreso leído de `-progress` y
@@ -94,7 +103,8 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 
 | Tipo | Acciones |
 | --- | --- |
-| Imagen | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso, A PDF, Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
+| Imagen (también HEIC/HEIF y AVIF) | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso (un HEIC sale en JPG), A PDF, Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
+| Solo HEIC/HEIF (1+) | A JPG («Fotos de iPhone a JPG» en Herramientas y en Inicio: calidad Normal, Alta o Liviana; red de seguridad que compara con la foto) |
 | PDF (1) | Reducir peso (Normal, Al máximo, peso objetivo), Firmar, Separar páginas, Organizar páginas (girar, quitar y reordenar), A imágenes, Poner contraseña, Marca de agua, Numerar páginas, Sacar imágenes |
 | PDF con contraseña (1) | Quitar contraseña (la única; con otros archivos se rechaza: «Primero quítale la contraseña») |
 | PDF (2+) | Unir, Reducir peso, Poner contraseña, Marca de agua, Numerar páginas, Juntar en ZIP |
