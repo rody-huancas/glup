@@ -44,6 +44,10 @@ pub struct Settings {
     pub notifications_off: bool,
     // "Pasar audio a texto": the last level chosen (Rápido or Más preciso).
     pub transcribe_level: crate::services::transcribe::model::Level,
+    // "Usar la tarjeta de video": Automático (the card when there is one that works) or Nunca.
+    pub transcribe_gpu: crate::services::transcribe::device::GpuMode,
+    // Cards that failed, with the driver they had ("name|version"): the processor until it changes.
+    pub gpu_blocked: Vec<String>,
     // "Copiar texto de la pantalla": the shortcut chosen (None: Glup's own) and whether it was turned
     // off. Kept in the negative so a first run has it on.
     pub screen_text_shortcut: Option<String>,
