@@ -1,9 +1,9 @@
-import { NOTICE_OVERSHOOT, NOTICE_POSE, PILL_DOT, PILL_POSES } from '@/modules/dock/constants/dock';
+import { DOCK_SHAPES, NOTICE_OVERSHOOT, NOTICE_POSE, PILL_DOT, PILL_POSES, REVEAL_ZONE } from '@/modules/dock/constants/dock';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { DockArea } from '@/modules/dock/types/dockArea';
 import type { ShapeRole } from '@/modules/dock/types/shapeRole';
-import { bodyBox, innerBox, shapeBox } from '@/modules/dock/utils/dockGeometry';
-import { dockShape } from '@/modules/dock/utils/placement';
+import { bodyBox, edgeStrip, innerBox, shapeBox } from '@/modules/dock/utils/dockGeometry';
+import { alongLength, dockShape } from '@/modules/dock/utils/placement';
 import type { Rect } from '@/shared/interfaces/rect';
 
 interface MascotBoxParams {
@@ -32,12 +32,26 @@ const inside = (rect: Rect, { width, height }: Rect): Rect => {
 // Lying on the top or bottom edge (only then Glup peeks out of the pill and the notice).
 const isLying = (placement: IslandPlacement): boolean => placement.kind === 'horizontal';
 
+// Hidden at rest: the strip against the edge where the pill would be (as long as the pill), or a small
+// square in a corner. The cursor tracker watches it; it takes no clicks.
+export const revealZone = (placement: IslandPlacement): Rect => {
+  const pill = DOCK_SHAPES[placement.kind].collapsed;
+  const zone = placement.kind === 'corner' ? REVEAL_ZONE.corner : alongLength(pill);
+  return edgeStrip(placement, zone, REVEAL_ZONE.depth);
+};
+
+// Only hidden at rest the area is not clickable: the window's region stays empty, so nothing below it
+// (clicks, a window dragged to that edge) is blocked.
+export const isClickable = (placement: IslandPlacement, area: DockArea): boolean => !(placement.rest === 'hidden' && area === 'collapsed');
+
 // The visible and clickable part of the window for each moment: the pill with room for its hover and
-// landing shake, the open panel, the whole frame while it opens (elastic overshoot), the notice popping.
+// landing shake (hidden: the reveal zone), the open panel, the whole frame while it opens (elastic
+// overshoot), the notice popping.
 export const dockRegion = (placement: IslandPlacement, area: DockArea): Rect => {
   const frame = { x: 0, y: 0, width: placement.frame.width, height: placement.frame.height };
 
   if (area === 'frame') return frame;
+  if (area === 'collapsed' && placement.rest === 'hidden') return inside(revealZone(placement), frame);
   if (area === 'expanded') return inside(shapeBox(placement, dockShape(placement, 'expanded')), frame);
 
   if (area === 'notice') {

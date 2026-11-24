@@ -77,6 +77,15 @@ export const NOTICE_POSE = { scale: 0.5, inset: 10, peek: -9, lift: 0.42, gap: 6
 // The lilac dot of a pending file selection, inside the pill (px).
 export const PILL_DOT = { size: 6, inset: 14 };
 
+// Hidden at rest: the strip against the edge, where the pill would be, that brings Glup out when the
+// cursor rests there (px deep; the cursor tracker adds a small margin), and its square in a corner.
+export const REVEAL_ZONE = { depth: 2, corner: 24 };
+
+// How long the cursor rests there before Glup comes out (ms): short enough to feel at hand, long enough
+// not to come out when the cursor just passes by.
+export const REVEAL_DELAYS = [150, 300, 500, 800];
+export const DEFAULT_REVEAL_DELAY = 300;
+
 // How often the screens are read again, to notice one unplugged or a new resolution (ms).
 export const DOCK_REFRESH = 2000;
 
