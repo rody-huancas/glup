@@ -148,6 +148,39 @@ describe('island machine', () => {
     expect(run([{ type: 'fullscreen', on: false }], moving).moving).toBe(false);
   });
 
+  it('hidden at rest it opens and closes as always, and closed there is nothing to widen or drag', () => {
+    const hidden = run([{ type: 'rest', rest: 'hidden' }]);
+    expect(hidden.phase).toBe('collapsed');
+
+    const opened = run([{ type: 'pointer', inside: true }, { type: 'expand', pin: false }, { type: 'settled', phase: 'expanded' }], hidden);
+    expect(opened.phase).toBe('expanded');
+
+    const closed = run([{ type: 'pointer', inside: false }, { type: 'collapse', farewell: false }, { type: 'settled', phase: 'collapsed' }], opened);
+    expect(closed.phase).toBe('collapsed');
+    expect(closed.rest).toBe('hidden');
+
+    expect(run([{ type: 'notice', notice: NOTICE }], closed).phase).toBe('collapsed');
+    expect(run([{ type: 'moving', on: true }], closed).moving).toBe(false);
+  });
+
+  it('going hidden drops a notice on the pill; back to the pill everything works again', () => {
+    const telling = run([{ type: 'notice', notice: NOTICE }, { type: 'rest', rest: 'hidden' }]);
+    expect(telling.phase).toBe('collapsed');
+    expect(telling.notice).toBeNull();
+
+    const pill = run([{ type: 'rest', rest: 'pill' }], telling);
+    expect(run([{ type: 'notice', notice: NOTICE }], pill).phase).toBe('notice');
+  });
+
+  it('hidden at rest stays apart from hidden by a fullscreen app or the tray', () => {
+    const both = run([{ type: 'rest', rest: 'hidden' }, { type: 'tray', hidden: true }]);
+    expect(both.phase).toBe('hidden');
+
+    const back = run([{ type: 'tray', hidden: false }], both);
+    expect(back.phase).toBe('collapsed');
+    expect(back.rest).toBe('hidden');
+  });
+
   it('locks hover after closing with the cursor inside until it leaves', () => {
     const closed = run([...OPEN, { type: 'collapse', farewell: true }, { type: 'settled', phase: 'collapsed' }]);
     expect(closed.locked).toBe(true);
@@ -175,6 +208,8 @@ describe('island machine', () => {
       { type: 'capture', on: false },
       { type: 'moving', on: true },
       { type: 'moving', on: false },
+      { type: 'rest', rest: 'hidden' },
+      { type: 'rest', rest: 'pill' },
       { type: 'reset' },
       { type: 'holds', holds: ['dialog'] },
       { type: 'holds', holds: [] },
