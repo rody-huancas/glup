@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { dockRegion } from '@/modules/dock/utils/dockLayout';
 import { IslandBubbleButton } from '@/modules/island/components/IslandBubbleButton';
 import { IslandBubbleRing } from '@/modules/island/components/IslandBubbleRing';
@@ -10,6 +11,7 @@ import { IslandPillDot } from '@/modules/island/components/IslandPillDot';
 import { IslandPillProgress } from '@/modules/island/components/IslandPillProgress';
 import { IslandSilhouette } from '@/modules/island/components/IslandSilhouette';
 import { useIsland } from '@/modules/island/hooks/useIsland';
+import { setPanelOpen } from '@/modules/island/store/panelStore';
 import { rectStyle } from '@/modules/island/utils/islandStyles';
 import { MainPanel } from '@/modules/main-window/components/MainPanel';
 import { Mascot } from '@/modules/mascot/components/Mascot';
@@ -26,6 +28,9 @@ export const Island = () => {
   const bubble                         = placement.kind === 'bubble';
   const resting                        = island.state === 'collapsed' && island.notice === null;
   const frame                          = { width: `${placement.frame.width}px`, height: `${placement.frame.height}px` };
+
+  // Screens that read only while seen (Rendimiento) know when the panel is open.
+  useEffect(() => setPanelOpen(expanded), [expanded]);
 
   return (
     <div className="relative h-full w-full" onMouseDown={preventSelectionStart}>
