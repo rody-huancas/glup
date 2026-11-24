@@ -9,7 +9,7 @@ use std::{
 
 use serde::Serialize;
 
-use super::registry::{self, Root};
+use crate::services::registry::{self, Root};
 
 pub const CHANGE_ERROR: &str  = "No pude cambiarlo";
 pub const ADMIN_ERROR: &str   = "Esto es de todos los usuarios de la PC: solo un administrador puede cambiarlo";

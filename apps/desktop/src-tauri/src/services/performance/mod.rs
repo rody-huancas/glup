@@ -6,7 +6,6 @@
 // one reading takes a few milliseconds (see the test at the end).
 pub mod apps;
 pub mod processes;
-pub mod registry;
 pub mod startup;
 pub mod system;
 
