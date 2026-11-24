@@ -3,16 +3,18 @@ use tauri::{AppHandle, WebviewWindow};
 
 use crate::services::{
     island_drag,
-    island_window::{self, FrameRequest, IslandRect, IslandScreen, IslandStatus},
-    settings::{self, IslandDock, Settings},
+    island_window::{self, AreaShape, FrameRequest, IslandRect, IslandScreen, IslandStatus},
+    settings::{self, BubbleSpot, IslandDock, IslandRest, Settings},
     taskbar,
 };
 
 // The visible part of the window, in its CSS pixels. Not clickable (hidden at rest) it is only what the
-// cursor tracker watches to reveal Glup; the window's region stays empty.
+// cursor tracker watches to reveal Glup; the window's region stays empty. Round (the resting bubble),
+// the region is the circle inside that rect, so its corners take no clicks.
 #[tauri::command]
-pub fn set_island_area(window: WebviewWindow, rect: IslandRect, clickable: Option<bool>) -> Result<(), String> {
-    island_window::set_area(&window, rect, clickable.unwrap_or(true)).map_err(|error| error.to_string())
+pub fn set_island_area(window: WebviewWindow, rect: IslandRect, clickable: Option<bool>, round: Option<bool>) -> Result<(), String> {
+    let shape = AreaShape { clickable: clickable.unwrap_or(true), round: round.unwrap_or(false) };
+    island_window::set_area(&window, rect, shape).map_err(|error| error.to_string())
 }
 
 // The monitors with their work areas, for the island's dock.
@@ -36,18 +38,18 @@ pub fn begin_island_drag(app: AppHandle) {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IslandModeRequest {
-    pub hidden       : Option<bool>,
+    pub rest         : Option<IslandRest>,
     pub reveal_delay : Option<u32>,
     pub intro_seen   : Option<bool>,
 }
 
-// "Cómo se muestra" in Ajustes: island or hidden, the delay before a hidden one comes out, and whether
-// its notice was seen. What is not sent stays as it was.
+// "Cómo se muestra" in Ajustes: island, hidden or bubble, the delay before a hidden one comes out, and
+// whether its notice was seen. What is not sent stays as it was.
 #[tauri::command]
 pub fn set_island_mode(app: AppHandle, request: IslandModeRequest) -> Result<(), String> {
     let saved = settings::read(&app).settings;
     let next  = Settings {
-        island_hidden     : request.hidden.unwrap_or(saved.island_hidden),
+        island_rest       : request.rest.unwrap_or(saved.island_rest),
         reveal_delay      : request.reveal_delay.or(saved.reveal_delay),
         hidden_intro_seen : request.intro_seen.unwrap_or(saved.hidden_intro_seen),
         ..saved
@@ -67,6 +69,13 @@ pub fn set_island_dock(app: AppHandle, dock: IslandDock) -> Result<(), String> {
     settings::update(&app, Settings { island_dock: Some(dock), ..saved }).map(|_| ())
 }
 
+// Where the bubble was dropped (or brought from Ajustes).
+#[tauri::command]
+pub fn set_island_bubble(app: AppHandle, spot: BubbleSpot) -> Result<(), String> {
+    let saved = settings::read(&app).settings;
+    settings::update(&app, Settings { island_bubble: Some(spot), ..saved }).map(|_| ())
+}
+
 #[tauri::command]
 pub fn set_island_focus(window: WebviewWindow, focused: bool) -> Result<(), String> {
     island_window::set_focus(&window, focused).map_err(|error| error.to_string())
@@ -80,9 +89,9 @@ pub fn get_island_status(window: WebviewWindow) -> IslandStatus {
 
 // Dev only: the island's transitions, printed in the terminal running tauri dev.
 #[tauri::command]
-pub fn log_island(line: String) {
+pub fn log_island(line: String, tag: Option<String>) {
     #[cfg(debug_assertions)]
-    eprintln!("[glup:isla] {line}");
+    eprintln!("[glup:{}] {line}", tag.as_deref().unwrap_or("isla"));
     #[cfg(not(debug_assertions))]
-    let _ = line;
+    let _ = (line, tag);
 }
