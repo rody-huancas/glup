@@ -27,4 +27,5 @@ export const HISTORY_TEXTS = {
   selectAll    : 'Seleccionar todo',
   selectEntry  : (name: string) => `Seleccionar ${name}`,
   textDetail   : (detail: string) => `Texto de la pantalla · ${detail}`,
+  undo         : 'Deshacer',
 };
