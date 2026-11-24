@@ -3,9 +3,11 @@ import { DEFAULT_DOCK, DOCK_REFRESH, FALLBACK_WORK } from '@/modules/dock/consta
 import type { DragUpdate } from '@/modules/dock/interfaces/dragUpdate';
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { IslandScreen } from '@/modules/dock/interfaces/islandScreen';
+import type { IslandRest } from '@/modules/dock/types/islandRest';
 import { beginIslandDrag, getIslandScreens, setIslandDock, setIslandFrame } from '@/modules/dock/services/dock';
-import { dockRegion } from '@/modules/dock/utils/dockLayout';
+import { dockRegion, isClickable } from '@/modules/dock/utils/dockLayout';
 import { placeIsland } from '@/modules/dock/utils/placement';
+import { revealDelay } from '@/modules/dock/utils/reveal';
 import { resolveDock, sameDock, snapDock, workSize } from '@/modules/dock/utils/snapDock';
 import { getSettings } from '@/modules/settings/services/settings';
 import { ISLAND_DRAG_EVENT, SETTINGS_CHANGED_EVENT } from '@/shared/constants/events';
@@ -22,6 +24,8 @@ export const useIslandDock = ({ onMoving }: UseIslandDockParams) => {
   const [screens, setScreens] = useState<IslandScreen[]>([]);
   const [saved, setSaved]     = useState<IslandDock | null>(null);
   const [preview, setPreview] = useState<IslandDock | null>(null);
+  const [rest, setRest]       = useState<IslandRest>('pill');
+  const [delay, setDelay]     = useState<number | null>(null);
   const previewRef            = useRef<IslandDock | null>(null);
   const screensRef            = useRef<IslandScreen[]>([]);
 
@@ -37,7 +41,13 @@ export const useIslandDock = ({ onMoving }: UseIslandDockParams) => {
   }, []);
 
   const loadDock = useCallback(() => {
-    void getSettings().then((view) => setSaved(view.islandDock)).catch(() => undefined);
+    void getSettings()
+      .then((view) => {
+        setSaved(view.islandDock);
+        setRest(view.islandHidden ? 'hidden' : 'pill');
+        setDelay(view.revealDelay);
+      })
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -53,14 +63,15 @@ export const useIslandDock = ({ onMoving }: UseIslandDockParams) => {
 
   const resolved  = useMemo(() => resolveDock(preview ?? saved, screens), [preview, saved, screens]);
   const placement = useMemo(
-    () => placeIsland(resolved ? { dock: resolved.dock, work: workSize(resolved.screen) } : { dock: DEFAULT_DOCK, work: FALLBACK_WORK }),
-    [resolved],
+    () => placeIsland(resolved ? { dock: resolved.dock, work: workSize(resolved.screen), rest } : { dock: DEFAULT_DOCK, work: FALLBACK_WORK, rest }),
+    [resolved, rest],
   );
 
   // Until the screens are known the window stays where it started.
   useEffect(() => {
     if (!resolved) return;
-    void setIslandFrame({ screen: resolved.screen.id, rect: placement.frame, pill: dockRegion(placement, 'collapsed') }).catch(() => undefined);
+    const pill = dockRegion(placement, 'collapsed');
+    void setIslandFrame({ screen: resolved.screen.id, rect: placement.frame, pill, pillClickable: isClickable(placement, 'collapsed') }).catch(() => undefined);
   }, [resolved, placement]);
 
   const onDrag = useCallback(({ x, y, done }: DragUpdate) => {
@@ -92,5 +103,5 @@ export const useIslandDock = ({ onMoving }: UseIslandDockParams) => {
     void beginIslandDrag().catch(() => onMoving(false));
   }, [onMoving, loadScreens]);
 
-  return { placement, dragging: preview !== null, beginDrag };
+  return { placement, dragging: preview !== null, beginDrag, reveal: revealDelay(delay) };
 };
