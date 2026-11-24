@@ -66,12 +66,17 @@ lado. Si dos reglas parecen chocar, se pregunta.
 10. **Los archivos de la persona son sagrados.** Nunca se modifica, sobrescribe ni borra un archivo
     original. Los resultados se escriben como archivos nuevos (ver skill `acciones`). Lo que se borra
     a pedido de la persona va a la papelera, nunca se elimina directo.
-    **Única excepción: Limpieza** (`services/cleanup/`). Los archivos temporales del usuario (de más
-    de 24 h) y las carpetas de caché de los navegadores se borran directo, porque Windows y los
-    navegadores los vuelven a crear; la papelera se vacía con la API de Windows. Siempre después de
-    que la persona los vea, los marque y confirme, y solo si siguen iguales que al revisarlos. Todo lo
-    demás que encuentre Limpieza (instaladores, comprimidos, repetidos, archivos grandes) va a la
-    papelera.
+    **Excepciones, solo estas dos:**
+    - **Limpieza** (`services/cleanup/`). Los archivos temporales del usuario (de más de 24 h) y las
+      carpetas de caché de los navegadores se borran directo, porque Windows y los navegadores los
+      vuelven a crear; la papelera se vacía con la API de Windows. Siempre después de que la persona
+      los vea, los marque y confirme, y solo si siguen iguales que al revisarlos. Todo lo demás que
+      encuentre Limpieza (instaladores, comprimidos, repetidos, archivos grandes) va a la papelera.
+    - **Ordenar una carpeta** (`services/folder_sort/`). **Mueve** los archivos sueltos de la carpeta
+      elegida a subcarpetas, nunca los cambia ni los borra: siempre después de una vista previa y de
+      «Ordenar», solo lo que la vista previa mostró y si sigue igual, sin sobrescribir nunca (« (2)»).
+      Cada movimiento queda en un registro para «Deshacer». Si el destino está en otro disco, copia,
+      compara byte a byte y recién entonces borra el original.
 11. **Todo es local.** Ninguna función envía archivos ni datos de la persona a internet: las
     imágenes, los PDFs y lo que se haga con ellos nunca salen de la computadora.
     **Descargar herramientas sí se puede**, en una sola dirección (de internet a la PC) y solo lo que
