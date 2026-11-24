@@ -70,8 +70,11 @@ src-tauri/
 12. **Ventana de la isla.** El marco y la región visible se manejan en `services/island_window.rs`:
     el webview decide dónde va la isla (`modules/dock`) y Rust da las pantallas con su área de trabajo
     (`get_island_screens`), pone la ventana (`set_island_frame`, recordando el marco) y la región como un
-    rectángulo de la ventana (`set_island_area`). El arrastre lo sigue `island_drag.rs` (cursor y botón
-    del mouse, hasta soltar). Los vigilantes (`island_watchdog.rs`) corrigen marco y región. Las APIs de
+    rectángulo de la ventana (`set_island_area`); oculta en reposo, ese rectángulo no es clicable: la
+    región queda vacía y solo el `cursor_tracker` lo vigila (`zone_hit`). El arrastre lo sigue
+    `island_drag.rs` (cursor y botón del mouse, hasta soltar). Los vigilantes (`island_watchdog.rs`)
+    corrigen marco y región (vacía, si así debe estar). `taskbar.rs` dice si la barra de tareas se
+    oculta sola y en qué borde. Las APIs de
     Windows van detrás de `#[cfg(windows)]`, con una versión vacía para los demás sistemas.
 13. **Descargas** (`background/download.rs`): el SHA-256 se calcula mientras llegan los bytes; al
     reanudar se lee una vez la parte que ya estaba en disco. No se vuelve a leer el archivo entero
@@ -103,7 +106,8 @@ src-tauri/
     palabras) es puro en `region.rs` y `mod.rs`, con pruebas.
     **Atajos globales** (`services/shortcuts.rs`): `tauri-plugin-global-shortcut` (Apache-2.0 o MIT),
     registrados y cambiados solo desde Rust, uno por `ShortcutTarget` («Copiar texto de la
-    pantalla» Ctrl+Alt+Shift+T, «Portapapeles» Ctrl+Alt+Shift+H); `dispatch` sabe cuál se presionó.
+    pantalla» Ctrl+Alt+Shift+T, «Portapapeles» Ctrl+Alt+Shift+H, «Abrir y cerrar Glup»
+    Ctrl+Alt+Shift+G); `dispatch` sabe cuál se presionó.
     Dos atajos de Glup nunca comparten teclas (`clash`). Si al arrancar otro programa tiene uno, una
     notificación (`notify::alert`, aunque las de tareas estén apagadas) lleva a Ajustes.
     **Portapapeles** (`services/clipboard/`): apagado hasta que la persona lo activa. Escucha con
