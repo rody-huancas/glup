@@ -10,6 +10,7 @@ pub mod fullscreen_watcher;
 pub mod history;
 pub mod id_photo;
 pub mod image;
+pub mod island_drag;
 pub mod island_watchdog;
 pub mod island_window;
 pub mod naming;
