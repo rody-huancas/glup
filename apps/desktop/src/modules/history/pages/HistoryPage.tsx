@@ -9,9 +9,11 @@ import { Button } from '@/shared/components/Button';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { SelectAll } from '@/shared/components/SelectAll';
+import { SelectionBar } from '@/shared/components/SelectionBar';
 import { useCheckSelection } from '@/shared/hooks/useCheckSelection';
 
-// With nothing marked the button empties the whole list; with lines marked it removes only those.
+// "Limpiar historial" empties the whole list; the lines marked are removed from the bar next to
+// "Seleccionar todo", right above them.
 export const HistoryPage = () => {
   const { entries, now }    = useHistory();
   const { open, missingId } = useOpenEntry();
@@ -25,13 +27,18 @@ export const HistoryPage = () => {
     <div className="flex flex-col gap-6">
       <div className="flex items-end justify-between gap-4">
         <PageHeader title={HISTORY_TEXTS.title} subtitle={HISTORY_TEXTS.subtitle} />
-        <Button variant="secondary" disabled={entries.length === 0} onClick={clearing.ask} className="h-9 shrink-0 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-raised">
-          {count > 0 ? HISTORY_TEXTS.removeSome(count) : HISTORY_TEXTS.clear}
+        <Button variant="secondary" disabled={entries.length === 0} onClick={() => clearing.ask('all')} className="h-9 shrink-0 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-raised">
+          {HISTORY_TEXTS.clear}
         </Button>
       </div>
       {clearing.failed && <p role="alert" className="text-[13px] text-lilac-soft">{HISTORY_TEXTS.clearFailed}</p>}
       <div className="flex flex-col gap-3">
-        {entries.length > 0 && <SelectAll label={HISTORY_TEXTS.selectAll} state={selection.state} onToggle={selection.toggleAll} />}
+        {entries.length > 0 && (
+          <div className="flex min-h-9 items-center justify-between gap-3">
+            <SelectAll label={HISTORY_TEXTS.selectAll} state={selection.state} onToggle={selection.toggleAll} />
+            <SelectionBar count={count} onRemove={() => clearing.ask('selected')} onCancel={selection.clear} />
+          </div>
+        )}
         <HistoryList
           entries={entries}
           now={now}
@@ -43,12 +50,12 @@ export const HistoryPage = () => {
           onExpand={expanded.toggle}
         />
       </div>
-      {clearing.confirming && (
+      {clearing.asking && (
         <ConfirmDialog
-          title={count > 0 ? HISTORY_TEXTS.removeTitle(count) : HISTORY_TEXTS.clearTitle}
-          body={count > 0 ? HISTORY_TEXTS.removeBody(count) : HISTORY_TEXTS.clearBody}
+          title={clearing.asking === 'selected' ? HISTORY_TEXTS.removeTitle(count) : HISTORY_TEXTS.clearTitle}
+          body={clearing.asking === 'selected' ? HISTORY_TEXTS.removeBody(count) : HISTORY_TEXTS.clearBody}
           cancel={HISTORY_TEXTS.clearCancel}
-          confirm={count > 0 ? HISTORY_TEXTS.removeOk : HISTORY_TEXTS.clearConfirm}
+          confirm={clearing.asking === 'selected' ? HISTORY_TEXTS.removeOk : HISTORY_TEXTS.clearConfirm}
           onCancel={clearing.cancel}
           onConfirm={clearing.confirm}
         />

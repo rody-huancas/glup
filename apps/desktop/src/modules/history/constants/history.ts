@@ -21,7 +21,6 @@ export const HISTORY_TEXTS = {
   clearCancel  : 'Cancelar',
   clearConfirm : 'Limpiar',
   clearFailed  : 'No pude cambiar el historial. Vuelve a intentarlo.',
-  removeSome   : (count: number) => `Quitar seleccionados (${count})`,
   removeTitle  : (count: number) => `¿Quitar ${count} ${count === 1 ? 'elemento' : 'elementos'} del historial?`,
   removeBody   : (count: number) => `${count === 1 ? 'Se quitará' : 'Se quitarán'} de la lista de Glup. Tus archivos no se borran de tu PC.`,
   removeOk     : 'Quitar',
