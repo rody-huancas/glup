@@ -7,7 +7,8 @@ use tauri::LogicalSize;
 
 use crate::{services::visibility, ISLAND_WINDOW_LABEL};
 
-pub const ISLAND_OPEN_EVENT: &str = "island-open";
+pub const ISLAND_OPEN_EVENT: &str   = "island-open";
+pub const ISLAND_TOGGLE_EVENT: &str = "island-toggle";
 
 // Visible area at startup, on top in the middle (the pill with its ears and hover room); must match
 // dockRegion(placeIsland(DEFAULT_DOCK), 'collapsed') in the webview.
@@ -50,25 +51,41 @@ pub struct IslandScreen {
     pub work    : ScreenRect,
 }
 
-// Where the webview wants the window: a rect of a screen's work area, and the pill's area within the window
-// (what a reset goes back to).
+fn clickable_by_default() -> bool {
+    true
+}
+
+// Where the webview wants the window: a rect of a screen's work area, and the resting area within the
+// window (what a reset goes back to). Hidden (modo oculto), that area is only where the cursor reveals
+// Glup: it takes no clicks.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FrameRequest {
-    pub screen : String,
-    pub rect   : IslandRect,
-    pub pill   : IslandRect,
+    pub screen         : String,
+    pub rect           : IslandRect,
+    pub pill           : IslandRect,
+    #[serde(default = "clickable_by_default")]
+    pub pill_clickable : bool,
 }
 
-// The window as last placed, in physical pixels, with the pill's area.
+// The window as last placed, in physical pixels, with its resting area.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FrameState {
-    pub position : PhysicalPosition<i32>,
-    pub size     : PhysicalSize<u32>,
-    pub pill     : IslandRect,
+    pub position       : PhysicalPosition<i32>,
+    pub size           : PhysicalSize<u32>,
+    pub pill           : IslandRect,
+    pub pill_clickable : bool,
 }
 
-pub struct IslandArea(Mutex<IslandRect>);
+// The area of the island: what the cursor tracker watches and, when clickable, the window's region.
+// Not clickable (hidden at rest), the region is empty: the window takes no clicks nor drags at all.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AreaState {
+    pub rect      : IslandRect,
+    pub clickable : bool,
+}
+
+pub struct IslandArea(Mutex<AreaState>);
 
 // The window's place and size: set by the webview for the island's dock (only the region changes
 // between states), checked by the watchdogs.
@@ -77,7 +94,7 @@ pub struct IslandFrame(Mutex<Option<FrameState>>);
 
 impl Default for IslandArea {
     fn default() -> Self {
-        Self(Mutex::new(INITIAL_AREA))
+        Self(Mutex::new(AreaState { rect: INITIAL_AREA, clickable: true }))
     }
 }
 
@@ -129,7 +146,7 @@ pub fn set_frame(window: &WebviewWindow, request: FrameRequest) -> Result<()> {
     };
 
     let (position, size) = frame_on(screen.work, screen.scale, request.rect);
-    let frame            = FrameState { position, size, pill: request.pill };
+    let frame            = FrameState { position, size, pill: request.pill, pill_clickable: request.pill_clickable };
 
     place(window, &frame)?;
     if let Ok(mut current) = window.state::<IslandFrame>().0.lock() {
@@ -151,11 +168,12 @@ pub fn center_top(window: &WebviewWindow) -> Result<()> {
 }
 
 // The window keeps its frame; only its visible and clickable area changes.
-pub fn set_area(window: &WebviewWindow, rect: IslandRect) -> Result<()> {
-    apply_area(window, rect)?;
+pub fn set_area(window: &WebviewWindow, rect: IslandRect, clickable: bool) -> Result<()> {
+    let state = AreaState { rect, clickable };
+    apply_area(window, state)?;
 
     if let Ok(mut area) = window.state::<IslandArea>().0.lock() {
-        *area = rect;
+        *area = state;
     }
 
     Ok(())
@@ -166,15 +184,19 @@ pub fn current_area(window: &WebviewWindow) -> Option<AreaRect> {
     Some(area_rect(stored_area(window)?, scale))
 }
 
-// The area last asked for (what the region should be).
+// The area last asked for (what the cursor tracker watches).
 pub fn stored_area(window: &WebviewWindow) -> Option<IslandRect> {
+    stored_state(window).map(|area| area.rect)
+}
+
+pub fn stored_state(window: &WebviewWindow) -> Option<AreaState> {
     window.state::<IslandArea>().0.lock().ok().map(|area| *area)
 }
 
 // The startup frame (top center of the main screen) until the webview places the island at its dock.
 pub fn remember_frame(window: &WebviewWindow) {
     if let (Ok(position), Ok(size), Ok(mut frame)) = (window.outer_position(), window.outer_size(), window.state::<IslandFrame>().0.lock()) {
-        *frame = Some(FrameState { position, size, pill: INITIAL_AREA });
+        *frame = Some(FrameState { position, size, pill: INITIAL_AREA, pill_clickable: true });
     }
 }
 
@@ -194,7 +216,8 @@ pub fn reapply_frame(window: &WebviewWindow) -> Result<()> {
 pub fn recover(window: &WebviewWindow) {
     let _ = reapply_frame(window);
     let _ = window.set_always_on_top(true);
-    let _ = set_area(window, expected_frame(window).map_or(INITIAL_AREA, |frame| frame.pill));
+    let (pill, clickable) = expected_frame(window).map_or((INITIAL_AREA, true), |frame| (frame.pill, frame.pill_clickable));
+    let _                 = set_area(window, pill, clickable);
 }
 
 // The same region within a pixel (rounding of the scale factor).
@@ -234,9 +257,9 @@ pub fn applied_region(window: &WebviewWindow) -> Option<AreaRect> {
 
 // Reapplies the stored area (the watchdog uses it when the real region drifted).
 pub fn reapply_area(window: &WebviewWindow) -> Result<()> {
-    match stored_area(window) {
-        Some(rect) => apply_area(window, rect),
-        None       => Ok(()),
+    match stored_state(window) {
+        Some(state) => apply_area(window, state),
+        None        => Ok(()),
     }
 }
 
@@ -251,13 +274,14 @@ pub fn area_rect(rect: IslandRect, scale: f64) -> AreaRect {
 }
 
 #[cfg(windows)]
-fn apply_area(window: &WebviewWindow, rect: IslandRect) -> Result<()> {
+fn apply_area(window: &WebviewWindow, state: AreaState) -> Result<()> {
     use windows_sys::Win32::Graphics::Gdi::{CreateRectRgn, SetWindowRgn};
 
-    let area = area_rect(rect, window.scale_factor()?);
+    let area = if state.clickable { area_rect(state.rect, window.scale_factor()?) } else { AreaRect { left: 0, top: 0, right: 0, bottom: 0 } };
     let hwnd = window.hwnd()?.0 as _;
 
-    // The system owns the region after SetWindowRgn, so it must not be deleted here.
+    // The system owns the region after SetWindowRgn, so it must not be deleted here. An empty one leaves
+    // nothing of the window to click or drag onto.
     unsafe {
         let region = CreateRectRgn(area.left, area.top, area.right, area.bottom);
         SetWindowRgn(hwnd, region, 1);
@@ -267,8 +291,8 @@ fn apply_area(window: &WebviewWindow, rect: IslandRect) -> Result<()> {
 }
 
 #[cfg(not(windows))]
-fn apply_area(window: &WebviewWindow, rect: IslandRect) -> Result<()> {
-    window.set_size(LogicalSize::new(rect.width, rect.height))
+fn apply_area(window: &WebviewWindow, state: AreaState) -> Result<()> {
+    window.set_size(LogicalSize::new(state.rect.width.max(1.0), state.rect.height.max(1.0)))
 }
 
 // The island never takes focus on its own; the actions panel borrows it so Esc can close it.
@@ -308,6 +332,12 @@ pub fn status(window: &WebviewWindow) -> IslandStatus {
 pub fn request_open(app: &AppHandle) {
     visibility::show_for_user(app);
     let _ = app.emit_to(ISLAND_WINDOW_LABEL, ISLAND_OPEN_EVENT, ());
+}
+
+// Its shortcut: opens the panel when closed (hidden or not), closes it when open.
+pub fn request_toggle(app: &AppHandle) {
+    visibility::show_for_user(app);
+    let _ = app.emit_to(ISLAND_WINDOW_LABEL, ISLAND_TOGGLE_EVENT, ());
 }
 
 #[cfg(test)]

@@ -54,8 +54,18 @@ fn check(app: &AppHandle, window: &WebviewWindow) {
         }
     }
 
-    let expected = island_window::current_area(window);
-    let applied  = island_window::applied_region(window);
+    let clickable = island_window::stored_state(window).is_none_or(|state| state.clickable);
+    let expected  = island_window::current_area(window);
+    let applied   = island_window::applied_region(window);
+
+    // Hidden at rest the region has to stay empty: nothing of the window takes clicks.
+    if !clickable {
+        if applied.is_some() {
+            eprintln!("[glup:vigilante] región {applied:?} y debería estar vacía (oculta): corrijo");
+            let _ = island_window::reapply_area(window);
+        }
+        return;
+    }
 
     if let Some(expected) = expected {
         if !applied.is_some_and(|applied| island_window::regions_match(applied, expected)) {

@@ -43,8 +43,31 @@ visible y clicable** al estado actual, para que los clics alrededor lleguen a la
   acomoda sola. La pantalla completa que la oculta es la de **su** pantalla.
 - Ajustes › General › «Posición de Glup» (`DockPositionSetting`): un dibujo de la pantalla para elegir
   con un clic (o con sus ocho botones), la pantalla si hay varias y «Volver arriba al centro».
-- Las etapas que vienen (modo oculto, burbuja flotante) son otro `DockKind` y otro estado de la
-  máquina: la posición ya no asume «arriba al centro» en ningún lado.
+- La etapa que viene (burbuja flotante) es otro `DockKind` y otro estado de la máquina: la posición ya
+  no asume «arriba al centro» en ningún lado.
+
+### Modo oculto
+
+- Ajustes › General › «Cómo se muestra»: «Isla» (como siempre) u «Oculta» (`islandHidden` en
+  `settings.json`), en cualquier borde o esquina. La máquina lo sabe como su **forma de reposo**
+  (`rest: 'pill' | 'hidden'`): la fase de reposo sigue siendo `collapsed` y `hidden` sigue siendo solo la
+  ventana oculta (pantalla completa, bandeja, captura).
+- **Oculta no se ve nada**: las formas de reposo (`collapsed`, `hover`, `settle`) miden 0, así que el
+  panel sale del borde mismo con la burbuja de siempre (con movimiento reducido, el fundido) y vuelve a
+  él. Sin pastilla no hay aviso ancho (la máquina lo ignora: avisa la notificación de Windows, según su
+  ajuste, o el toast al abrir), ni arrastre, ni hover.
+- **No bloquea nada**: en reposo la región de la ventana queda **vacía** (`set_island_area` con
+  `clickable: false`): ni clics ni arrastres de ventanas de abajo. Lo que la trae es Rust: el
+  `cursor_tracker` vigila la **zona de aparición** (`revealZone`: una franja de 2 px contra el borde,
+  del largo de la pastilla, o un cuadrado de 24 px en la esquina, más su margen; `zone_hit`, con
+  pruebas) y la isla se abre si el cursor se queda ahí el retraso de Ajustes (`reveal`, de 0,15 a
+  0,8 s; `getToggleDelay`). Arrastrar un archivo al borde la abre igual y se suelta en el panel.
+- También la abren su **atajo** («Abrir y cerrar Glup», Ctrl+Alt+Shift+G por defecto; abre y cierra,
+  y toma el foco para Esc) y «Abrir Glup» de la bandeja. Se recoge como siempre: al salir el cursor,
+  con Esc o con el atajo.
+- La primera vez que se elige «Oculta», un diálogo dice cómo volver a abrirla («Entendido» o «Mejor
+  como isla»). Si la barra de tareas se oculta sola en ese borde (`get_taskbar_state`,
+  `competesWithTaskbar`), Ajustes avisa que compiten y sugiere otro borde.
 
 ### Máquina de estados
 
@@ -61,7 +84,8 @@ solo traduce cada fase en animación, región y foco.
   - el aviso (`notice`) solo existe con la pastilla ancha;
   - fijada solo estando abierta;
   - arrastrada (`moving`) solo estando recogida: mientras se arrastra no se abre, ni con hover, y un
-    aviso que llega en ese momento no ensancha la pastilla (igual se cuenta por su toast o notificación).
+    aviso que llega en ese momento no ensancha la pastilla (igual se cuenta por su toast o notificación);
+  - oculta en reposo (`rest: 'hidden'`), ni aviso ancho ni arrastre.
   Se comprueban con las formas de arriba al centro: las reglas son las mismas en todos los bordes.
 - Los temporizadores (abrir, recoger) usan callbacks estables: un render no los reinicia.
 - **Vigilantes** cada 2 s (Rust y frontend) corrigen si el estado y la ventana real no coinciden, y
@@ -81,6 +105,7 @@ solo traduce cada fase en animación, región y foco.
 | Tarea termina (cualquiera) | Toast arriba del contenido del panel o notificación de Windows, nunca los dos (`decideNotice`) |
 | Pantalla completa en la pantalla de la isla | `hidden` |
 | Pastilla presionada y arrastrada | `moving`: sigue al borde más cercano con un halo; al soltar queda ahí |
+| Oculta: cursor contra su borde el retraso de Ajustes, su atajo o la bandeja | Sale el panel completo desde ese borde; al recogerse vuelve a no verse nada |
 | «Copiar texto de la pantalla» (atajo, bandeja o Herramientas) | `hidden` mientras se elige la zona; vuelve como pastilla limpia y muestra el aviso («Copié 42 palabras» con «Ver», que abre esa línea del Historial, Glup feliz; «No encontré texto ahí», confundido). Con Glup oculto (bandeja, pantalla completa), una notificación de Windows con las mismas palabras |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:

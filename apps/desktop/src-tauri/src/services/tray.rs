@@ -4,7 +4,7 @@ use tauri::{
     AppHandle, Manager, Result,
 };
 
-use crate::services::{clipboard, island_window, screen_text, startup, visibility};
+use crate::services::{clipboard, island_window, screen_text, settings, startup, visibility};
 
 const TRAY_ID: &str        = "glup-tray";
 const OPEN_ID: &str        = "open";
@@ -55,12 +55,23 @@ fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
         }
         SCREEN_TEXT_ID => screen_text::start(app),
         CLIPBOARD_ID   => clipboard::toggle_pause(app),
-        TOGGLE_ID      => visibility::toggle_user_hidden(app),
+        TOGGLE_ID      => show_or_hide(app),
         // The checkbox flips itself on click; set_enabled puts it back to Windows' real state.
         AUTOSTART_ID   => {
             let _ = startup::set_enabled(app, !startup::is_enabled(app));
         }
         QUIT_ID        => app.exit(0),
         _              => {}
+    }
+}
+
+// "Mostrar/Ocultar Glup". Hidden at rest (modo oculto) showing it alone would leave nothing on screen,
+// so it comes out with the panel open.
+fn show_or_hide(app: &AppHandle) {
+    let was_hidden = visibility::snapshot(app).user_hidden;
+    visibility::toggle_user_hidden(app);
+
+    if was_hidden && settings::read(app).settings.island_hidden {
+        island_window::request_open(app);
     }
 }

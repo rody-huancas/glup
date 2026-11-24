@@ -14,6 +14,7 @@ interface ShortcutLabel {
 export const SHORTCUT_LABELS: Record<ShortcutTarget, ShortcutLabel> = {
   'screen-text' : { label: 'Atajo para copiar texto de la pantalla', hint: 'Funciona desde cualquier programa' },
   clipboard     : { label: 'Atajo para abrir el portapapeles', hint: 'Lo abre desde cualquier programa' },
+  island        : { label: 'Atajo para abrir y cerrar Glup', hint: 'Abre el panel desde cualquier programa, también si Glup está oculto' },
 };
 
 export const SHORTCUT_TEXTS = {

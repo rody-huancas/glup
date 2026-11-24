@@ -132,6 +132,8 @@ pub fn run() {
             commands::island::set_island_frame,
             commands::island::begin_island_drag,
             commands::island::set_island_dock,
+            commands::island::set_island_mode,
+            commands::island::get_taskbar_state,
             commands::island::set_island_focus,
             commands::island::get_island_status,
             commands::island::log_island
@@ -143,7 +145,7 @@ pub fn run() {
 
             services::island_window::center_top(&window)?;
             services::island_window::remember_frame(&window);
-            services::island_window::set_area(&window, services::island_window::INITIAL_AREA)?;
+            services::island_window::set_area(&window, services::island_window::INITIAL_AREA, true)?;
             services::visibility::apply(app.handle());
             services::tray::create(app.handle())?;
             services::cursor_tracker::spawn(app.handle().clone());

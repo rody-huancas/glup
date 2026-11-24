@@ -2,15 +2,18 @@ import { DOCK_SHAPES, KIND_OF, NOTICE_OVERSHOOT, OVERSHOOT } from '@/modules/doc
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { DockEdge } from '@/modules/dock/types/dockEdge';
+import type { IslandRest } from '@/modules/dock/types/islandRest';
 import type { ShapeRole } from '@/modules/dock/types/shapeRole';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
 import type { Rect } from '@/shared/interfaces/rect';
 import type { Size } from '@/shared/interfaces/size';
 
 interface PlaceIslandParams {
-  dock : IslandDock;
+  dock  : IslandDock;
   // The work area of its screen (without the taskbar), in CSS pixels.
-  work : Size;
+  work  : Size;
+  // Pill by default; hidden (modo oculto) has nothing on screen at rest.
+  rest? : IslandRest;
 }
 
 const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
@@ -41,7 +44,7 @@ export const offsetAt = (edge: DockEdge, position: number, edgeLength: number): 
   return edgeLength <= length ? 0.5 : clamp((position - length / 2) / (edgeLength - length), 0, 1);
 };
 
-const placeOnEdge = ({ dock, work }: PlaceIslandParams): IslandPlacement => {
+const placeOnEdge = ({ dock, work, rest = 'pill' }: PlaceIslandParams): IslandPlacement => {
   const edge     = dock.edge;
   const shapes   = DOCK_SHAPES[KIND_OF[edge]];
   const length   = isHorizontal(edge) ? work.width : work.height;
@@ -70,10 +73,11 @@ const placeOnEdge = ({ dock, work }: PlaceIslandParams): IslandPlacement => {
     frame  : frames[edge as keyof typeof frames],
     along  : center - start,
     shifts : { expanded: opened - center, notice: told - center },
+    rest,
   };
 };
 
-const placeInCorner = ({ dock, work }: PlaceIslandParams): IslandPlacement => {
+const placeInCorner = ({ dock, work, rest = 'pill' }: PlaceIslandParams): IslandPlacement => {
   const expanded = DOCK_SHAPES.corner.expanded;
   const width    = Math.min(expanded.width + expanded.earRadius + OVERSHOOT.depth, work.width);
   const height   = Math.min(expanded.height + expanded.earRadius + OVERSHOOT.depth, work.height);
@@ -86,6 +90,7 @@ const placeInCorner = ({ dock, work }: PlaceIslandParams): IslandPlacement => {
     frame  : { x: right ? work.width - width : 0, y: bottom ? work.height - height : 0, width, height },
     along  : 0,
     shifts : { expanded: 0, notice: 0 },
+    rest,
   };
 };
 
@@ -94,8 +99,15 @@ const placeInCorner = ({ dock, work }: PlaceIslandParams): IslandPlacement => {
 export const placeIsland = (params: PlaceIslandParams): IslandPlacement =>
   KIND_OF[params.dock.edge] === 'corner' ? placeInCorner(params) : placeOnEdge(params);
 
+// Hidden at rest there is no pill: the resting shapes are nothing at its spot, so the panel grows out of
+// the edge itself and goes back into it.
+const RESTING_ROLES: ShapeRole[] = ['collapsed', 'hover', 'settle'];
+const NOTHING: IslandShape       = { width: 0, height: 0, earRadius: 0, bottomRadius: 0, shift: 0 };
+
 // One of the island's shapes for this placement (the open panel and the notice slide with their shift).
 export const dockShape = (placement: IslandPlacement, role: ShapeRole): IslandShape => {
+  if (placement.rest === 'hidden' && RESTING_ROLES.includes(role)) return { ...NOTHING };
+
   const base  = DOCK_SHAPES[placement.kind][role];
   const shift = role === 'expanded' ? placement.shifts.expanded : role === 'notice' ? placement.shifts.notice : 0;
   return { ...base, shift };

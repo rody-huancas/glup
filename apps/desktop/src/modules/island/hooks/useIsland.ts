@@ -29,7 +29,9 @@ import { getTasks, markForReveal, takeReveals } from '@/modules/tasks/store/task
 import { pickOpenPage } from '@/modules/tasks/utils/taskOwner';
 import type { Task } from '@/modules/tasks/interfaces/task';
 import { getRunningTask, getTaskFraction } from '@/modules/tasks/utils/taskView';
+import { ISLAND_TOGGLE_EVENT } from '@/shared/constants/events';
 import { useKeyDown } from '@/shared/hooks/useKeyDown';
+import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
 
 // The machine decides (useIslandMachine); this hook turns its phases into animations, region, focus and
 // panel resets, and feeds it the signals (cursor, fullscreen, tray, tasks). All callbacks handed to the
@@ -56,13 +58,17 @@ export const useIsland = () => {
   const { takeFocus, releaseFocus } = useIslandFocus();
   const { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving, relayout } = useIslandTimeline({ elements, mascotRef: panel.avatarRef, placementRef });
 
-  // A new place (dropped, changed in Ajustes, another screen): drawn there at once, in its current state.
+  // A new place (dropped, changed in Ajustes, another screen) or a new way to rest (island or hidden):
+  // drawn there at once, in its current state. The machine learns how it rests.
   useEffect(() => {
+    send({ type: 'rest', rest: dock.placement.rest });
     if (placementRef.current === dock.placement) return;
 
     placementRef.current = dock.placement;
     relayout();
-  }, [dock.placement, relayout]);
+  }, [dock.placement, relayout, send]);
+
+  const hidden = machine.rest === 'hidden';
 
   const expandOnHover   = useCallback(() => send({ type: 'expand', pin: false }), [send]);
   const openPinned      = useCallback(() => send({ type: 'expand', pin: true }), [send]);
@@ -150,6 +156,7 @@ export const useIsland = () => {
     inside   : hovering,
     dragging,
     blocked  : isHeldOpen(machine),
+    reveal   : hidden ? dock.reveal : null,
     expand   : expandOnHover,
     collapse : collapseOnLeave,
   });
@@ -170,7 +177,21 @@ export const useIsland = () => {
   }, [state, takeFocus]);
 
   // Only the resting pill (or its notice) is dragged; the window follows the edge it would land on.
-  const drag = useIslandDragGesture({ enabled: machine.phase === 'collapsed' || machine.phase === 'notice', onDragStart: dock.beginDrag });
+  // Hidden there is no pill: it is moved from Ajustes.
+  const drag = useIslandDragGesture({ enabled: !hidden && (machine.phase === 'collapsed' || machine.phase === 'notice'), onDragStart: dock.beginDrag });
+
+  // Its shortcut opens and closes the panel (the way back to a hidden Glup), with the focus for Esc.
+  const stateRef = useRef(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useTauriEvent<null>(ISLAND_TOGGLE_EVENT, () => {
+    if (stateRef.current === 'expanded') return collapseNow();
+    openPinned();
+    takeFocus();
+  });
 
   // Tasks run on their own; with the island collapsed the pill shows progress and a notice at the end.
   const tasks   = useTasks();
@@ -187,13 +208,20 @@ export const useIsland = () => {
   // The end of a task is told once: a toast in the panel or a Windows notification.
   const notices = useTaskNotices({ phaseRef, insideRef, onNavigate: panel.navigate });
 
+  const restRef = useRef(machine.rest);
+
+  useEffect(() => {
+    restRef.current = machine.rest;
+  }, [machine.rest]);
+
   // "Copiar texto de la pantalla" is not a task (no toast): the pill's notice with Glup's face, or a
   // Windows notification with the same words when Glup is hidden (tray, fullscreen app).
   const avatarRef    = panel.avatarRef;
   const onScreenText = useCallback((done: ScreenTextDone) => {
     const notice = screenTextNotice(done);
 
-    if (phaseRef.current === 'hidden') {
+    // Hidden (a fullscreen app, the tray, or hidden at rest) there is no pill to tell it on.
+    if (phaseRef.current === 'hidden' || restRef.current === 'hidden') {
       if (done.entryId) revealHistoryEntry(done.entryId);
       void notifyTask({ body: notice.message, page: done.entryId ? 'history' : 'tools' }).catch(() => undefined);
       return;

@@ -14,6 +14,7 @@ export const INITIAL_MACHINE: IslandMachine = {
   trayHidden : false,
   capturing  : false,
   moving     : false,
+  rest       : 'pill',
   notice     : null,
   resets     : 0,
   holds      : [],
@@ -56,17 +57,25 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
       return OPEN_PHASES.includes(phase) ? { ...machine, pinned: !machine.pinned } : machine;
 
     // Only the resting pill widens; a new result while one is showing just replaces its text. While it is
-    // dragged it stays a pill (the result is also told by its toast or notification).
+    // dragged, or hidden at rest (there is no pill), nothing widens: the result is told by its toast or
+    // its Windows notification.
     case 'notice':
-      if (machine.moving) return machine;
+      if (machine.moving || machine.rest === 'hidden') return machine;
       return phase === 'collapsed' || phase === 'notice' ? { ...machine, phase: 'notice', notice: event.notice } : machine;
 
     // Only the resting pill (or its notice, which gives way) can be dragged to another edge; while it
     // goes, nothing opens it.
     case 'moving':
       if (!event.on) return { ...machine, moving: false };
-      if (phase !== 'collapsed' && phase !== 'notice') return machine;
+      if ((phase !== 'collapsed' && phase !== 'notice') || machine.rest === 'hidden') return machine;
       return { ...machine, phase: 'collapsed', notice: null, moving: true };
+
+    // How it rests when closed: the pill, or hidden (modo oculto). Going hidden drops a live notice and a
+    // drag, which only the pill has.
+    case 'rest':
+      if (event.rest === machine.rest) return machine;
+      if (event.rest === 'pill') return { ...machine, rest: 'pill' };
+      return { ...machine, rest: 'hidden', moving: false, notice: null, phase: phase === 'notice' ? 'collapsed' : phase };
 
     case 'notice-ended':
       return phase === 'notice' ? { ...machine, phase: 'collapsed', notice: null } : machine;
@@ -148,6 +157,7 @@ export const checkInvariants = (machine: IslandMachine): string[] => {
   if ((machine.notice !== null) !== (machine.phase === 'notice')) broken.push('aviso fuera de la pastilla ancha');
   if (machine.pinned && !OPEN_PHASES.includes(machine.phase)) broken.push('fijada estando cerrada');
   if (machine.moving && machine.phase !== 'collapsed') broken.push('arrastrada sin estar recogida');
+  if (machine.rest === 'hidden' && (machine.notice !== null || machine.moving)) broken.push('aviso o arrastre sin pastilla (oculta)');
 
   return broken;
 };
@@ -162,5 +172,6 @@ export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'capture') return `capture(${event.on ? 'eligiendo zona' : 'terminó'})`;
   if (event.type === 'holds') return `holds(${event.holds.join(', ') || 'ninguno'})`;
   if (event.type === 'moving') return `moving(${event.on ? 'arrastrando' : 'soltada'})`;
+  if (event.type === 'rest') return `rest(${event.rest === 'hidden' ? 'oculta' : 'pastilla'})`;
   return event.type;
 };

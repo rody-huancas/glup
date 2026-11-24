@@ -59,6 +59,16 @@ pub struct Settings {
     // Where the island lives (None: on top in the middle of the main screen). The webview reads and
     // checks it: a screen that is gone gives way to the main one.
     pub island_dock: Option<IslandDock>,
+    // "Cómo se muestra": hidden (modo oculto), nothing is on screen until the cursor rests against its
+    // edge, its shortcut or the tray. Off by default: the island as always.
+    pub island_hidden: bool,
+    // How long the cursor rests against the edge before a hidden Glup comes out (ms; None: the default).
+    pub reveal_delay: Option<u32>,
+    // The short notice of how to bring a hidden Glup back was seen.
+    pub hidden_intro_seen: bool,
+    // The shortcut that opens and closes the panel, as the other ones.
+    pub island_shortcut: Option<String>,
+    pub island_shortcut_off: bool,
 }
 
 // The edge ("top", "left", "bottom-right"…), how far along it (0 to 1) and the screen.

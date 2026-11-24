@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
-import { dockRegion } from '@/modules/dock/utils/dockLayout';
+import { dockRegion, isClickable } from '@/modules/dock/utils/dockLayout';
 import { ISLAND_WATCHDOG_INTERVAL } from '@/modules/island/constants/island';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import { logIsland } from '@/modules/island/utils/islandLog';
@@ -68,13 +68,14 @@ export const useIslandWatchdog = ({ machine, send, isMoving, placementRef }: Use
 
       if (!isSettledPhase(now.phase) || moving()) return;
 
-      const expected = dockRegion(placementRef.current, areaKindFor(now.phase));
+      const kind     = areaKindFor(now.phase);
+      const expected = dockRegion(placementRef.current, kind);
       const actual   = status.area;
       const same     = (['x', 'y', 'width', 'height'] as const).every((key) => Math.abs(actual[key] - expected[key]) < 0.5);
 
       if (!same) {
         logIsland(`vigilante: región ${actual.width}x${actual.height} en ${actual.x},${actual.y} (${now.phase}), corrijo a ${expected.width}x${expected.height} en ${expected.x},${expected.y}`);
-        await setIslandArea(expected);
+        await setIslandArea(expected, isClickable(placementRef.current, kind));
       }
     };
 

@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { DockArea } from '@/modules/dock/types/dockArea';
-import { dockRegion } from '@/modules/dock/utils/dockLayout';
+import { dockRegion, isClickable } from '@/modules/dock/utils/dockLayout';
 import { dockShape } from '@/modules/dock/utils/placement';
 import { NOTICE_MOTION, REDUCED_MOTION } from '@/modules/island/constants/islandTimeline';
 import { useIslandMascot } from '@/modules/island/hooks/useIslandMascot';
@@ -86,7 +86,7 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
     area.current = area.current
       .then(() => {
         logIsland(`región → ${kind}`);
-        return setIslandArea(dockRegion(placementRef.current, kind));
+        return setIslandArea(dockRegion(placementRef.current, kind), isClickable(placementRef.current, kind));
       })
       .catch(() => undefined);
     return area.current;
@@ -232,7 +232,8 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
   const hover = useMemo(
     () =>
       contextSafe((inflated: boolean) => {
-        if (motion.current || noticeLine.current || settled.current !== 'collapsed' || reduced.current) return;
+        // Hidden at rest there is no pill to breathe in.
+        if (motion.current || noticeLine.current || settled.current !== 'collapsed' || reduced.current || placementRef.current.rest === 'hidden') return;
 
         stopHover();
         hovered.current = buildHoverTween({ placement: placementRef.current, shape: shape.current, inflated, onRender: render });
