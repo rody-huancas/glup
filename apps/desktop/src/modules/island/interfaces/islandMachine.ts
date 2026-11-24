@@ -1,3 +1,4 @@
+import type { IslandRest } from '@/modules/dock/types/islandRest';
 import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
 import type { HoldReason } from '@/modules/island/types/holdReason';
 import type { IslandPhase } from '@/modules/island/types/islandPhase';
@@ -16,6 +17,9 @@ export interface IslandMachine {
   capturing  : boolean;
   // Being dragged to another edge, corner or screen: it does not open (not even on hover) until dropped.
   moving     : boolean;
+  // How it rests when closed: the pill, or hidden (modo oculto, nothing on screen; the cursor against its
+  // edge, its shortcut or the tray bring the panel out). Collapsed is still its resting phase.
+  rest       : IslandRest;
   notice     : IslandNotice | null;
   // Bumped by every hard reset (tray, watchdog), so the view snaps back to a clean pill.
   resets     : number;
@@ -35,5 +39,6 @@ export type IslandEvent =
   | { type: 'tray'; hidden: boolean }
   | { type: 'capture'; on: boolean }
   | { type: 'moving'; on: boolean }
+  | { type: 'rest'; rest: IslandRest }
   | { type: 'reset' }
   | { type: 'holds'; holds: HoldReason[] };
