@@ -4,6 +4,9 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { THUMBNAIL_HEIGHTS } from '@/modules/pdf/constants/pdf';
 import { renderPage } from '@/modules/pdf/utils/renderPage';
+import { PREVIEW_SIZE } from '@/modules/photos/constants/photos';
+import { getImagePreview } from '@/modules/photos/services/photos';
+import { needsRustPreview } from '@/modules/photos/utils/photos';
 import { READ_FILE_BYTES } from '@/shared/constants/events';
 
 // The worker ships with the app (bundled by Vite), so pdf.js works without internet.
@@ -52,12 +55,14 @@ export const getPdfThumbnail = ({ path, page, height }: ThumbnailParams): Promis
   return rendering;
 };
 
+// HEIC and AVIF come as a small JPG made by Rust (upright and in sRGB); the rest as they are.
 export const getImageThumbnail = (path: string): Promise<string> => {
   const key    = `${path}#image`;
   const cached = thumbnails.get(key);
   if (cached) return cached;
 
-  const reading = readFileBytes(path).then((bytes) => URL.createObjectURL(new Blob([bytes.slice().buffer])));
+  const bytes   = needsRustPreview(path) ? getImagePreview({ path, size: PREVIEW_SIZE }) : readFileBytes(path);
+  const reading = bytes.then((data) => URL.createObjectURL(new Blob([data.slice().buffer])));
   reading.catch(() => thumbnails.delete(key));
   thumbnails.set(key, reading);
   return reading;
