@@ -131,6 +131,7 @@ pub fn run() {
             commands::transcribe::transcribe_audio,
             commands::transcribe::estimate_transcription,
             commands::transcribe::save_subtitles,
+            commands::transcribe::get_transcribe_engine,
             commands::startup::get_launch_info,
             commands::startup::take_launch_open,
             commands::startup::get_autostart,
