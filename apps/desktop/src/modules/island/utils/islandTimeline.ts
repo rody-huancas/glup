@@ -1,8 +1,9 @@
 import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import { ISLAND_COLORS } from '@/modules/island/constants/island';
+import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
+import { alongLength, dockShape } from '@/modules/dock/utils/placement';
 import { MASCOT_MOTION } from '@/modules/island/constants/islandMascot';
-import { ANTICIPATION_SHAPE, HOVER_SHAPE, ISLAND_SHAPES, NOTICE_SHAPE, SETTLE_SHAPE } from '@/modules/island/constants/islandShape';
 import {
   CLOSE_MOTION,
   HOVER_MOTION,
@@ -83,12 +84,16 @@ const getGroupItems = (content: HTMLElement, group: RevealGroup): Element[] =>
 const getRevealItems = (content: HTMLElement): Element[] =>
   REVEAL_BLOCKS.flatMap((group) => getGroupItems(content, group));
 
-// Widest change of the silhouette during the expansion, ears included.
-const EXPANSION_CHANGE =
-  ISLAND_SHAPES.expanded.width + ISLAND_SHAPES.expanded.earRadius * 2
-  - (ANTICIPATION_SHAPE.width + ISLAND_SHAPES.collapsed.earRadius * 2);
+// Widest change of the silhouette during the expansion, ears included (both sides of a corner).
+const expansionChange = (placement: IslandPlacement): number => {
+  const from = dockShape(placement, 'anticipation');
+  const to   = dockShape(placement, 'expanded');
 
-const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: BuildParams): gsap.core.Timeline => {
+  if (placement.kind === 'corner') return Math.max(to.width - from.width, to.height - from.height);
+  return Math.max(alongLength(to) - alongLength(from), to.height - from.height);
+};
+
+const buildOpenTimeline = ({ targets, placement, shape, cues, onRender, onShapeSettled }: BuildParams): gsap.core.Timeline => {
   const { fill, outline, content, lift, flyer, squash, avatarAnchor } = targets;
   const { anticipation, expansion, colors, flight, squash: landing, content: fadeIn, reveal } = OPEN_MOTION;
 
@@ -97,7 +102,7 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
   const landed   = grow + flight.duration;
   const hopAt    = landed + landing.impact + landing.duration;
   const revealAt = grow + reveal.startAt;
-  const settleAt = grow + getOvershootEnd({ ease: expansion.ease, duration: expansion.duration, change: EXPANSION_CHANGE });
+  const settleAt = grow + getOvershootEnd({ ease: expansion.ease, duration: expansion.duration, change: expansionChange(placement) });
 
   // The region can shrink to the panel once the elastic overshoot is over, unless playing backwards.
   const settleShape = () => {
@@ -106,8 +111,8 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
 
   timeline
     .call(forwardOnly(timeline, cues.excite), undefined, 0)
-    .to(shape, { ...ANTICIPATION_SHAPE, duration: anticipation.duration, ease: anticipation.ease }, 0)
-    .to(shape, { ...ISLAND_SHAPES.expanded, duration: expansion.duration, ease: expansion.ease }, grow)
+    .to(shape, { ...dockShape(placement, 'anticipation'), duration: anticipation.duration, ease: anticipation.ease }, 0)
+    .to(shape, { ...dockShape(placement, 'expanded'), duration: expansion.duration, ease: expansion.ease }, grow)
     .to(fill, { ...getFillVars('expanded'), duration: colors.duration, ease: colors.ease }, grow)
     .to(outline, { ...getOutlineVars('expanded'), duration: colors.duration, ease: colors.ease }, grow)
     .call(settleShape, undefined, settleAt)
@@ -140,11 +145,12 @@ const buildOpenTimeline = ({ targets, shape, cues, onRender, onShapeSettled }: B
 
 // Glup closes its eyes happily for an instant (farewell) before flying back to the pill.
 // Closed on purpose, it also waves first, so the flight and the shrink wait for it.
-const buildCloseTimeline = ({ targets, shape, cues, farewell, onRender }: BuildParams): gsap.core.Timeline => {
+const buildCloseTimeline = ({ targets, placement, shape, cues, farewell, onRender }: BuildParams): gsap.core.Timeline => {
   const { fill, outline, content, lift, flyer, squash, pillAnchor } = targets;
   const { content: fadeOut, flight, shrink, settle } = CLOSE_MOTION;
 
-  const collapsed = ISLAND_SHAPES.collapsed;
+  const collapsed = dockShape(placement, 'collapsed');
+  const landing   = dockShape(placement, 'settle');
   const shrinkAt  = farewell ? shrink.startAt : shrink.leaveStartAt;
   const arrived   = shrinkAt + shrink.duration;
   const takeOff   = farewell ? MASCOT_MOTION.farewell.lead : MASCOT_MOTION.farewell.leaveLead;
@@ -160,7 +166,7 @@ const buildCloseTimeline = ({ targets, shape, cues, farewell, onRender }: BuildP
     .to(shape, { ...collapsed, duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(fill, { ...getFillVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(outline, { ...getOutlineVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
-    .to(shape, { ...SETTLE_SHAPE, duration: settle.impact, ease: 'power1.out' }, arrived)
+    .to(shape, { width: landing.width, height: landing.height, duration: settle.impact, ease: 'power1.out' }, arrived)
     .to(
       shape,
       { width: collapsed.width, height: collapsed.height, duration: settle.duration - settle.impact, ease: settle.ease },
@@ -170,7 +176,7 @@ const buildCloseTimeline = ({ targets, shape, cues, farewell, onRender }: BuildP
 
 // Reduced motion: a plain fade, the shape jumps straight to its final form.
 // Faces still change; there is no flight, arc or hop.
-const buildReducedTimeline = ({ targets, shape, cues, farewell, onRender }: BuildParams, target: VisibleIslandState): gsap.core.Timeline => {
+const buildReducedTimeline = ({ targets, placement, shape, cues, farewell, onRender }: BuildParams, target: VisibleIslandState): gsap.core.Timeline => {
   const { panel, fill, outline, content, flyer, pillAnchor, avatarAnchor } = targets;
   const { duration, ease } = REDUCED_MOTION.fade;
   const timeline           = gsap.timeline({ paused: true, onUpdate: onRender });
@@ -181,7 +187,7 @@ const buildReducedTimeline = ({ targets, shape, cues, farewell, onRender }: Buil
     timeline
       .call(forwardOnly(timeline, cues.excite))
       .set(panel, { opacity: 0 })
-      .set(shape, { ...ISLAND_SHAPES.expanded })
+      .set(shape, { ...dockShape(placement, 'expanded') })
       .set(fill, getFillVars('expanded'))
       .set(outline, getOutlineVars('expanded'))
       .set(flyer, getFitVars(flyer, avatarAnchor))
@@ -194,7 +200,7 @@ const buildReducedTimeline = ({ targets, shape, cues, farewell, onRender }: Buil
   return timeline
     .call(forwardOnly(timeline, () => cues.farewell(farewell)))
     .to(panel, { opacity: 0, duration, ease })
-    .set(shape, { ...ISLAND_SHAPES.collapsed })
+    .set(shape, { ...dockShape(placement, 'collapsed') })
     .set(fill, getFillVars('collapsed'))
     .set(outline, getOutlineVars('collapsed'))
     .set(flyer, getFitVars(flyer, pillAnchor))
@@ -213,8 +219,8 @@ export const buildIslandTimeline = ({ elements, target, reduced, ...rest }: Isla
 };
 
 // The pill breathes in while the cursor waits over it, and springs back if it leaves.
-export const buildHoverTween = ({ shape, inflated, onRender }: HoverTweenParams): gsap.core.Tween => {
-  const size   = inflated ? HOVER_SHAPE : ISLAND_SHAPES.collapsed;
+export const buildHoverTween = ({ placement, shape, inflated, onRender }: HoverTweenParams): gsap.core.Tween => {
+  const size   = dockShape(placement, inflated ? 'hover' : 'collapsed');
   const motion = inflated ? HOVER_MOTION.inflate : HOVER_MOTION.deflate;
 
   return gsap.to(shape, {
@@ -227,11 +233,11 @@ export const buildHoverTween = ({ shape, inflated, onRender }: HoverTweenParams)
 };
 
 // Snaps every piece to the pill, with no animation.
-export const setCollapsedPose = ({ elements, shape, onRender }: IslandPoseParams) => {
+export const setCollapsedPose = ({ elements, placement, shape, onRender }: IslandPoseParams) => {
   const targets = resolveTargets(elements);
   if (!targets) return;
 
-  Object.assign(shape, ISLAND_SHAPES.collapsed);
+  Object.assign(shape, dockShape(placement, 'collapsed'));
   onRender();
 
   gsap.set(targets.panel, { opacity: 1 });
@@ -243,28 +249,46 @@ export const setCollapsedPose = ({ elements, shape, onRender }: IslandPoseParams
   gsap.set(targets.flyer, getFitVars(targets.flyer, targets.pillAnchor));
 };
 
+// The open panel at once, for an island moved while open (Ajustes › Posición de Glup).
+export const setExpandedPose = ({ elements, placement, shape, onRender }: IslandPoseParams) => {
+  const targets = resolveTargets(elements);
+  if (!targets) return;
+
+  Object.assign(shape, dockShape(placement, 'expanded'));
+  onRender();
+
+  gsap.set(targets.panel, { opacity: 1 });
+  gsap.set(targets.fill, getFillVars('expanded'));
+  gsap.set(targets.outline, getOutlineVars('expanded'));
+  gsap.set(targets.content, { opacity: 1, y: 0 });
+  gsap.set(targets.lift, { y: 0 });
+  gsap.set(targets.squash, { scaleX: 1, scaleY: 1, rotation: 0 });
+  gsap.set(targets.flyer, getFitVars(targets.flyer, targets.avatarAnchor));
+};
+
 // Live notice: the pill grows (same elastic as the panel), Glup moves to its left end and the result shows.
 // Reversing it brings everything back to the pill. With reduced motion the wide pill and Glup's place are
 // set at once and only the text fades: the same notice, for the same time, with the same buttons.
-export const buildNoticeTimeline = ({ elements, shape, style, onRender }: NoticeTimelineParams): gsap.core.Timeline | null => {
+export const buildNoticeTimeline = ({ elements, placement, shape, style, onRender }: NoticeTimelineParams): gsap.core.Timeline | null => {
   const [flyer, anchor, text] = [elements.flyer.current, elements.noticeAnchor.current, elements.noticeText.current];
   if (!flyer || !anchor || !text) return null;
 
   const { grow, flight, text: reveal } = NOTICE_MOTION;
+  const notice                         = dockShape(placement, 'notice');
 
   if (style === 'fade') {
     const { duration, ease } = REDUCED_MOTION.fade;
 
     return gsap
       .timeline({ paused: true, onUpdate: onRender })
-      .set(shape, { ...NOTICE_SHAPE }, 0)
+      .set(shape, { ...notice }, 0)
       .set(flyer, getFitVars(flyer, anchor), 0)
       .fromTo(text, { opacity: 0, x: 0 }, { opacity: 1, x: 0, duration, ease }, 0);
   }
 
   return gsap
     .timeline({ paused: true, onUpdate: onRender })
-    .to(shape, { ...NOTICE_SHAPE, duration: grow.duration, ease: grow.ease }, 0)
+    .to(shape, { ...notice, duration: grow.duration, ease: grow.ease }, 0)
     .to(flyer, { ...getFitVars(flyer, anchor), duration: flight.duration, ease: flight.ease }, 0)
     .fromTo(text, { opacity: 0, x: -6 }, { opacity: 1, x: 0, duration: reveal.duration, ease: reveal.ease }, reveal.delay);
 };
