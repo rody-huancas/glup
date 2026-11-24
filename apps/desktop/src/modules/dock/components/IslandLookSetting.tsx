@@ -16,26 +16,29 @@ interface IslandLookSettingProps {
   edge: DockEdge;
 }
 
-// Ajustes › General, next to "Posición de Glup": the island as always or hidden (modo oculto), with the
-// delay before it comes out, its shortcut and a warning if the taskbar hides on the same edge.
+// Ajustes › General, next to "Posición de Glup": the island as always, hidden (modo oculto, with the
+// delay before it comes out and a warning if the taskbar hides on the same edge) or a floating bubble;
+// and the shortcut that opens and closes it.
 export const IslandLookSetting = ({ edge }: IslandLookSettingProps) => {
   const look     = useIslandLook();
   const shortcut = useShortcutView('island').view;
   const titleId  = useId();
   const delayId  = useId();
 
-  if (look.hidden === null) return look.failed ? <p className="text-[11px] text-lilac-soft">{LOOK_TEXTS.failed}</p> : <Skeleton className="h-16 w-80" />;
+  if (look.rest === null) return look.failed ? <p className="text-[11px] text-lilac-soft">{LOOK_TEXTS.failed}</p> : <Skeleton className="h-16 w-80" />;
 
-  const keys = shortcut?.enabled ? shortcutKeys(shortcut.shortcut).join('+') : null;
+  const keys   = shortcut?.enabled ? shortcutKeys(shortcut.shortcut).join('+') : null;
+  const hidden = look.rest === 'hidden';
 
   return (
     <div className="flex flex-col gap-2.5">
       <span id={titleId} className="text-[11px] leading-5 font-semibold text-text">{LOOK_TEXTS.title}</span>
-      <div role="radiogroup" aria-labelledby={titleId} className="flex max-w-[460px] gap-2">
-        <LookOption label={LOOK_TEXTS.island} hint={LOOK_TEXTS.islandHint} selected={!look.hidden} onChoose={() => look.choose(false)} />
-        <LookOption label={LOOK_TEXTS.hidden} hint={LOOK_TEXTS.hiddenHint} selected={look.hidden} onChoose={() => look.choose(true)} />
+      <div role="radiogroup" aria-labelledby={titleId} className="flex max-w-[600px] gap-2">
+        <LookOption label={LOOK_TEXTS.island} hint={LOOK_TEXTS.islandHint} selected={look.rest === 'pill'} onChoose={() => look.choose('pill')} />
+        <LookOption label={LOOK_TEXTS.hidden} hint={LOOK_TEXTS.hiddenHint} selected={hidden} onChoose={() => look.choose('hidden')} />
+        <LookOption label={LOOK_TEXTS.bubble} hint={LOOK_TEXTS.bubbleHint} selected={look.rest === 'bubble'} onChoose={() => look.choose('bubble')} />
       </div>
-      {look.hidden && (
+      {hidden && (
         <div className="flex items-center justify-between gap-4 pl-1">
           <span className="flex flex-col">
             <label htmlFor={delayId} className="text-[11px] leading-5 font-semibold text-text">{LOOK_TEXTS.delay}</label>
@@ -51,7 +54,7 @@ export const IslandLookSetting = ({ edge }: IslandLookSettingProps) => {
           </select>
         </div>
       )}
-      {look.hidden && competesWithTaskbar(edge, look.taskbar) && (
+      {hidden && competesWithTaskbar(edge, look.taskbar) && (
         <p role="note" className="rounded-control border border-warn/40 bg-raised px-3 py-2 text-[11px] leading-4 text-warn">{LOOK_TEXTS.taskbar}</p>
       )}
       <ShortcutSetting target="island" />
