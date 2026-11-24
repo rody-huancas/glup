@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
+import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
+import { dockRegion } from '@/modules/dock/utils/dockLayout';
 import { ISLAND_WATCHDOG_INTERVAL } from '@/modules/island/constants/island';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
-import { getIslandArea } from '@/modules/island/utils/islandArea';
 import { logIsland } from '@/modules/island/utils/islandLog';
 import { areaKindFor, isSettledPhase } from '@/modules/island/utils/islandMachine';
 import { getIslandStatus, setIslandArea } from '@/modules/island/utils/islandWindow';
@@ -9,15 +11,17 @@ import { getIslandStatus, setIslandArea } from '@/modules/island/utils/islandWin
 const STALL_CHECKS = 2;
 
 interface UseIslandWatchdogParams {
-  machine  : IslandMachine;
-  send     : (event: IslandEvent) => void;
+  machine      : IslandMachine;
+  send         : (event: IslandEvent) => void;
   // True while an animation runs (the region is in flux on purpose).
-  isMoving : () => boolean;
+  isMoving     : () => boolean;
+  // Where the island is docked: the region it should have is the one of that edge.
+  placementRef : RefObject<IslandPlacement>;
 }
 
 // Every 2 s the machine is compared with the real window; any difference is fixed and logged.
-// Rust keeps its own watch over visibility, size and the applied region (island_watchdog.rs).
-export const useIslandWatchdog = ({ machine, send, isMoving }: UseIslandWatchdogParams) => {
+// Rust keeps its own watch over visibility, the frame of the dock and the applied region (island_watchdog.rs).
+export const useIslandWatchdog = ({ machine, send, isMoving, placementRef }: UseIslandWatchdogParams) => {
   const current = useRef({ machine, send, isMoving });
   const stalled = useRef(0);
 
@@ -64,10 +68,12 @@ export const useIslandWatchdog = ({ machine, send, isMoving }: UseIslandWatchdog
 
       if (!isSettledPhase(now.phase) || moving()) return;
 
-      const expected = getIslandArea(areaKindFor(now.phase));
+      const expected = dockRegion(placementRef.current, areaKindFor(now.phase));
+      const actual   = status.area;
+      const same     = (['x', 'y', 'width', 'height'] as const).every((key) => Math.abs(actual[key] - expected[key]) < 0.5);
 
-      if (status.area.width !== expected.width || status.area.height !== expected.height) {
-        logIsland(`vigilante: región ${status.area.width}x${status.area.height} en ${now.phase}, corrijo a ${expected.width}x${expected.height}`);
+      if (!same) {
+        logIsland(`vigilante: región ${actual.width}x${actual.height} en ${actual.x},${actual.y} (${now.phase}), corrijo a ${expected.width}x${expected.height} en ${expected.x},${expected.y}`);
         await setIslandArea(expected);
       }
     };

@@ -34,6 +34,7 @@ pub fn run() {
         .manage(Visibility::default())
         .manage(IslandArea::default())
         .manage(IslandFrame::default())
+        .manage(services::island_drag::IslandDrag::default())
         .manage(HistoryStore::default())
         .manage(SettingsStore::default())
         .manage(ActionControl::default())
@@ -127,6 +128,10 @@ pub fn run() {
             commands::updates::check_update,
             commands::updates::install_update,
             commands::island::set_island_area,
+            commands::island::get_island_screens,
+            commands::island::set_island_frame,
+            commands::island::begin_island_drag,
+            commands::island::set_island_dock,
             commands::island::set_island_focus,
             commands::island::get_island_status,
             commands::island::log_island

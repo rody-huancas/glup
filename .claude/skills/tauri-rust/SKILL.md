@@ -67,8 +67,11 @@ src-tauri/
 11. **Estado compartido** con `.manage()` en `lib.rs` y `State<T>` en los comandos; tipos con
     `Mutex`/atómicos. Lo que se guarda entre usos (`settings.json`, `history.json`, firmas) vive en la
     carpeta de datos de la app (`app_data_dir`), nunca junto al ejecutable.
-12. **Ventana de la isla.** El tamaño y la región visible se manejan en `services/island_window.rs`,
-    expuestos con el comando `set_island_area` (`commands/island.rs`); los vigilantes (`island_watchdog.rs`) corrigen desajustes. Las APIs de
+12. **Ventana de la isla.** El marco y la región visible se manejan en `services/island_window.rs`:
+    el webview decide dónde va la isla (`modules/dock`) y Rust da las pantallas con su área de trabajo
+    (`get_island_screens`), pone la ventana (`set_island_frame`, recordando el marco) y la región como un
+    rectángulo de la ventana (`set_island_area`). El arrastre lo sigue `island_drag.rs` (cursor y botón
+    del mouse, hasta soltar). Los vigilantes (`island_watchdog.rs`) corrigen marco y región. Las APIs de
     Windows van detrás de `#[cfg(windows)]`, con una versión vacía para los demás sistemas.
 13. **Descargas** (`background/download.rs`): el SHA-256 se calcula mientras llegan los bytes; al
     reanudar se lee una vez la parte que ya estaba en disco. No se vuelve a leer el archivo entero

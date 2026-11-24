@@ -14,7 +14,7 @@ interface IslandMascotFlyerProps {
 // The only Glup of the island. Lift moves it in screen pixels (arc, hops), flyer travels with Flip,
 // and squash scales and tilts it from its feet.
 export const IslandMascotFlyer = ({ liftRef, flyerRef, squashRef, children, hidden = false }: IslandMascotFlyerProps) => (
-  <div ref={liftRef} className={cx('absolute left-1/2 top-0 z-20', hidden && 'invisible')} style={getFlyerStyle()}>
+  <div ref={liftRef} className={cx('absolute z-20', hidden && 'invisible')} style={getFlyerStyle()}>
     <div ref={flyerRef}>
       <div ref={squashRef} className="origin-bottom">
         {children}

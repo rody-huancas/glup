@@ -8,9 +8,12 @@ use crate::{
 };
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(2);
+// A move or resize within this many physical pixels is rounding, not a drift.
+const FRAME_TOLERANCE: i32 = 2;
 
-// Every 2 s the real window is checked against what it should be: visible unless a fullscreen app or the
-// tray hides it, the startup size, and the region last asked for. Any difference is fixed and logged.
+// Every 2 s the real window is checked against what it should be: visible unless a fullscreen app, the
+// tray or a capture hides it, the frame of its dock, and the region last asked for. Any difference is
+// fixed and logged.
 pub fn spawn(app: AppHandle) {
     thread::spawn(move || loop {
         thread::sleep(CHECK_INTERVAL);
@@ -19,6 +22,10 @@ pub fn spawn(app: AppHandle) {
             check(&app, &window);
         }
     });
+}
+
+fn close(a: i32, b: i32) -> bool {
+    (a - b).abs() <= FRAME_TOLERANCE
 }
 
 fn check(app: &AppHandle, window: &WebviewWindow) {
@@ -35,11 +42,15 @@ fn check(app: &AppHandle, window: &WebviewWindow) {
         return;
     }
 
-    if let (Some(expected), Ok(actual)) = (island_window::expected_frame(window), window.outer_size()) {
-        if expected != actual {
-            eprintln!("[glup:vigilante] tamaño {}x{} y debería ser {}x{}: corrijo", actual.width, actual.height, expected.width, expected.height);
-            let _ = window.set_size(expected);
-            let _ = island_window::center_top(window);
+    if let (Some(expected), Ok(position), Ok(size)) = (island_window::expected_frame(window), window.outer_position(), window.outer_size()) {
+        let same = close(position.x, expected.position.x)
+            && close(position.y, expected.position.y)
+            && close(size.width as i32, expected.size.width as i32)
+            && close(size.height as i32, expected.size.height as i32);
+
+        if !same {
+            eprintln!("[glup:vigilante] marco {}x{} en {},{} y debería ser {}x{} en {},{}: corrijo", size.width, size.height, position.x, position.y, expected.size.width, expected.size.height, expected.position.x, expected.position.y);
+            let _ = island_window::reapply_frame(window);
         }
     }
 

@@ -1,4 +1,4 @@
-import type { WindowSize } from '@/modules/island/interfaces/islandLayout';
+import type { Rect } from '@/shared/interfaces/rect';
 
 // The real window as Rust sees it (get_island_status).
 export interface IslandStatus {
@@ -6,5 +6,5 @@ export interface IslandStatus {
   fullscreen : boolean;
   trayHidden : boolean;
   capturing  : boolean;
-  area       : WindowSize;
+  area       : Rect;
 }

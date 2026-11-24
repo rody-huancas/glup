@@ -1,3 +1,4 @@
+import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
 import type { MascotCues } from '@/modules/island/interfaces/islandMascot';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
@@ -6,6 +7,8 @@ import type { VisibleIslandState } from '@/modules/island/types/islandState';
 
 export interface IslandTimelineParams {
   elements       : IslandElements;
+  // Where the island is docked: its shapes, and the way the panel opens (toward the middle).
+  placement      : IslandPlacement;
   target         : VisibleIslandState;
   reduced        : boolean;
   shape          : IslandShape;
@@ -17,9 +20,10 @@ export interface IslandTimelineParams {
 }
 
 export interface IslandPoseParams {
-  elements : IslandElements;
-  shape    : IslandShape;
-  onRender : () => void;
+  elements  : IslandElements;
+  placement : IslandPlacement;
+  shape     : IslandShape;
+  onRender  : () => void;
 }
 
 export interface NoticeTimelineParams extends IslandPoseParams {
@@ -27,9 +31,10 @@ export interface NoticeTimelineParams extends IslandPoseParams {
 }
 
 export interface HoverTweenParams {
-  shape    : IslandShape;
-  inflated : boolean;
-  onRender : () => void;
+  placement : IslandPlacement;
+  shape     : IslandShape;
+  inflated  : boolean;
+  onRender  : () => void;
 }
 
 export interface IslandMotion {

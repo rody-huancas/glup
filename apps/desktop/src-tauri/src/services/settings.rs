@@ -56,6 +56,17 @@ pub struct Settings {
     // Its shortcut, as the one of "Copiar texto de la pantalla".
     pub clipboard_shortcut: Option<String>,
     pub clipboard_shortcut_off: bool,
+    // Where the island lives (None: on top in the middle of the main screen). The webview reads and
+    // checks it: a screen that is gone gives way to the main one.
+    pub island_dock: Option<IslandDock>,
+}
+
+// The edge ("top", "left", "bottom-right"…), how far along it (0 to 1) and the screen.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct IslandDock {
+    pub edge   : String,
+    pub offset : f64,
+    pub screen : Option<String>,
 }
 
 fn already_seen() -> bool {

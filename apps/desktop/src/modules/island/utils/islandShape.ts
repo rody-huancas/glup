@@ -1,30 +1,22 @@
-import type { CSSProperties } from 'react';
+import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
+import { buildDockOutline, buildDockPath } from '@/modules/dock/utils/dockGeometry';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
-import { buildIslandOutline, buildIslandPath, getShapeSize } from '@/modules/island/utils/islandPath';
 
 interface RenderShapeParams {
-  elements : IslandElements;
-  shape    : IslandShape;
+  elements  : IslandElements;
+  shape     : IslandShape;
+  placement : IslandPlacement;
 }
 
-export const getShapeStyle = (shape: IslandShape): CSSProperties => {
-  const { width, height } = getShapeSize(shape);
-
-  return {
-    width    : `${width}px`,
-    height   : `${height}px`,
-    clipPath : `path('${buildIslandPath(shape)}')`,
-  };
-};
-
-// Called on every animation frame: resizes the panel and redraws the silhouette, its clip and its border.
-export const renderIslandShape = ({ elements, shape }: RenderShapeParams) => {
+// Called on every animation frame: redraws the silhouette, its clip and its border for the shape at
+// the island's edge. The panel covers the whole window; only the clip shows the island.
+export const renderIslandShape = ({ elements, shape, placement }: RenderShapeParams) => {
   const panel = elements.panel.current;
-  const path  = buildIslandPath(shape);
+  const path  = buildDockPath(placement, shape);
 
-  if (panel) Object.assign(panel.style, getShapeStyle(shape));
+  if (panel) panel.style.clipPath = `path('${path}')`;
 
   elements.fill.current?.setAttribute('d', path);
-  elements.outline.current?.setAttribute('d', buildIslandOutline(shape));
+  elements.outline.current?.setAttribute('d', buildDockOutline(placement, shape));
 };

@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: SettingsView = {
   clipboardExcluded     : [],
   clipboardShortcut     : null,
   clipboardShortcutOff  : false,
+  islandDock            : null,
   folderMissing         : false,
 };
 

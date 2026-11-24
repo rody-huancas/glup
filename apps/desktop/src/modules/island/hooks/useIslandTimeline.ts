@@ -3,7 +3,10 @@ import type { RefObject } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
-import { ISLAND_SHAPES } from '@/modules/island/constants/islandShape';
+import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
+import type { DockArea } from '@/modules/dock/types/dockArea';
+import { dockRegion } from '@/modules/dock/utils/dockLayout';
+import { dockShape } from '@/modules/dock/utils/placement';
 import { NOTICE_MOTION, REDUCED_MOTION } from '@/modules/island/constants/islandTimeline';
 import { useIslandMascot } from '@/modules/island/hooks/useIslandMascot';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
@@ -11,10 +14,8 @@ import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
 import type { IslandMotion } from '@/modules/island/interfaces/islandTimeline';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
-import { getIslandArea } from '@/modules/island/utils/islandArea';
-import type { IslandAreaKind } from '@/modules/island/utils/islandArea';
 import { renderIslandShape } from '@/modules/island/utils/islandShape';
-import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, setCollapsedPose } from '@/modules/island/utils/islandTimeline';
+import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, setCollapsedPose, setExpandedPose } from '@/modules/island/utils/islandTimeline';
 import { logIsland } from '@/modules/island/utils/islandLog';
 import { planNotice } from '@/modules/island/utils/noticePlan';
 import { setIslandArea } from '@/modules/island/utils/islandWindow';
@@ -24,8 +25,10 @@ gsap.registerPlugin(useGSAP, Flip);
 
 // The island state lives in the machine (useIslandMachine); this hook only animates and sets the region.
 interface UseIslandTimelineParams {
-  elements  : IslandElements;
-  mascotRef : RefObject<MascotController | null>;
+  elements     : IslandElements;
+  mascotRef    : RefObject<MascotController | null>;
+  // Where the island is docked now (a ref: animations read it when they start, not on every render).
+  placementRef : RefObject<IslandPlacement>;
 }
 
 interface ShowNoticeParams {
@@ -39,7 +42,7 @@ type Settle = (done: boolean) => void;
 const opposite = (state: VisibleIslandState): VisibleIslandState => (state === 'expanded' ? 'collapsed' : 'expanded');
 
 // Each transition resolves true when the island settles on its target, false when another one replaces it.
-export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelineParams) => {
+export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIslandTimelineParams) => {
   const motion  = useRef<IslandMotion | null>(null);
   const settled = useRef<VisibleIslandState>('collapsed');
   // Glup is out of the pill (opening, open or closing): only then its arms and feet are seen and animated.
@@ -50,18 +53,18 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
   const waiters = useRef<Settle[]>([]);
   const reduced = useRef(false);
   const area    = useRef<Promise<void>>(Promise.resolve());
-  const shape   = useRef<IslandShape>({ ...ISLAND_SHAPES.collapsed });
+  const shape   = useRef<IslandShape>(dockShape(placementRef.current, 'collapsed'));
   const hovered = useRef<gsap.core.Tween | null>(null);
   const noticeEnd = useRef<(() => void) | null>(null);
 
   const mascot = useIslandMascot({ elements, mascotRef, reduced });
 
   // GSAP animates the shape proxy; every frame redraws the silhouette from it.
-  const render = useCallback(() => renderIslandShape({ elements, shape: shape.current }), [elements]);
+  const render = useCallback(() => renderIslandShape({ elements, shape: shape.current, placement: placementRef.current }), [elements, placementRef]);
 
   const { contextSafe } = useGSAP(
     () => {
-      setCollapsedPose({ elements, shape: shape.current, onRender: render });
+      setCollapsedPose({ elements, placement: placementRef.current, shape: shape.current, onRender: render });
 
       const media = gsap.matchMedia();
 
@@ -79,15 +82,15 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
   );
 
   // Region changes run in order, so a late shrink can never land after a grow.
-  const setArea = useCallback((kind: IslandAreaKind): Promise<void> => {
+  const setArea = useCallback((kind: DockArea): Promise<void> => {
     area.current = area.current
       .then(() => {
         logIsland(`región → ${kind}`);
-        return setIslandArea(getIslandArea(kind));
+        return setIslandArea(dockRegion(placementRef.current, kind));
       })
       .catch(() => undefined);
     return area.current;
-  }, []);
+  }, [placementRef]);
 
   const stopHover = useCallback(() => {
     hovered.current?.kill();
@@ -112,8 +115,8 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
   }, []);
 
   const snapToPill = useMemo(
-    () => contextSafe(() => setCollapsedPose({ elements, shape: shape.current, onRender: render })),
-    [contextSafe, elements, render],
+    () => contextSafe(() => setCollapsedPose({ elements, placement: placementRef.current, shape: shape.current, onRender: render })),
+    [contextSafe, elements, render, placementRef],
   );
 
   // The region only shrinks to the pill once nothing else is left on screen. Landing on the pill always
@@ -141,6 +144,7 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
       contextSafe((current: IslandMotion) => {
         const timeline = buildIslandTimeline({
           elements,
+          placement      : placementRef.current,
           target         : current.builtFor,
           reduced        : reduced.current,
           shape          : shape.current,
@@ -160,7 +164,7 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
           .eventCallback('onReverseComplete', () => void finish(opposite(current.builtFor)))
           .play();
       }),
-    [contextSafe, elements, mascot, render, setArea, finish],
+    [contextSafe, elements, mascot, render, setArea, finish, placementRef],
   );
 
   // The expansion overshoots the panel, so it always runs inside the whole window.
@@ -231,9 +235,9 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
         if (motion.current || noticeLine.current || settled.current !== 'collapsed' || reduced.current) return;
 
         stopHover();
-        hovered.current = buildHoverTween({ shape: shape.current, inflated, onRender: render });
+        hovered.current = buildHoverTween({ placement: placementRef.current, shape: shape.current, inflated, onRender: render });
       }),
-    [contextSafe, stopHover, render],
+    [contextSafe, stopHover, render, placementRef],
   );
 
   // Drops any running transition and lands on a clean pill: used to hide (fullscreen, tray) and for
@@ -299,18 +303,44 @@ export const useIslandTimeline = ({ elements, mascotRef }: UseIslandTimelinePara
         void setArea('notice').then(() => {
           if (motion.current || noticeEnd.current !== onEnd) return;
 
-          const timeline = buildNoticeTimeline({ elements, shape: shape.current, style: plan.style, onRender: render });
+          const timeline = buildNoticeTimeline({ elements, placement: placementRef.current, shape: shape.current, style: plan.style, onRender: render });
           if (!timeline) return end();
 
           noticeLine.current = timeline.play();
           hold(timeline);
         });
       }),
-    [contextSafe, stopHover, setArea, elements, render, snapToPill],
+    [contextSafe, stopHover, setArea, elements, render, snapToPill, placementRef],
+  );
+
+  // The island moved (dropped on another edge, changed in Ajustes): it is drawn at once at the new spot,
+  // in the state it is in. A running animation lands there by itself.
+  const relayout = useMemo(
+    () =>
+      contextSafe(() => {
+        if (motion.current) return;
+
+        stopHover();
+        if (noticeLine.current) {
+          const ended = noticeEnd.current;
+          stopNotice();
+          ended?.();
+        }
+
+        if (settled.current === 'expanded') {
+          setExpandedPose({ elements, placement: placementRef.current, shape: shape.current, onRender: render });
+          void setArea('expanded');
+          return;
+        }
+
+        snapToPill();
+        void setArea('collapsed');
+      }),
+    [contextSafe, stopHover, stopNotice, elements, render, setArea, snapToPill, placementRef],
   );
 
   // Nothing is moving: the watchdog can compare the region with the real window.
   const isMoving = useCallback(() => motion.current !== null || noticeLine.current !== null, []);
 
-  return { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving };
+  return { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving, relayout };
 };
