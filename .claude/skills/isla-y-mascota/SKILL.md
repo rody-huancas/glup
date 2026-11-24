@@ -1,18 +1,50 @@
 ---
 name: isla-y-mascota
-description: Reglas de la isla de Glup (la pastilla del borde superior que se despliega en el panel) y de la mascota animada - máquina de estados de la isla, región visible y clicable de la ventana, foco, pantalla completa, avisos de tareas, animaciones con GSAP, forma con orejas en SVG, piezas de la mascota (cuerpo, ojos, bocas, brazos, patitas), estados de Glup y movimiento reducido. Úsala al tocar modules/island, modules/mascot, services/island_window.rs, island_watchdog.rs, fullscreen_watcher.rs o cualquier animación - «la isla no aparece», «cambia la animación», «nuevo gesto de Glup», «se queda trabada». Va junto con convenciones, desktop-ui y tauri-rust.
+description: Reglas de la isla de Glup (la pastilla pegada a un borde o una esquina de la pantalla que se despliega en el panel) y de la mascota animada - máquina de estados de la isla, posición en cualquier borde (modules/dock), región visible y clicable de la ventana, foco, pantalla completa, avisos de tareas, animaciones con GSAP, forma con orejas en SVG, piezas de la mascota (cuerpo, ojos, bocas, brazos, patitas), estados de Glup y movimiento reducido. Úsala al tocar modules/island, modules/mascot, services/island_window.rs, island_watchdog.rs, fullscreen_watcher.rs o cualquier animación - «la isla no aparece», «cambia la animación», «nuevo gesto de Glup», «se queda trabada». Va junto con convenciones, desktop-ui y tauri-rust.
 ---
 
 # La isla y Glup
 
 ## La isla
 
-Glup vive en una ventana transparente, siempre encima y sin ícono en la barra de tareas, centrada en
-el borde superior del monitor principal. **Nunca hay dos Glup abiertos**: con
-`tauri-plugin-single-instance`, abrirlo otra vez (acceso directo, menú Inicio) no lanza otro; el que
-ya está despliega la isla fijada, como «Abrir Glup» de la bandeja. La ventana tiene un tamaño fijo (el del pico de la
-animación) y **una región de Windows recorta lo visible y clicable** al tamaño del estado actual, para
-que los clics alrededor lleguen a las apps de abajo.
+Glup vive en una ventana transparente, siempre encima y sin ícono en la barra de tareas, pegada a un
+borde o una esquina de una pantalla (por defecto, arriba al centro de la principal; ver «Posición»).
+**Nunca hay dos Glup abiertos**: con `tauri-plugin-single-instance`, abrirlo otra vez (acceso directo,
+menú Inicio) no lanza otro; el que ya está despliega la isla fijada, como «Abrir Glup» de la bandeja.
+La ventana tiene el tamaño del pico de la animación para su borde y **una región de Windows recorta lo
+visible y clicable** al estado actual, para que los clics alrededor lleguen a las apps de abajo.
+
+### Posición (modules/dock)
+
+- **Dónde**: arriba, abajo, izquierda, derecha o una esquina, en cualquier punto del borde. Se guarda en
+  `settings.json` como `islandDock` (borde + posición relativa 0–1 + pantalla). Todo lo que decide es
+  puro y con pruebas en `modules/dock/utils/`:
+  - `placeIsland`: dónde va la ventana (en el **área de trabajo**, así nunca queda bajo la barra de
+    tareas) y dónde se dibuja la isla dentro de ella. Arriba al centro da la ventana de siempre
+    (1200 × 720) y sus regiones.
+  - `dockShape` y las formas de `DOCK_SHAPES`: pastilla acostada arriba y abajo, de pie a los lados,
+    apoyada en dos bordes en las esquinas. El panel abierto mide siempre 1040 × 640 y **se abre hacia el
+    centro**: si la pastilla está cerca de una punta, el panel se corre (`shift`) para no salirse.
+  - `dockGeometry`: los paths se arman en los términos del borde (a lo largo y hacia adentro) y se
+    pasan a la ventana sin rotaciones CSS: **Glup y el panel siempre derechos**. Un espejo invierte el
+    giro de los arcos.
+  - `dockLayout`: la región de cada momento (`dockRegion`), la caja del contenido y dónde van Glup, el
+    aviso, el puntito y la barra de progreso.
+  - `snapDock` (el borde o la esquina más cercana al cursor, en la pantalla bajo él) y `resolveDock`
+    (una pantalla que ya no está deja la isla en la principal, mismo borde y misma posición relativa).
+- **Arrastrar**: mantener presionada la pastilla recogida y mover (`useIslandDragGesture`, desde
+  `DRAG_THRESHOLD` px o al salir de la pastilla con el botón apretado). Desde ahí Rust sigue el cursor
+  (`island_drag.rs`, evento `island-drag`) y la ventana se mueve al borde donde quedaría, con un halo
+  suave como guía; al soltar se guarda. Un clic sin mover sigue abriendo la isla.
+- **Rust** solo da las pantallas con su área de trabajo (`get_island_screens`) y pone la ventana donde
+  se le pide (`set_island_frame`, que recuerda el marco para los vigilantes y para «Mostrar Glup»). La
+  región es un rectángulo de la ventana (`set_island_area`), no un tamaño centrado.
+- Las pantallas se vuelven a leer cada 2 s: si una se desconecta o cambia la resolución, la isla se
+  acomoda sola. La pantalla completa que la oculta es la de **su** pantalla.
+- Ajustes › General › «Posición de Glup» (`DockPositionSetting`): un dibujo de la pantalla para elegir
+  con un clic (o con sus ocho botones), la pantalla si hay varias y «Volver arriba al centro».
+- Las etapas que vienen (modo oculto, burbuja flotante) son otro `DockKind` y otro estado de la
+  máquina: la posición ya no asume «arriba al centro» en ningún lado.
 
 ### Máquina de estados
 
@@ -27,7 +59,10 @@ solo traduce cada fase en animación, región y foco.
   - `hidden` solo por pantalla completa, por la bandeja o mientras se elige una zona en «Copiar texto
     de la pantalla» (`capturing`);
   - el aviso (`notice`) solo existe con la pastilla ancha;
-  - fijada solo estando abierta.
+  - fijada solo estando abierta;
+  - arrastrada (`moving`) solo estando recogida: mientras se arrastra no se abre, ni con hover, y un
+    aviso que llega en ese momento no ensancha la pastilla (igual se cuenta por su toast o notificación).
+  Se comprueban con las formas de arriba al centro: las reglas son las mismas en todos los bordes.
 - Los temporizadores (abrir, recoger) usan callbacks estables: un render no los reinicia.
 - **Vigilantes** cada 2 s (Rust y frontend) corrigen si el estado y la ventana real no coinciden, y
   lo anotan en el log (`[glup:isla]`, `[glup:vigilante]` en modo dev).
@@ -44,7 +79,8 @@ solo traduce cada fase en animación, región y foco.
 | Recoger o Esc | Se recoge con despedida de Glup |
 | Tarea termina con la isla recogida | Aviso ancho 4 s con el resultado |
 | Tarea termina (cualquiera) | Toast arriba del contenido del panel o notificación de Windows, nunca los dos (`decideNotice`) |
-| Pantalla completa en el monitor principal | `hidden` |
+| Pantalla completa en la pantalla de la isla | `hidden` |
+| Pastilla presionada y arrastrada | `moving`: sigue al borde más cercano con un halo; al soltar queda ahí |
 | «Copiar texto de la pantalla» (atajo, bandeja o Herramientas) | `hidden` mientras se elige la zona; vuelve como pastilla limpia y muestra el aviso («Copié 42 palabras» con «Ver», que abre esa línea del Historial, Glup feliz; «No encontré texto ahí», confundido). Con Glup oculto (bandeja, pantalla completa), una notificación de Windows con las mismas palabras |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
@@ -101,18 +137,22 @@ Cada tarea declara su pantalla dueña (`owner`) al encolarse, y cada pantalla mu
 - **Foco**: `focus: true` en la ventana (sin eso, el drop de archivos no funciona en WebView2). La
   isla no le quita el foco a la app activa al aparecer; lo toma solo con un clic dentro o con acciones
   visibles (para Esc).
-- **Forma**: un path SVG generado por `buildIslandPath({ width, height, earRadius, bottomRadius })`,
-  con orejas cóncavas arriba que la unen al borde de la pantalla. El mismo path rellena y recorta.
+- **Forma**: un path SVG de `buildDockPath(placement, shape)`, con orejas cóncavas que la unen al borde
+  (o a los dos, en una esquina). El mismo path rellena y recorta; el panel cubre toda la ventana y solo
+  el recorte muestra la isla. React nunca pone el path: lo dibuja GSAP (`renderIslandShape`).
 
 ## Animaciones
 
 - **GSAP** (`gsap`, `@gsap/react`, plugin `Flip`) para abrir, cerrar, el aviso y el vuelo de Glup
   entre la pastilla y el avatar. Apertura tipo burbuja (anticipación + expansión elástica) y cierre
   con temblor de asentamiento.
+- Las animaciones usan las formas del borde de la isla (`dockShape`): la burbuja crece hacia el centro
+  desde cualquier borde o esquina. Si la isla cambia de lugar quieta (al soltarla, desde Ajustes),
+  `relayout` la dibuja en el lugar nuevo, en el estado en que está.
 - Toda animación **se puede interrumpir**: se invierte desde donde está, sin saltos. La región nunca
   se reduce mientras quede algo visible del panel.
-- Duraciones, curvas y tamaños en `constants/` (`islandTimeline.ts`, `islandShape.ts`,
-  `islandMascot.ts`, `limbs.ts`). Ningún número mágico dentro de un hook.
+- Duraciones, curvas y tamaños en `constants/` (`islandTimeline.ts`, `islandMascot.ts`, `limbs.ts`, y
+  las formas y poses de cada borde en `modules/dock/constants/dock.ts`). Ningún número mágico dentro de un hook.
 - `prefers-reduced-motion`: solo fundidos cortos y cambios de cara; sin vuelos, rebotes ni balanceos.
   **Reducir el movimiento quita o suaviza animaciones, nunca esconde información ni salta un estado**:
   - la máquina hace el mismo recorrido con y sin movimiento reducido (`reducedMotion.test.ts`); solo
