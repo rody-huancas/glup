@@ -28,6 +28,13 @@ export interface AppSettings {
   clipboardShortcutOff  : boolean;
   // Where the island lives (null: on top in the middle); changed through set_island_dock.
   islandDock            : IslandDock | null;
+  // "Cómo se muestra": hidden (modo oculto), the delay before it comes out (ms) and its notice seen;
+  // changed through set_island_mode.
+  islandHidden          : boolean;
+  revealDelay           : number | null;
+  hiddenIntroSeen       : boolean;
+  islandShortcut        : string | null;
+  islandShortcutOff     : boolean;
 }
 
 export interface SettingsView extends AppSettings {

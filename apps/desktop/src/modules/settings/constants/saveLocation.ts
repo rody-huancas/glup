@@ -32,6 +32,11 @@ export const DEFAULT_SETTINGS: SettingsView = {
   clipboardShortcut     : null,
   clipboardShortcutOff  : false,
   islandDock            : null,
+  islandHidden          : false,
+  revealDelay           : null,
+  hiddenIntroSeen       : false,
+  islandShortcut        : null,
+  islandShortcutOff     : false,
   folderMissing         : false,
 };
 
