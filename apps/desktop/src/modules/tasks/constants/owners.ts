@@ -5,6 +5,8 @@ import type { PageId } from '@/modules/main-window/types/pageId';
 export const DEFAULT_OWNER: PageId = 'home';
 
 export const ACTION_OWNERS: Partial<Record<string, PageId>> = {
-  'cleanup-scan' : 'cleanup',
-  cleanup        : 'cleanup',
+  'cleanup-scan'     : 'cleanup',
+  'cleanup'          : 'cleanup',
+  'folder-sort'      : 'folder-sort',
+  'folder-sort-undo' : 'folder-sort',
 };

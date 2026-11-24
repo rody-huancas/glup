@@ -105,7 +105,44 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
 | Sin archivos (Herramientas y su atajo) | Portapapeles (solo Windows, apagado hasta que se activa: recuerda textos e imágenes copiados, cifrados en la PC, para buscarlos y copiarlos de nuevo; no es una acción sobre archivos) |
+| Sin archivos (Herramientas › Tu PC) | Ordenar una carpeta (Descargas por defecto u otra elegida: sus archivos sueltos a subcarpetas por tipo — `services/folder_sort/categories.json` — o por año y mes; vista previa obligatoria, «Ordenar» como tarea con progreso y Cancelar, y «Deshacer» en el resultado, el aviso y el Historial. Ver abajo) |
 | Sin archivos (Herramientas, atajo o bandeja) | Copiar texto de la pantalla (solo Windows: se elige una zona sobre una imagen congelada y su texto va al portapapeles; no es una acción sobre archivos. El texto queda en el historial local para verlo y «Copiar de nuevo», salvo que se apague en Ajustes) |
+
+## Ordenar una carpeta
+
+No es una acción sobre archivos soltados: es una pantalla de Herramientas › Tu PC (`modules/folder-sort`,
+`services/folder_sort/`), con el mismo recorrido de tarea (progreso, Cancelar, aviso, historial).
+
+- **Qué se mueve**: solo los archivos sueltos de la carpeta; no entra en subcarpetas ni mueve
+  carpetas ni accesos directos simbólicos. **No toca** descargas en curso (extensiones de
+  `downloading` en `categories.json`: `.crdownload`, `.part`, `.tmp`, `.opdownload`…), archivos en
+  uso (se prueba abrirlos sin compartir), ocultos o del sistema, ni los modificados hace menos de
+  2 minutos. Lo que salta lo cuenta con su motivo.
+- **Por tipo**: las carpetas y sus extensiones viven en `categories.json` (no en el código):
+  Imágenes, PDFs, Documentos, Hojas de cálculo, Presentaciones, Videos, Audio, Comprimidos,
+  Instaladores y «Otros» para lo demás. **Por fecha**: «2026» › «11 - Noviembre», según la fecha de
+  modificación (mes con dos cifras para que se ordenen bien).
+- **Vista previa obligatoria** (`preview_folder_sort`): un resumen por carpeta destino, desplegable,
+  y lo que se salta. Rust guarda ese plan; `sort_folder` mueve **solo** ese plan, una vez, y antes
+  de cada archivo comprueba que sigue igual (tamaño, fecha, no en uso).
+- **Mover**: renombrar sin reemplazar (`MoveFileExW` sin `REPLACE_EXISTING`); a otro disco, copia
+  nueva, comparación byte a byte y recién entonces se borra el original. Nombres con
+  `OutputKind::Same` de `naming.rs` («contrato (2).pdf»).
+- **Registro y Deshacer**: antes de mover el primer archivo se escribe `orden/<id>.json` (sin
+  terminar) en la carpeta de datos, y cada paso se agrega al momento como una línea de
+  `orden/<id>.log`: la carpeta creada, el movimiento **antes** de hacerlo (pendiente, con su destino
+  exacto) y después (hecho o fallido). Al recuperar, un pendiente sin cerrar cuenta como movido solo
+  si el archivo ya no está en el origen y está en el destino con su tamaño; si sigue en el origen, no
+  se toca. Al terminar, todo queda en un solo `<id>.json` terminado.
+  «Deshacer» devuelve cada archivo a su lugar y nombre, del último al primero; si ya no está (o es
+  otro) o su lugar está ocupado, lo salta y lo dice. Borra solo las subcarpetas que creó Glup y solo
+  si quedaron vacías. Cancelado a medias, lo que falta queda para otro «Deshacer».
+- **Historial**: la entrada (id `orden-<id>`) se crea al empezar como «Ordené Descargas» · «120
+  archivos · en curso» y se actualiza al terminar («120 archivos en 7 carpetas», con el registro en
+  `undo` hasta que se deshace: «… · deshecho»). Si no movió nada, se quitan la entrada y el registro.
+- **Glup cerrado a la mitad**: al iniciar, `spawn_recovery` busca en `orden/` los registros sin
+  terminar; cada uno se da por terminado y su entrada queda (o se crea) como «se interrumpió (40 de
+  120)», con «Deshacer». Uno que no llegó a mover nada se borra sin entrada.
 
 ## Checklist
 

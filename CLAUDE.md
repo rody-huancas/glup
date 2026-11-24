@@ -47,7 +47,8 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - El formato es manual: nunca formateadores automáticos (ni Prettier ni rustfmt) sobre código existente.
 - Lo que se reemplaza o se retira se borra: ni se comenta ni se guarda aparte (nada de `legacy/`),
   porque el historial queda en git.
-- Nunca se modifican ni se borran los archivos originales de la persona.
+- Nunca se modifican ni se borran los archivos originales de la persona (las únicas excepciones,
+  Limpieza y Ordenar una carpeta, están en la skill `convenciones`, regla 10).
 - No inventes funciones del producto: si algo no está claro, pregunta.
 - Nunca simules clics, teclas ni arrastres sobre el escritorio del usuario. Para probar algo visual, usa
   tests, logs y descríbeme qué probar a mano.

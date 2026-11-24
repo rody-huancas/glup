@@ -21,6 +21,8 @@ pub enum OutputKind<'a> {
     Named { name: &'a str, extension: &'a str },
     // contrato.pdf → contrato-paginas/ (a folder, no extension)
     Folder { suffix: &'a str },
+    // foto.jpg → foto.jpg in another folder, as it was (Ordenar una carpeta moves it there)
+    Same,
 }
 
 pub struct OutputNameParams<'a> {
@@ -32,6 +34,10 @@ pub struct OutputNameParams<'a> {
 
 fn stem_of(path: &Path) -> String {
     path.file_stem().map(|value| value.to_string_lossy().into_owned()).unwrap_or_default()
+}
+
+fn extension_of(path: &Path) -> String {
+    path.extension().map(|value| value.to_string_lossy().into_owned()).unwrap_or_default()
 }
 
 fn base_name(params: &OutputNameParams) -> (String, String) {
@@ -46,6 +52,7 @@ fn base_name(params: &OutputNameParams) -> (String, String) {
         OutputKind::Suffixed { suffix, extension } => (format!("{stem}-{suffix}"), extension.to_string()),
         OutputKind::Named { name, extension }      => (name.to_string(), extension.to_string()),
         OutputKind::Folder { suffix }              => (format!("{stem}-{suffix}"), String::new()),
+        OutputKind::Same                           => (stem, extension_of(params.source)),
     }
 }
 
@@ -168,6 +175,21 @@ mod tests {
         assert_eq!(
             name_for("C:/fotos/vacaciones.2026.png", OutputKind::Converted { extension: "jpg" }, &[]),
             PathBuf::from("C:/fotos/vacaciones.2026.jpg"),
+        );
+    }
+
+    #[test]
+    fn same_keeps_the_name_and_numbers_it_when_taken() {
+        let moved = |existing: &[&str]| {
+            let folder = Path::new("C:/descargas/PDFs");
+            output_path(&OutputNameParams { folder, source: Path::new("C:/descargas/contrato.pdf"), kind: OutputKind::Same }, taken(existing))
+        };
+
+        assert_eq!(moved(&[]), PathBuf::from("C:/descargas/PDFs/contrato.pdf"));
+        assert_eq!(moved(&["C:/descargas/PDFs/contrato.pdf"]), PathBuf::from("C:/descargas/PDFs/contrato (2).pdf"));
+        assert_eq!(
+            output_path(&OutputNameParams { folder: Path::new("C:/d/Otros"), source: Path::new("C:/d/LEEME"), kind: OutputKind::Same }, taken(&["C:/d/Otros/LEEME"])),
+            PathBuf::from("C:/d/Otros/LEEME (2)"),
         );
     }
 }

@@ -1,1 +1,1 @@
-export type PageId = 'home' | 'tools' | 'cleanup' | 'history' | 'settings' | 'clipboard';
+export type PageId = 'home' | 'tools' | 'cleanup' | 'history' | 'settings' | 'clipboard' | 'folder-sort';

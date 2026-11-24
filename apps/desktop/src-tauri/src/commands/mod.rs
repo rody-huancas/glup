@@ -4,6 +4,7 @@ pub mod cleanup;
 pub mod clipboard;
 pub mod cursor;
 pub mod files;
+pub mod folder_sort;
 pub mod history;
 pub mod id_photo;
 pub mod island;

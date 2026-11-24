@@ -6,6 +6,7 @@ pub mod clipboard;
 pub mod cursor_tracker;
 pub mod destination;
 pub mod file_info;
+pub mod folder_sort;
 pub mod fullscreen_watcher;
 pub mod history;
 pub mod id_photo;

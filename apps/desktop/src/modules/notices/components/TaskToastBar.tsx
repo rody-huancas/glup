@@ -1,3 +1,4 @@
+import { useSortUndo } from '@/modules/folder-sort/hooks/useSortUndo';
 import { Mascot } from '@/modules/mascot/components/Mascot';
 import type { PageId } from '@/modules/main-window/types/pageId';
 import { NOTICE_TEXTS, TOAST_FACES } from '@/modules/notices/constants/notices';
@@ -12,10 +13,14 @@ interface TaskToastBarProps {
   onNavigate : (page: PageId) => void;
 }
 
-// Above the page (it pushes it down, never covers its buttons): mini Glup, the result and "Ver".
+// Above the page (it pushes it down, never covers its buttons): mini Glup, the result, "Ver" and, after
+// sorting a folder, "Deshacer".
 export const TaskToastBar = ({ onNavigate }: TaskToastBarProps) => {
-  const toast = useTaskToast();
+  const toast    = useTaskToast();
+  const sortUndo = useSortUndo();
   if (!toast) return null;
+
+  const undoId = toast.undoId;
 
   const failed = toast.tone === 'failed' || toast.tone === 'partial';
 
@@ -29,6 +34,19 @@ export const TaskToastBar = ({ onNavigate }: TaskToastBarProps) => {
         <Mascot face={failed ? TOAST_FACES.confused : TOAST_FACES.happy} reactToDrops={false} limbs={false} />
       </div>
       <p className={cx('min-w-0 flex-1 truncate text-[13px] font-semibold', failed ? 'text-lilac-soft' : 'text-mint')}>{toast.message}</p>
+      {undoId && (
+        <Button
+          variant="secondary"
+          disabled={sortUndo.running}
+          onClick={() => {
+            sortUndo.undo(undoId);
+            dismissToast();
+          }}
+          className="h-8 shrink-0 px-3 text-xs"
+        >
+          {NOTICE_TEXTS.undo}
+        </Button>
+      )}
       <Button
         variant="secondary"
         onClick={() => {

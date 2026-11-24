@@ -1,15 +1,18 @@
 import { useId } from 'react';
 import { getSelectionIcon } from '@/modules/actions/utils/fileIcon';
+import { useSortUndo } from '@/modules/folder-sort/hooks/useSortUndo';
 import { HistoryTextDetail } from '@/modules/history/components/HistoryTextDetail';
 import { HISTORY_TEXTS } from '@/modules/history/constants/history';
 import type { HistoryEntry } from '@/modules/history/interfaces/historyEntry';
 import type { HistoryItemSelection } from '@/modules/history/interfaces/historyItemSelection';
 import { getHistoryDetail, historyEntryElementId } from '@/modules/history/utils/historyEntry';
 import { textPreview } from '@/modules/history/utils/textPreview';
+import { Button } from '@/shared/components/Button';
 import { Checkbox } from '@/shared/components/Checkbox';
 import { REVEAL_PROPS } from '@/shared/constants/reveal';
 import { CleanupIcon } from '@/shared/icons/CleanupIcon';
 import { FileIcon } from '@/shared/icons/FileIcon';
+import { FolderIcon } from '@/shared/icons/FolderIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 
 interface HistoryItemProps {
@@ -23,12 +26,16 @@ interface HistoryItemProps {
   onExpand   : (id: string) => void;
 }
 
-// A file opens on click; a text copied from the screen opens on its line, whole and ready to copy again.
+// A file opens on click; a text copied from the screen opens on its line, whole and ready to copy again;
+// a sorted folder can be undone from its line.
 export const HistoryItem = ({ entry, now, missing, expanded, selection, onOpen, onExpand }: HistoryItemProps) => {
   const detailId = useId();
+  const sortUndo = useSortUndo();
   const cleanup  = entry.type === 'cleanup';
+  const sorted   = entry.type === 'folder-sort';
   const text     = entry.type === 'screen-text' ? entry.text : undefined;
-  const icon     = entry.type === 'cleanup' || entry.type === 'screen-text' ? null : getSelectionIcon(entry.type);
+  const icon     = entry.type === 'cleanup' || entry.type === 'folder-sort' || entry.type === 'screen-text' ? null : getSelectionIcon(entry.type);
+  const undoId   = entry.undo;
   const title    = text ? textPreview(text) : entry.name;
   const detail   = missing ? HISTORY_TEXTS.missing : text ? HISTORY_TEXTS.textDetail(getHistoryDetail(entry, now)) : getHistoryDetail(entry, now);
 
@@ -39,20 +46,26 @@ export const HistoryItem = ({ entry, now, missing, expanded, selection, onOpen, 
         <button
           type="button"
           onClick={() => (text ? onExpand(entry.id) : onOpen(entry))}
-          disabled={cleanup}
+          disabled={cleanup || sorted}
           aria-expanded={text ? expanded : undefined}
           aria-controls={text && expanded ? detailId : undefined}
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[14px] py-2.5 pl-2 pr-3 text-left transition-colors hover:bg-line disabled:cursor-default disabled:hover:bg-transparent"
         >
           {icon && <img src={icon} alt="" draggable={false} className="size-7 shrink-0 object-contain" />}
           {!icon && cleanup && <CleanupIcon className="size-7 text-mint" />}
+          {!icon && sorted && <FolderIcon className="size-7 text-mint" />}
           {!icon && text !== undefined && <ScreenTextIcon className="size-7 text-lilac" />}
-          {!icon && !cleanup && text === undefined && <FileIcon className="size-7 text-muted" />}
+          {!icon && !cleanup && !sorted && text === undefined && <FileIcon className="size-7 text-muted" />}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold text-text">{title}</p>
             <p className={missing ? 'truncate text-xs text-lilac-soft' : 'truncate text-xs text-muted'}>{detail}</p>
           </div>
         </button>
+        {undoId && (
+          <Button variant="secondary" onClick={() => sortUndo.undo(undoId)} disabled={sortUndo.running} className="mr-2.5 h-8 shrink-0 px-3 text-xs">
+            {HISTORY_TEXTS.undo}
+          </Button>
+        )}
       </div>
       {text && expanded && <HistoryTextDetail id={detailId} text={text} />}
     </li>
