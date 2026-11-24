@@ -32,6 +32,29 @@ pnpm install
 pnpm dev
 ```
 
+### La tarjeta de video para «Pasar audio a texto» (opcional)
+
+Con tarjeta de video, «Pasar audio a texto» corre en `glup-voz.exe` (`apps/desktop/src-tauri/voz`),
+un programa aparte con whisper.cpp y Vulkan; Glup lo abre y, si falla, sigue con el procesador. **No
+hace falta para trabajar en Glup**: sin él, `pnpm dev` funciona igual y escucha con el procesador.
+
+Para compilarlo hace falta, además, el **Vulkan SDK** (los encabezados, `glslc` y `vulkan-1.lib`):
+
+```bash
+winget install KhronosGroup.VulkanSDK     # deja VULKAN_SDK y su Bin en el PATH (abre una terminal nueva)
+pnpm voz:build                            # target/debug/glup-voz.exe, junto al glup.exe de pnpm dev
+```
+
+- Se compila **aparte** (`cargo build -p glup-voz`, nunca junto con Glup): si Cargo los compila
+  juntos, une las features de `whisper-rs` y Glup también enlazaría Vulkan.
+- `pnpm voz:build` pone `CMAKE_PROJECT_INCLUDE=voz/short-paths.cmake`: el generador de shaders de
+  whisper.cpp se compila en `target/vk`, porque dentro de la carpeta de Cargo sus rutas pasan de 260
+  caracteres y MSVC no puede abrirlas.
+- La primera compilación tarda unos 3 minutos (cientos de shaders). La primera vez que escucha en
+  una PC, el driver compila sus pipelines (unos 20 s una sola vez; después los guarda).
+- Para usar Vulkan hace falta el cargador `vulkan-1.dll`, que instalan los drivers de NVIDIA, AMD e
+  Intel. Si no está, `glup-voz.exe` no arranca y Glup usa el procesador.
+
 ## Lo que no se negocia
 
 - **Los archivos originales nunca se modifican ni se borran.**
