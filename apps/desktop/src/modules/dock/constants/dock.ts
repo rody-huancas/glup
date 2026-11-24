@@ -1,3 +1,4 @@
+import type { BubbleSpot } from '@/modules/dock/interfaces/bubbleSpot';
 import type { DockSpot } from '@/modules/dock/interfaces/dockSpot';
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { PillPose } from '@/modules/dock/interfaces/pillPose';
@@ -53,7 +54,25 @@ export const DOCK_SHAPES: Record<DockKind, Record<ShapeRole, IslandShape>> = {
     expanded     : shape(1040, 640, 18, 26),
     notice       : shape(260, 46, 12, 18),
   },
+  // No ears: a circle (its radius is half of it) that grows into the panel, and a tab as tall as it for
+  // the notice, out to one side.
+  bubble: {
+    collapsed    : shape(56, 56, 0, 28),
+    hover        : shape(60, 60, 0, 30),
+    settle       : shape(60, 52, 0, 26),
+    anticipation : shape(50, 50, 0, 25),
+    expanded     : shape(1040, 640, 0, 26),
+    notice       : shape(250, 56, 0, 28),
+  },
 };
+
+// The bubble: 56 px (CSS) is a large icon, crisp at 100 % (56 px) and 150 % (84 px) as it is drawn, not a
+// bitmap. pad: room around it in its region for the soft shadow and the progress ring; margin: what is
+// kept from the screen's edges, by it and by the open panel.
+export const BUBBLE = { size: 56, pad: 8, margin: 8, ring: { radius: 32.5, thickness: 3 } };
+
+// The first bubble: in the middle of the main screen.
+export const DEFAULT_BUBBLE: BubbleSpot = { x: 0.5, y: 0.5, screen: null };
 
 // Room in the window for the elastic overshoot of the opening (the top one keeps the old 1200 x 720).
 export const OVERSHOOT = { along: 62, depth: 80 };
@@ -69,6 +88,7 @@ export const PILL_POSES: Record<DockKind, PillPose> = {
   horizontal : { scale: 0.633, peek: -15, lift: 0 },
   vertical   : { scale: 0.34, peek: null, lift: 0.42 },
   corner     : { scale: 0.46, peek: null, lift: 0.42 },
+  bubble     : { scale: 0.43, peek: null, lift: 0.42 },
 };
 
 // Glup in the notice: at its start, half size; the text goes after it.
