@@ -34,6 +34,9 @@ pub struct HistoryEntry {
     // which never leaves the computer).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
+    // "Ordenar una carpeta": the record to undo it, while it can still be undone.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub undo: Option<String>,
 }
 
 pub struct NewEntryParams<'a> {
@@ -122,6 +125,7 @@ pub fn new_entry(params: NewEntryParams) -> HistoryEntry {
         detail : params.detail,
         date   : now.to_rfc3339(),
         text   : None,
+        undo   : None,
     }
 }
 
@@ -138,6 +142,7 @@ pub fn fileless_entry(params: FilelessEntryParams) -> HistoryEntry {
         detail : params.detail,
         date   : now.to_rfc3339(),
         text   : None,
+        undo   : None,
     }
 }
 
@@ -193,14 +198,41 @@ pub fn point_entry(mut entries: Vec<HistoryEntry>, id: &str, output: &Path) -> V
     entries
 }
 
-pub fn point_to(app: &AppHandle, id: &str, output: &Path) -> Result<(), String> {
+// Reads, changes and writes the list under its lock, and tells the windows.
+pub fn update(app: &AppHandle, change: impl FnOnce(Vec<HistoryEntry>) -> Vec<HistoryEntry>) -> Result<(), String> {
     let store = app.state::<HistoryStore>();
     let _lock = store.0.lock();
     let path  = file_path(app).ok_or("no app data folder")?;
 
-    write_file(&path, &point_entry(read_file(&path), id, output))?;
+    write_file(&path, &change(read_file(&path)))?;
     let _ = app.emit(HISTORY_CHANGED_EVENT, ());
     Ok(())
+}
+
+pub fn point_to(app: &AppHandle, id: &str, output: &Path) -> Result<(), String> {
+    update(app, |entries| point_entry(entries, id, output))
+}
+
+// The entry in its place if it is already there (same id, keeping its date), or first if not.
+pub fn upserted(mut entries: Vec<HistoryEntry>, entry: HistoryEntry) -> Vec<HistoryEntry> {
+    if let Some(found) = entries.iter_mut().find(|item| item.id == entry.id) {
+        *found = HistoryEntry { date: found.date.clone(), ..entry };
+        return entries;
+    }
+    merge(entries, vec![entry])
+}
+
+// An undone sort: its line stays, says so and no longer offers "Deshacer".
+pub fn undone(mut entries: Vec<HistoryEntry>, undo: &str) -> Vec<HistoryEntry> {
+    if let Some(entry) = entries.iter_mut().find(|entry| entry.undo.as_deref() == Some(undo)) {
+        entry.undo   = None;
+        entry.detail = format!("{} · deshecho", entry.detail);
+    }
+    entries
+}
+
+pub fn mark_undone(app: &AppHandle, undo: &str) -> Result<(), String> {
+    update(app, |entries| undone(entries, undo))
 }
 
 // "Quitar seleccionados": the list without those entries, in the same order.
@@ -253,6 +285,7 @@ mod tests {
             detail : String::new(),
             date   : String::new(),
             text   : None,
+            undo   : None,
         }
     }
 
@@ -328,6 +361,29 @@ mod tests {
         let old: HistoryEntry = serde_json::from_str(r#"{ "id": "1", "name": "a.jpg", "path": "C:/a.jpg", "type": "image", "action": "compress", "detail": "", "date": "" }"#).unwrap();
         assert_eq!(old.text, None);
         assert!(!serde_json::to_string(&old).unwrap().contains("text"));
+    }
+
+    #[test]
+    fn an_undone_sort_says_so_and_no_longer_offers_to_undo() {
+        let sorted = HistoryEntry { undo: Some("123".to_string()), detail: "120 archivos en 7 carpetas".to_string(), ..entry("orden") };
+        let left   = undone(vec![entry("otra"), sorted], "123");
+
+        assert_eq!(left[1].undo, None);
+        assert_eq!(left[1].detail, "120 archivos en 7 carpetas · deshecho");
+        assert_eq!(left[0].detail, "");
+        assert!(!serde_json::to_string(&left[0]).unwrap().contains("undo"));
+    }
+
+    #[test]
+    fn an_entry_is_updated_in_its_place_or_added_first() {
+        let running = HistoryEntry { detail: "120 archivos · en curso".to_string(), date: "ayer".to_string(), ..entry("orden-1") };
+        let entries = upserted(vec![entry("otra")], running);
+        assert_eq!(entries.iter().map(|item| item.id.as_str()).collect::<Vec<_>>(), ["orden-1", "otra"]);
+
+        let done    = HistoryEntry { detail: "120 archivos en 7 carpetas".to_string(), date: "hoy".to_string(), ..entry("orden-1") };
+        let entries = upserted(entries, done);
+        assert_eq!(entries.len(), 2);
+        assert_eq!((entries[0].detail.as_str(), entries[0].date.as_str()), ("120 archivos en 7 carpetas", "ayer"));
     }
 
     #[test]
