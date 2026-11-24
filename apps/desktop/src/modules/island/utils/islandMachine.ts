@@ -1,4 +1,5 @@
 import type { DockArea } from '@/modules/dock/types/dockArea';
+import type { IslandRest } from '@/modules/dock/types/islandRest';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import type { IslandPhase } from '@/modules/island/types/islandPhase';
 import type { IslandState } from '@/modules/island/types/islandState';
@@ -56,26 +57,31 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
     case 'pin-toggled':
       return OPEN_PHASES.includes(phase) ? { ...machine, pinned: !machine.pinned } : machine;
 
-    // Only the resting pill widens; a new result while one is showing just replaces its text. While it is
-    // dragged, or hidden at rest (there is no pill), nothing widens: the result is told by its toast or
-    // its Windows notification.
+    // Only the resting pill (or bubble, with its tab) widens; a new result while one is showing just
+    // replaces its text. While it is dragged, or hidden at rest (there is nothing on screen), nothing
+    // widens: the result is told by its toast or its Windows notification.
     case 'notice':
       if (machine.moving || machine.rest === 'hidden') return machine;
       return phase === 'collapsed' || phase === 'notice' ? { ...machine, phase: 'notice', notice: event.notice } : machine;
 
-    // Only the resting pill (or its notice, which gives way) can be dragged to another edge; while it
-    // goes, nothing opens it.
+    // Only the resting pill or bubble (or its notice, which gives way) can be dragged, to another edge or
+    // anywhere on the screen; while it goes, nothing opens it.
     case 'moving':
       if (!event.on) return { ...machine, moving: false };
       if ((phase !== 'collapsed' && phase !== 'notice') || machine.rest === 'hidden') return machine;
       return { ...machine, phase: 'collapsed', notice: null, moving: true };
 
-    // How it rests when closed: the pill, or hidden (modo oculto). Going hidden drops a live notice and a
-    // drag, which only the pill has.
+    // How it rests when closed: the pill, hidden (modo oculto) or the bubble. A live notice and a drag
+    // belong to the form it had, so changing it drops them; the panel, if open, stays open.
     case 'rest':
       if (event.rest === machine.rest) return machine;
-      if (event.rest === 'pill') return { ...machine, rest: 'pill' };
-      return { ...machine, rest: 'hidden', moving: false, notice: null, phase: phase === 'notice' ? 'collapsed' : phase };
+      return { ...machine, rest: event.rest, moving: false, notice: null, phase: phase === 'notice' ? 'collapsed' : phase };
+
+    // A click outside the window (it lost the focus): the open bubble closes, as it was opened with a
+    // click. Not while the person is in the middle of something (a native dialog takes the focus too).
+    case 'outside':
+      if (machine.rest !== 'bubble' || !OPEN_PHASES.includes(phase) || machine.holds.length > 0) return machine;
+      return { ...machine, phase: 'collapsing', pinned: false, farewell: false, locked: machine.inside };
 
     case 'notice-ended':
       return phase === 'notice' ? { ...machine, phase: 'collapsed', notice: null } : machine;
@@ -142,9 +148,17 @@ export const isSettledPhase = (phase: IslandPhase): boolean => phase === 'collap
 
 export const hoverEnabled = (machine: IslandMachine): boolean => machine.inside && !machine.locked && !machine.moving;
 
+// The pill opens when the cursor rests on it; the bubble only reacts (it grows a little) and opens with a
+// click, so dragging it never opens it.
+export const hoverOpens = (machine: IslandMachine): boolean => hoverEnabled(machine) && machine.rest !== 'bubble';
+
 // Leaving the panel does not close it while pinned or while the person is in the middle of something.
 // Glup eating or working no longer counts: tasks go on in the background with the pill's progress.
 export const isHeldOpen = (machine: IslandMachine): boolean => machine.pinned || machine.holds.length > 0;
+
+// The cursor leaving the panel closes it, except held open and on the bubble (opened with a click, it
+// closes with a click outside, Esc, its shortcut or a click on Glup).
+export const closesOnLeave = (machine: IslandMachine): boolean => !isHeldOpen(machine) && machine.rest !== 'bubble';
 
 // Every broken rule, empty when all hold (checked in tests and logged in dev).
 export const checkInvariants = (machine: IslandMachine): string[] => {
@@ -162,6 +176,8 @@ export const checkInvariants = (machine: IslandMachine): string[] => {
   return broken;
 };
 
+const REST_NAMES: Record<IslandRest, string> = { pill: 'pastilla', hidden: 'oculta', bubble: 'burbuja' };
+
 export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'pointer') return `pointer(${event.inside ? 'dentro' : 'fuera'})`;
   if (event.type === 'expand') return `expand(${event.pin ? 'fijada' : 'hover'})`;
@@ -172,6 +188,6 @@ export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'capture') return `capture(${event.on ? 'eligiendo zona' : 'terminó'})`;
   if (event.type === 'holds') return `holds(${event.holds.join(', ') || 'ninguno'})`;
   if (event.type === 'moving') return `moving(${event.on ? 'arrastrando' : 'soltada'})`;
-  if (event.type === 'rest') return `rest(${event.rest === 'hidden' ? 'oculta' : 'pastilla'})`;
+  if (event.type === 'rest') return `rest(${REST_NAMES[event.rest]})`;
   return event.type;
 };
