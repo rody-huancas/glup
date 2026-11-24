@@ -89,7 +89,7 @@ const expansionChange = (placement: IslandPlacement): number => {
   const from = dockShape(placement, 'anticipation');
   const to   = dockShape(placement, 'expanded');
 
-  if (placement.kind === 'corner') return Math.max(to.width - from.width, to.height - from.height);
+  if (placement.kind === 'corner' || placement.kind === 'bubble') return Math.max(to.width - from.width, to.height - from.height);
   return Math.max(alongLength(to) - alongLength(from), to.height - from.height);
 };
 

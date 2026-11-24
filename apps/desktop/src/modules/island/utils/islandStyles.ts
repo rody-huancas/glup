@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
-import { contentBox, noticeMascotBox, noticeMascotWidth, noticeTextBox, pillDotPoint, pillMascotBox, pillMascotWidth, pillProgressBox } from '@/modules/dock/utils/dockLayout';
+import { bubbleRingBox, contentBox, noticeMascotBox, noticeMascotWidth, noticeTextBox, pillBody, pillDotPoint, pillMascotBox, pillMascotWidth, pillProgressBox } from '@/modules/dock/utils/dockLayout';
 import { MASCOT_SLOT_WIDTH, PANEL_BORDER, PROGRESS_THICKNESS } from '@/modules/island/constants/island';
 import { MASCOT_LAYOUT } from '@/modules/mascot/constants/layout';
 import type { Rect } from '@/shared/interfaces/rect';
@@ -39,6 +39,11 @@ export const getNoticeTextStyle = (placement: IslandPlacement): CSSProperties =>
 export const getContentStyle = (placement: IslandPlacement): CSSProperties => ({ ...rectStyle(contentBox(placement, PANEL_BORDER)), opacity: 0 });
 
 export const getPillDotStyle = (placement: IslandPlacement): CSSProperties => rectStyle(pillDotPoint(placement));
+
+// The resting bubble's circle (for its shadow) and the box of its progress ring.
+export const getBubbleStyle = (placement: IslandPlacement): CSSProperties => rectStyle(pillBody(placement));
+
+export const getBubbleRingStyle = (placement: IslandPlacement): CSSProperties => rectStyle(bubbleRingBox(placement));
 
 // Along the pill's side that faces the screen; a standing pill has the bar upright (it is turned, as it
 // is only a line).

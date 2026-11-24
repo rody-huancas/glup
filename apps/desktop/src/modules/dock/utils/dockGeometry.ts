@@ -1,5 +1,6 @@
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { DockEdge } from '@/modules/dock/types/dockEdge';
+import { bubbleBox, bubblePath } from '@/modules/dock/utils/bubble';
 import { alongLength } from '@/modules/dock/utils/placement';
 import type { IslandShape } from '@/modules/island/interfaces/islandShape';
 import type { Point } from '@/shared/interfaces/point';
@@ -129,14 +130,21 @@ const commandsFor = (placement: IslandPlacement, shape: IslandShape, closed: boo
   return corner ? cornerCommands(metrics, closed) : edgeCommands(startOf(placement, shape), metrics, closed);
 };
 
+const isBubble = (placement: IslandPlacement): boolean => placement.kind === 'bubble';
+
 // The silhouette that fills and clips the island, in window coordinates.
-export const buildDockPath = (placement: IslandPlacement, shape: IslandShape): string => toPath(placement, commandsFor(placement, shape, true));
+export const buildDockPath = (placement: IslandPlacement, shape: IslandShape): string =>
+  isBubble(placement) ? bubblePath(bubbleBox(placement, shape), shape.bottomRadius) : toPath(placement, commandsFor(placement, shape, true));
 
 // The same silhouette left open where it touches the screen's edges, so the border never draws there.
-export const buildDockOutline = (placement: IslandPlacement, shape: IslandShape): string => toPath(placement, commandsFor(placement, shape, false));
+// The bubble touches none: its border goes all around.
+export const buildDockOutline = (placement: IslandPlacement, shape: IslandShape): string =>
+  isBubble(placement) ? buildDockPath(placement, shape) : toPath(placement, commandsFor(placement, shape, false));
 
 // The whole shape, ears included, in window coordinates.
 export const shapeBox = (placement: IslandPlacement, shape: IslandShape): Rect => {
+  if (isBubble(placement)) return bubbleBox(placement, shape);
+
   const { width, height, ear } = metricsOf(shape, isCorner(placement.edge));
   if (isCorner(placement.edge)) return mapRect(placement, [0, width + ear], [0, height + ear]);
 
@@ -153,6 +161,8 @@ export const edgeStrip = (placement: IslandPlacement, along: number, depth: numb
 
 // Its body, without the ears: where the content of the shape (Glup, a notice, the panel) goes.
 export const bodyBox = (placement: IslandPlacement, shape: IslandShape): Rect => {
+  if (isBubble(placement)) return bubbleBox(placement, shape);
+
   const { width, height, ear } = metricsOf(shape, isCorner(placement.edge));
   if (isCorner(placement.edge)) return mapRect(placement, [0, width], [0, height]);
 
@@ -162,6 +172,11 @@ export const bodyBox = (placement: IslandPlacement, shape: IslandShape): Rect =>
 
 // The body pulled in by `inset` on the sides that do not touch the screen (the border goes there).
 export const innerBox = (placement: IslandPlacement, shape: IslandShape, inset: number): Rect => {
+  if (isBubble(placement)) {
+    const box = bubbleBox(placement, shape);
+    return { x: box.x + inset, y: box.y + inset, width: Math.max(box.width - inset * 2, 0), height: Math.max(box.height - inset * 2, 0) };
+  }
+
   const { width, height, ear } = metricsOf(shape, isCorner(placement.edge));
   if (isCorner(placement.edge)) return mapRect(placement, [0, width - inset], [0, height - inset]);
 

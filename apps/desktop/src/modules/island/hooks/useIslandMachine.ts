@@ -20,6 +20,7 @@ export const useIslandMachine = () => {
     const event  = lastEvent.current;
     previous.current = machine;
 
+    if (event && before.moving !== machine.moving) logIsland(`${describeEvent(event)}: arrastrando=${machine.moving}`);
     if (!event || (before.phase === machine.phase && before.pinned === machine.pinned && before.resets === machine.resets)) return;
 
     logIsland(`${before.phase} --${describeEvent(event)}--> ${machine.phase}${machine.pinned ? ' (fijada)' : ''} · región ${areaKindFor(machine.phase)}`);

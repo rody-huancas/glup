@@ -55,9 +55,19 @@ fn clickable_by_default() -> bool {
     true
 }
 
+// How an area becomes the window's region: not clickable (hidden at rest), the region is empty and the
+// window takes no clicks nor drags at all; round (the resting bubble), it is the circle inside the rect.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AreaShape {
+    pub clickable : bool,
+    pub round     : bool,
+}
+
+pub const PLAIN_AREA: AreaShape = AreaShape { clickable: true, round: false };
+
 // Where the webview wants the window: a rect of a screen's work area, and the resting area within the
 // window (what a reset goes back to). Hidden (modo oculto), that area is only where the cursor reveals
-// Glup: it takes no clicks.
+// Glup: it takes no clicks. The bubble's is round.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FrameRequest {
@@ -66,23 +76,24 @@ pub struct FrameRequest {
     pub pill           : IslandRect,
     #[serde(default = "clickable_by_default")]
     pub pill_clickable : bool,
+    #[serde(default)]
+    pub pill_round     : bool,
 }
 
 // The window as last placed, in physical pixels, with its resting area.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FrameState {
-    pub position       : PhysicalPosition<i32>,
-    pub size           : PhysicalSize<u32>,
-    pub pill           : IslandRect,
-    pub pill_clickable : bool,
+    pub position : PhysicalPosition<i32>,
+    pub size     : PhysicalSize<u32>,
+    pub pill     : IslandRect,
+    pub shape    : AreaShape,
 }
 
 // The area of the island: what the cursor tracker watches and, when clickable, the window's region.
-// Not clickable (hidden at rest), the region is empty: the window takes no clicks nor drags at all.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AreaState {
-    pub rect      : IslandRect,
-    pub clickable : bool,
+    pub rect  : IslandRect,
+    pub shape : AreaShape,
 }
 
 pub struct IslandArea(Mutex<AreaState>);
@@ -94,7 +105,7 @@ pub struct IslandFrame(Mutex<Option<FrameState>>);
 
 impl Default for IslandArea {
     fn default() -> Self {
-        Self(Mutex::new(AreaState { rect: INITIAL_AREA, clickable: true }))
+        Self(Mutex::new(AreaState { rect: INITIAL_AREA, shape: PLAIN_AREA }))
     }
 }
 
@@ -146,9 +157,16 @@ pub fn set_frame(window: &WebviewWindow, request: FrameRequest) -> Result<()> {
     };
 
     let (position, size) = frame_on(screen.work, screen.scale, request.rect);
-    let frame            = FrameState { position, size, pill: request.pill, pill_clickable: request.pill_clickable };
+    let shape            = AreaShape { clickable: request.pill_clickable, round: request.pill_round };
+    let frame            = FrameState { position, size, pill: request.pill, shape };
+    let same_place       = expected_frame(window).is_some_and(|current| current.position == position && current.size == size);
+    let already_there    = window.outer_position().is_ok_and(|now| now == position) && window.outer_size().is_ok_and(|now| now == size);
 
-    place(window, &frame)?;
+    // A bubble dragged within its screen keeps the window (only its resting area changes): moving it
+    // again on every step would only make it flicker.
+    if !(same_place && already_there) {
+        place(window, &frame)?;
+    }
     if let Ok(mut current) = window.state::<IslandFrame>().0.lock() {
         *current = Some(frame);
     }
@@ -168,8 +186,8 @@ pub fn center_top(window: &WebviewWindow) -> Result<()> {
 }
 
 // The window keeps its frame; only its visible and clickable area changes.
-pub fn set_area(window: &WebviewWindow, rect: IslandRect, clickable: bool) -> Result<()> {
-    let state = AreaState { rect, clickable };
+pub fn set_area(window: &WebviewWindow, rect: IslandRect, shape: AreaShape) -> Result<()> {
+    let state = AreaState { rect, shape };
     apply_area(window, state)?;
 
     if let Ok(mut area) = window.state::<IslandArea>().0.lock() {
@@ -196,7 +214,7 @@ pub fn stored_state(window: &WebviewWindow) -> Option<AreaState> {
 // The startup frame (top center of the main screen) until the webview places the island at its dock.
 pub fn remember_frame(window: &WebviewWindow) {
     if let (Ok(position), Ok(size), Ok(mut frame)) = (window.outer_position(), window.outer_size(), window.state::<IslandFrame>().0.lock()) {
-        *frame = Some(FrameState { position, size, pill: INITIAL_AREA, pill_clickable: true });
+        *frame = Some(FrameState { position, size, pill: INITIAL_AREA, shape: PLAIN_AREA });
     }
 }
 
@@ -216,8 +234,8 @@ pub fn reapply_frame(window: &WebviewWindow) -> Result<()> {
 pub fn recover(window: &WebviewWindow) {
     let _ = reapply_frame(window);
     let _ = window.set_always_on_top(true);
-    let (pill, clickable) = expected_frame(window).map_or((INITIAL_AREA, true), |frame| (frame.pill, frame.pill_clickable));
-    let _                 = set_area(window, pill, clickable);
+    let (pill, shape) = expected_frame(window).map_or((INITIAL_AREA, PLAIN_AREA), |frame| (frame.pill, frame.shape));
+    let _             = set_area(window, pill, shape);
 }
 
 // The same region within a pixel (rounding of the scale factor).
@@ -275,15 +293,20 @@ pub fn area_rect(rect: IslandRect, scale: f64) -> AreaRect {
 
 #[cfg(windows)]
 fn apply_area(window: &WebviewWindow, state: AreaState) -> Result<()> {
-    use windows_sys::Win32::Graphics::Gdi::{CreateRectRgn, SetWindowRgn};
+    use windows_sys::Win32::Graphics::Gdi::{CreateEllipticRgn, CreateRectRgn, SetWindowRgn};
 
-    let area = if state.clickable { area_rect(state.rect, window.scale_factor()?) } else { AreaRect { left: 0, top: 0, right: 0, bottom: 0 } };
+    let area = if state.shape.clickable { area_rect(state.rect, window.scale_factor()?) } else { AreaRect { left: 0, top: 0, right: 0, bottom: 0 } };
     let hwnd = window.hwnd()?.0 as _;
 
     // The system owns the region after SetWindowRgn, so it must not be deleted here. An empty one leaves
-    // nothing of the window to click or drag onto.
+    // nothing of the window to click or drag onto; an elliptic one, only the circle (its box is still the
+    // rect, so the watchdog compares it the same way).
     unsafe {
-        let region = CreateRectRgn(area.left, area.top, area.right, area.bottom);
+        let region = if state.shape.round && state.shape.clickable {
+            CreateEllipticRgn(area.left, area.top, area.right + 1, area.bottom + 1)
+        } else {
+            CreateRectRgn(area.left, area.top, area.right, area.bottom)
+        };
         SetWindowRgn(hwnd, region, 1);
     }
 

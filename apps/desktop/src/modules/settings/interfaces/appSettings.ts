@@ -1,4 +1,6 @@
+import type { BubbleSpot } from '@/modules/dock/interfaces/bubbleSpot';
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
+import type { IslandRest } from '@/modules/dock/types/islandRest';
 import type { ReduceLevel } from '@/modules/pdf/types/reduceLevel';
 import type { SaveMode } from '@/modules/settings/types/saveMode';
 import type { TranscribeLevel } from '@/modules/transcribe/types/transcribeLevel';
@@ -28,9 +30,10 @@ export interface AppSettings {
   clipboardShortcutOff  : boolean;
   // Where the island lives (null: on top in the middle); changed through set_island_dock.
   islandDock            : IslandDock | null;
-  // "Cómo se muestra": hidden (modo oculto), the delay before it comes out (ms) and its notice seen;
-  // changed through set_island_mode.
-  islandHidden          : boolean;
+  // "Cómo se muestra": island, hidden (modo oculto) or bubble, the delay before a hidden one comes out
+  // (ms) and its notice seen, changed through set_island_mode; where the bubble floats.
+  islandRest            : IslandRest;
+  islandBubble          : BubbleSpot | null;
   revealDelay           : number | null;
   hiddenIntroSeen       : boolean;
   islandShortcut        : string | null;

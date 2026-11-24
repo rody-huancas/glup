@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { RESULT_MOODS } from '@/modules/actions/constants/resultMoods';
 import { useIslandDock } from '@/modules/dock/hooks/useIslandDock';
 import { revealHistoryEntry } from '@/modules/history/store/historyReveal';
+import { useBubbleLog } from '@/modules/island/hooks/useBubbleLog';
 import { useIslandAutoToggle } from '@/modules/island/hooks/useIslandAutoToggle';
 import { useIslandDragGesture } from '@/modules/island/hooks/useIslandDragGesture';
 import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
@@ -14,7 +15,8 @@ import { useIslandWatchdog } from '@/modules/island/hooks/useIslandWatchdog';
 import { createIslandElements } from '@/modules/island/utils/elements';
 import { ISLAND_TIMING } from '@/modules/island/constants/island';
 import type { HoldReason } from '@/modules/island/types/holdReason';
-import { hoverEnabled, isHeldOpen, toIslandState } from '@/modules/island/utils/islandMachine';
+import { logBubble } from '@/modules/island/utils/islandLog';
+import { closesOnLeave, hoverEnabled, hoverOpens, toIslandState } from '@/modules/island/utils/islandMachine';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { useTaskNotices } from '@/modules/notices/hooks/useTaskNotices';
@@ -69,6 +71,9 @@ export const useIsland = () => {
   }, [dock.placement, relayout, send]);
 
   const hidden = machine.rest === 'hidden';
+  const bubble = machine.rest === 'bubble';
+
+  useBubbleLog(bubble);
 
   const expandOnHover   = useCallback(() => send({ type: 'expand', pin: false }), [send]);
   const openPinned      = useCallback(() => send({ type: 'expand', pin: true }), [send]);
@@ -151,11 +156,12 @@ export const useIsland = () => {
     if (panel.welcome.visible) send({ type: 'expand', pin: false });
   }, [panel.welcome.visible, send]);
 
+  // The bubble opens with a click and does not close when the cursor leaves (see hoverOpens).
   useIslandAutoToggle({
     state,
-    inside   : hovering,
+    inside   : hoverOpens(machine),
     dragging,
-    blocked  : isHeldOpen(machine),
+    blocked  : !closesOnLeave(machine),
     reveal   : hidden ? dock.reveal : null,
     expand   : expandOnHover,
     collapse : collapseOnLeave,
@@ -175,6 +181,33 @@ export const useIsland = () => {
   const onPanelPointerDown = useCallback(() => {
     if (state === 'expanded') takeFocus();
   }, [state, takeFocus]);
+
+  // The open bubble takes the focus (for Esc, and to hear a click outside: the window loses it then). A
+  // file being dragged keeps it where it is until dropped.
+  useEffect(() => {
+    if (bubble && machine.phase === 'expanded' && !dragging) takeFocus();
+  }, [bubble, machine.phase, dragging, takeFocus]);
+
+  // An instant later, so a native dialog opened from the panel (which takes the focus too) is already
+  // holding it open; and only if the focus did not come back.
+  useEffect(() => {
+    if (!bubble) return;
+
+    let timer    = 0;
+    const onBlur = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        logBubble(`perdió el foco hace ${ISLAND_TIMING.outsideDelay} ms; foco ahora=${document.hasFocus()}`);
+        if (!document.hasFocus()) send({ type: 'outside' });
+      }, ISLAND_TIMING.outsideDelay);
+    };
+
+    window.addEventListener('blur', onBlur);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('blur', onBlur);
+    };
+  }, [bubble, send]);
 
   // Only the resting pill (or its notice) is dragged; the window follows the edge it would land on.
   // Hidden there is no pill: it is moved from Ajustes.
@@ -316,11 +349,14 @@ export const useIsland = () => {
     [state, running, notice],
   );
 
+  // A click that ends a drag never opens it. Open, a click on Glup closes the bubble (Glup is the bubble).
   const consumeClick  = drag.consumeClick;
   const onMascotClick = useCallback(() => {
+    if (bubble) logBubble(`clic en la burbuja (${machine.phase}, arrastrando=${machine.moving})`);
     if (consumeClick()) return;
     if (state === 'collapsed') openPinned();
-  }, [state, openPinned, consumeClick]);
+    else if (bubble && machine.phase === 'expanded') collapseNow();
+  }, [state, bubble, machine.phase, machine.moving, openPinned, collapseNow, consumeClick]);
 
   const controls = useMemo<PanelControlsProps>(
     () => ({ pinned: machine.pinned, onTogglePin: togglePin, onCollapse: collapseNow }),

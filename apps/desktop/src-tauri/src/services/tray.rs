@@ -66,12 +66,12 @@ fn handle_menu_event(app: &AppHandle, event: MenuEvent) {
 }
 
 // "Mostrar/Ocultar Glup". Hidden at rest (modo oculto) showing it alone would leave nothing on screen,
-// so it comes out with the panel open.
+// so it comes out with the panel open (the pill and the bubble are seen as they are).
 fn show_or_hide(app: &AppHandle) {
     let was_hidden = visibility::snapshot(app).user_hidden;
     visibility::toggle_user_hidden(app);
 
-    if was_hidden && settings::read(app).settings.island_hidden {
+    if was_hidden && settings::read(app).settings.island_rest == settings::IslandRest::Hidden {
         island_window::request_open(app);
     }
 }

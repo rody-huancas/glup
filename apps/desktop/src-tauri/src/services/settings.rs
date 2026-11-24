@@ -59,9 +59,11 @@ pub struct Settings {
     // Where the island lives (None: on top in the middle of the main screen). The webview reads and
     // checks it: a screen that is gone gives way to the main one.
     pub island_dock: Option<IslandDock>,
-    // "Cómo se muestra": hidden (modo oculto), nothing is on screen until the cursor rests against its
-    // edge, its shortcut or the tray. Off by default: the island as always.
-    pub island_hidden: bool,
+    // "Cómo se muestra": the island as always, hidden (modo oculto: nothing on screen until the cursor
+    // rests against its edge, its shortcut or the tray) or a floating bubble.
+    pub island_rest: IslandRest,
+    // Where the bubble floats (None: in the middle of the main screen); checked by the webview as the dock.
+    pub island_bubble: Option<BubbleSpot>,
     // How long the cursor rests against the edge before a hidden Glup comes out (ms; None: the default).
     pub reveal_delay: Option<u32>,
     // The short notice of how to bring a hidden Glup back was seen.
@@ -76,6 +78,24 @@ pub struct Settings {
 pub struct IslandDock {
     pub edge   : String,
     pub offset : f64,
+    pub screen : Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum IslandRest {
+    #[default]
+    Pill,
+    Hidden,
+    Bubble,
+}
+
+// The bubble's middle as shares (0 to 1) of its screen's work area, and the screen: the same spot on
+// another resolution.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BubbleSpot {
+    pub x      : f64,
+    pub y      : f64,
     pub screen : Option<String>,
 }
 
@@ -194,5 +214,16 @@ mod tests {
         let (result, missing) = with_fallback(settings(SaveMode::Glup, Some("D:/borrada")), |_| false);
         assert_eq!(result, settings(SaveMode::Glup, None));
         assert!(!missing);
+    }
+
+    #[test]
+    fn the_bubble_and_its_spot_are_read_back_and_the_island_is_the_default() {
+        let saved: Settings = serde_json::from_str(r#"{"islandRest":"bubble","islandBubble":{"x":0.2,"y":0.75,"screen":"DISPLAY2"}}"#).unwrap();
+        assert_eq!(saved.island_rest, IslandRest::Bubble);
+        assert_eq!(saved.island_bubble, Some(BubbleSpot { x: 0.2, y: 0.75, screen: Some("DISPLAY2".to_string()) }));
+
+        let first: Settings = serde_json::from_str("{}").unwrap();
+        assert_eq!(first.island_rest, IslandRest::Pill);
+        assert_eq!(first.island_bubble, None);
     }
 }

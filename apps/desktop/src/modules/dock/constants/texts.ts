@@ -1,13 +1,16 @@
 import type { DockEdge } from '@/modules/dock/types/dockEdge';
 
 export const DOCK_TEXTS = {
-  title      : 'Posición de Glup',
-  hint       : 'Toca el dibujo donde lo quieras, o arrástralo desde la pastilla',
-  drawing    : 'Dibujo de la pantalla: toca un borde para poner a Glup ahí',
-  reset      : 'Volver arriba al centro',
-  screen     : 'Pantalla',
-  screenName : (index: number, primary: boolean) => `Pantalla ${index + 1}${primary ? ' (principal)' : ''}`,
-  failed     : 'No pude moverlo. Vuelve a intentarlo.',
+  title         : 'Posición de Glup',
+  hint          : 'Toca el dibujo donde lo quieras, o arrástralo desde la pastilla',
+  bubbleHint    : 'Toca el dibujo donde la quieras, o arrástrala desde la burbuja',
+  drawing       : 'Dibujo de la pantalla: toca un borde para poner a Glup ahí',
+  bubbleDrawing : 'Dibujo de la pantalla: toca donde quieras la burbuja',
+  reset         : 'Volver arriba al centro',
+  bubbleReset   : 'Traer la burbuja al centro',
+  screen        : 'Pantalla',
+  screenName    : (index: number, primary: boolean) => `Pantalla ${index + 1}${primary ? ' (principal)' : ''}`,
+  failed        : 'No pude moverlo. Vuelve a intentarlo.',
 };
 
 export const LOOK_TEXTS = {
@@ -16,6 +19,8 @@ export const LOOK_TEXTS = {
   islandHint  : 'La pastilla siempre a la vista en su borde',
   hidden      : 'Oculta',
   hiddenHint  : 'No se ve nada hasta que llevas el cursor a ese borde',
+  bubble      : 'Burbuja',
+  bubbleHint  : 'Un círculo flotante que dejas donde quieras',
   delay       : 'Cuánto esperar en el borde',
   delayHint   : 'Para que no salga al pasar sin querer',
   delayOption : (ms: number) => `${(ms / 1000).toLocaleString('es', { maximumFractionDigits: 2 })} s`,

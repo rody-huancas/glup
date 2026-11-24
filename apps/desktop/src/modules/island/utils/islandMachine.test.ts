@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import { getIslandArea } from '@/modules/island/utils/islandArea';
 import { getToggleDelay } from '@/modules/island/utils/collapseDelay';
-import { areaKindFor, checkInvariants, hoverEnabled, INITIAL_MACHINE, isHeldOpen, islandReducer, toIslandState } from '@/modules/island/utils/islandMachine';
+import { areaKindFor, checkInvariants, closesOnLeave, hoverEnabled, hoverOpens, INITIAL_MACHINE, isHeldOpen, islandReducer, toIslandState } from '@/modules/island/utils/islandMachine';
 
 const NOTICE = { message: 'Listo · contrato.pdf', tone: 'success' as const };
 
@@ -172,6 +172,86 @@ describe('island machine', () => {
     expect(run([{ type: 'notice', notice: NOTICE }], pill).phase).toBe('notice');
   });
 
+  it('as a bubble it opens, closes, tells a result on its tab and is dragged, as the pill', () => {
+    const bubble = run([{ type: 'rest', rest: 'bubble' }]);
+    expect(bubble.phase).toBe('collapsed');
+    expect(checkInvariants(bubble)).toEqual([]);
+
+    const opened = run([{ type: 'pointer', inside: true }, { type: 'expand', pin: false }, { type: 'settled', phase: 'expanded' }], bubble);
+    expect(opened.phase).toBe('expanded');
+
+    const closed = run([{ type: 'pointer', inside: false }, { type: 'collapse', farewell: false }, { type: 'settled', phase: 'collapsed' }], opened);
+    expect(closed.rest).toBe('bubble');
+
+    const telling = run([{ type: 'notice', notice: NOTICE }], closed);
+    expect(telling.phase).toBe('notice');
+
+    const dragged = run([{ type: 'moving', on: true }], telling);
+    expect(dragged.moving).toBe(true);
+    expect(dragged.notice).toBeNull();
+    expect(run([{ type: 'expand', pin: false }], dragged).phase).toBe('collapsed');
+    expect(run([{ type: 'moving', on: false }, { type: 'expand', pin: false }], dragged).phase).toBe('expanding');
+  });
+
+  it('the bubble only reacts to the cursor: it opens with a click and leaving does not close it', () => {
+    const over = run([{ type: 'rest', rest: 'bubble' }, { type: 'pointer', inside: true }]);
+    expect(hoverEnabled(over)).toBe(true);
+    expect(hoverOpens(over)).toBe(false);
+    expect(getToggleDelay({ state: toIslandState(over.phase), inside: hoverOpens(over), dragging: false, blocked: !closesOnLeave(over) })).toBeNull();
+
+    const open = run([{ type: 'expand', pin: true }, { type: 'settled', phase: 'expanded' }, { type: 'pin-toggled' }, { type: 'pointer', inside: false }], over);
+    expect(open.pinned).toBe(false);
+    expect(closesOnLeave(open)).toBe(false);
+    expect(getToggleDelay({ state: toIslandState(open.phase), inside: hoverOpens(open), dragging: false, blocked: !closesOnLeave(open) })).toBeNull();
+
+    const pill = run([{ type: 'pointer', inside: true }]);
+    expect(hoverOpens(pill)).toBe(true);
+    expect(closesOnLeave(run([{ type: 'expand', pin: false }, { type: 'settled', phase: 'expanded' }], pill))).toBe(true);
+  });
+
+  it('a file dragged onto the bubble still opens it at once', () => {
+    const bubble = run([{ type: 'rest', rest: 'bubble' }]);
+    expect(getToggleDelay({ state: toIslandState(bubble.phase), inside: hoverOpens(bubble), dragging: true, blocked: false })).toBe(0);
+  });
+
+  it('a click outside closes the open bubble, unless the person is in the middle of something', () => {
+    const open = run([{ type: 'rest', rest: 'bubble' }, { type: 'expand', pin: true }, { type: 'settled', phase: 'expanded' }]);
+    expect(run([{ type: 'outside' }], open).phase).toBe('collapsing');
+    expect(run([{ type: 'holds', holds: ['dialog'] }, { type: 'outside' }], open).phase).toBe('expanded');
+
+    const pill = run([{ type: 'expand', pin: false }, { type: 'settled', phase: 'expanded' }, { type: 'outside' }]);
+    expect(pill.phase).toBe('expanded');
+    expect(run([{ type: 'outside' }], run([{ type: 'rest', rest: 'bubble' }])).phase).toBe('collapsed');
+  });
+
+  it('dragging the bubble never opens it, not even with a click on the way', () => {
+    const dragged = run([{ type: 'rest', rest: 'bubble' }, { type: 'pointer', inside: true }, { type: 'moving', on: true }]);
+    expect(run([{ type: 'expand', pin: true }], dragged).phase).toBe('collapsed');
+    expect(hoverEnabled(dragged)).toBe(false);
+  });
+
+  it('changing how it rests drops a notice or a drag of the old form, and keeps the panel open', () => {
+    const telling = run([{ type: 'notice', notice: NOTICE }, { type: 'rest', rest: 'bubble' }]);
+    expect(telling.phase).toBe('collapsed');
+    expect(telling.notice).toBeNull();
+
+    const dragged = run([{ type: 'moving', on: true }, { type: 'rest', rest: 'pill' }], telling);
+    expect(dragged.moving).toBe(false);
+
+    const open = run([{ type: 'expand', pin: true }, { type: 'settled', phase: 'expanded' }, { type: 'rest', rest: 'bubble' }], dragged);
+    expect(open.phase).toBe('expanded');
+    expect(open.pinned).toBe(true);
+  });
+
+  it('a bubble hidden by a fullscreen app comes back as a bubble', () => {
+    const away = run([{ type: 'rest', rest: 'bubble' }, { type: 'fullscreen', on: true }]);
+    expect(away.phase).toBe('hidden');
+
+    const back = run([{ type: 'fullscreen', on: false }], away);
+    expect(back.phase).toBe('collapsed');
+    expect(back.rest).toBe('bubble');
+  });
+
   it('hidden at rest stays apart from hidden by a fullscreen app or the tray', () => {
     const both = run([{ type: 'rest', rest: 'hidden' }, { type: 'tray', hidden: true }]);
     expect(both.phase).toBe('hidden');
@@ -209,6 +289,8 @@ describe('island machine', () => {
       { type: 'moving', on: true },
       { type: 'moving', on: false },
       { type: 'rest', rest: 'hidden' },
+      { type: 'rest', rest: 'bubble' },
+      { type: 'outside' },
       { type: 'rest', rest: 'pill' },
       { type: 'reset' },
       { type: 'holds', holds: ['dialog'] },

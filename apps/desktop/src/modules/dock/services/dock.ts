@@ -1,9 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
+import type { BubbleSpot } from '@/modules/dock/interfaces/bubbleSpot';
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { IslandModeRequest } from '@/modules/dock/interfaces/islandModeRequest';
 import type { IslandScreen } from '@/modules/dock/interfaces/islandScreen';
 import type { TaskbarState } from '@/modules/dock/interfaces/taskbarState';
-import { BEGIN_ISLAND_DRAG, GET_ISLAND_SCREENS, GET_TASKBAR_STATE, SET_ISLAND_DOCK, SET_ISLAND_FRAME, SET_ISLAND_MODE } from '@/shared/constants/events';
+import { BEGIN_ISLAND_DRAG, GET_ISLAND_SCREENS, GET_TASKBAR_STATE, SET_ISLAND_BUBBLE, SET_ISLAND_DOCK, SET_ISLAND_FRAME, SET_ISLAND_MODE } from '@/shared/constants/events';
 import type { Rect } from '@/shared/interfaces/rect';
 
 interface SetIslandFrameParams {
@@ -11,11 +12,11 @@ interface SetIslandFrameParams {
   // The window, in CSS pixels of that screen's work area.
   rect          : Rect;
   // The resting area within the window, for a reset (tray, capture) to go back to; hidden at rest it is
-  // only the reveal zone and takes no clicks.
+  // only the reveal zone and takes no clicks, the bubble's is round.
   pill          : Rect;
   pillClickable : boolean;
+  pillRound     : boolean;
 }
-
 
 
 export const getIslandScreens = (): Promise<IslandScreen[]> => invoke<IslandScreen[]>(GET_ISLAND_SCREENS);
@@ -26,6 +27,8 @@ export const setIslandFrame = (request: SetIslandFrameParams): Promise<void> => 
 export const beginIslandDrag = (): Promise<void> => invoke(BEGIN_ISLAND_DRAG);
 
 export const setIslandDock = (dock: IslandDock): Promise<void> => invoke(SET_ISLAND_DOCK, { dock });
+
+export const setIslandBubble = (spot: BubbleSpot): Promise<void> => invoke(SET_ISLAND_BUBBLE, { spot });
 
 // "Cómo se muestra": what is not sent stays as it was.
 export const setIslandMode = (request: IslandModeRequest): Promise<void> => invoke(SET_ISLAND_MODE, { request });

@@ -49,6 +49,8 @@ cd apps/desktop/src-tauri && cargo check && cargo test
   porque el historial queda en git.
 - Nunca se modifican ni se borran los archivos originales de la persona.
 - No inventes funciones del producto: si algo no está claro, pregunta.
+- Nunca simules clics, teclas ni arrastres sobre el escritorio del usuario. Para probar algo visual, usa
+  tests, logs y descríbeme qué probar a mano.
 - No hagas commits ni push salvo que se pidan. Tampoco tags: un tag `v*.*.*` dispara la publicación.
 - Antes de terminar: typecheck, vitest, cargo check y cargo test en verde.
 - Nunca se compila en release en local (`cargo build --release`, `cargo test --release`,

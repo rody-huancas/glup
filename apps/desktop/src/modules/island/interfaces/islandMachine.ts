@@ -15,10 +15,12 @@ export interface IslandMachine {
   trayHidden : boolean;
   // "Copiar texto de la pantalla": a zone of the screen is being chosen.
   capturing  : boolean;
-  // Being dragged to another edge, corner or screen: it does not open (not even on hover) until dropped.
+  // Being dragged to another edge, corner, spot or screen: it does not open (not even on hover) until
+  // dropped.
   moving     : boolean;
-  // How it rests when closed: the pill, or hidden (modo oculto, nothing on screen; the cursor against its
-  // edge, its shortcut or the tray bring the panel out). Collapsed is still its resting phase.
+  // How it rests when closed: the pill, hidden (modo oculto, nothing on screen; the cursor against its
+  // edge, its shortcut or the tray bring the panel out) or the floating bubble. Collapsed is still its
+  // resting phase in all three.
   rest       : IslandRest;
   notice     : IslandNotice | null;
   // Bumped by every hard reset (tray, watchdog), so the view snaps back to a clean pill.
@@ -40,5 +42,6 @@ export type IslandEvent =
   | { type: 'capture'; on: boolean }
   | { type: 'moving'; on: boolean }
   | { type: 'rest'; rest: IslandRest }
+  | { type: 'outside' }
   | { type: 'reset' }
   | { type: 'holds'; holds: HoldReason[] };

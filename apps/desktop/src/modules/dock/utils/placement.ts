@@ -74,6 +74,7 @@ const placeOnEdge = ({ dock, work, rest = 'pill' }: PlaceIslandParams): IslandPl
     along  : center - start,
     shifts : { expanded: opened - center, notice: told - center },
     rest,
+    bubble : null,
   };
 };
 
@@ -91,11 +92,12 @@ const placeInCorner = ({ dock, work, rest = 'pill' }: PlaceIslandParams): Island
     along  : 0,
     shifts : { expanded: 0, notice: 0 },
     rest,
+    bubble : null,
   };
 };
 
 // The window covers the pill and everything that grows from it (the panel with its overshoot, the
-// notice), toward the middle of the screen and never outside its work area.
+// notice), toward the middle of the screen and never outside its work area. (The bubble: placeBubble.)
 export const placeIsland = (params: PlaceIslandParams): IslandPlacement =>
   KIND_OF[params.dock.edge] === 'corner' ? placeInCorner(params) : placeOnEdge(params);
 

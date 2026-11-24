@@ -25,6 +25,8 @@ export const ISLAND_TIMING = {
   dwell            : 120,
   dragDwell        : 0,
   leaveDelay       : 350,
+  // The open bubble waits this long after losing the focus before closing (a click outside).
+  outsideDelay     : 150,
   // Reopening after this long goes to Inicio instead of the last section (ms).
   lastPageLifetime : 10 * 60 * 1000,
 };

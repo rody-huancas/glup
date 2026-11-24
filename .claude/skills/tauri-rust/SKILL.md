@@ -71,7 +71,9 @@ src-tauri/
     el webview decide dónde va la isla (`modules/dock`) y Rust da las pantallas con su área de trabajo
     (`get_island_screens`), pone la ventana (`set_island_frame`, recordando el marco) y la región como un
     rectángulo de la ventana (`set_island_area`); oculta en reposo, ese rectángulo no es clicable: la
-    región queda vacía y solo el `cursor_tracker` lo vigila (`zone_hit`). El arrastre lo sigue
+    región queda vacía y solo el `cursor_tracker` lo vigila (`zone_hit`); la burbuja en reposo la pide
+    redonda (`AreaShape { round }`, región elíptica). `set_island_frame` no recoloca la ventana si el
+    marco no cambió (la burbuja se mueve dentro de su pantalla sin moverla). El arrastre lo sigue
     `island_drag.rs` (cursor y botón del mouse, hasta soltar). Los vigilantes (`island_watchdog.rs`)
     corrigen marco y región (vacía, si así debe estar). `taskbar.rs` dice si la barra de tareas se
     oculta sola y en qué borde. Las APIs de
