@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { RESULT_MOODS } from '@/modules/actions/constants/resultMoods';
+import { useIslandDock } from '@/modules/dock/hooks/useIslandDock';
 import { revealHistoryEntry } from '@/modules/history/store/historyReveal';
 import { useIslandAutoToggle } from '@/modules/island/hooks/useIslandAutoToggle';
+import { useIslandDragGesture } from '@/modules/island/hooks/useIslandDragGesture';
 import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
 import { useIslandMachine } from '@/modules/island/hooks/useIslandMachine';
 import { useIslandSignals } from '@/modules/island/hooks/useIslandSignals';
@@ -46,8 +48,21 @@ export const useIsland = () => {
     resetRef.current = panel.discardSelection;
   }, [panel.discardSelection]);
 
+  // Where the island is docked; dragging it (below) moves it to another edge, corner or screen.
+  const onMoving     = useCallback((on: boolean) => send({ type: 'moving', on }), [send]);
+  const dock         = useIslandDock({ onMoving });
+  const placementRef = useRef(dock.placement);
+
   const { takeFocus, releaseFocus } = useIslandFocus();
-  const { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving } = useIslandTimeline({ elements, mascotRef: panel.avatarRef });
+  const { transitionTo, hide, hover, limbsVisible, notice, showNotice, isMoving, relayout } = useIslandTimeline({ elements, mascotRef: panel.avatarRef, placementRef });
+
+  // A new place (dropped, changed in Ajustes, another screen): drawn there at once, in its current state.
+  useEffect(() => {
+    if (placementRef.current === dock.placement) return;
+
+    placementRef.current = dock.placement;
+    relayout();
+  }, [dock.placement, relayout]);
 
   const expandOnHover   = useCallback(() => send({ type: 'expand', pin: false }), [send]);
   const openPinned      = useCallback(() => send({ type: 'expand', pin: true }), [send]);
@@ -139,7 +154,7 @@ export const useIsland = () => {
     collapse : collapseOnLeave,
   });
 
-  useIslandWatchdog({ machine, send, isMoving });
+  useIslandWatchdog({ machine, send, isMoving, placementRef });
 
   // While signing or organizing, Esc belongs to that screen (it asks before leaving).
   useKeyDown({ key: 'Escape', enabled: state === 'expanded' && !panel.fullScreen, handler: collapseNow });
@@ -153,6 +168,9 @@ export const useIsland = () => {
   const onPanelPointerDown = useCallback(() => {
     if (state === 'expanded') takeFocus();
   }, [state, takeFocus]);
+
+  // Only the resting pill (or its notice) is dragged; the window follows the edge it would land on.
+  const drag = useIslandDragGesture({ enabled: machine.phase === 'collapsed' || machine.phase === 'notice', onDragStart: dock.beginDrag });
 
   // Tasks run on their own; with the island collapsed the pill shows progress and a notice at the end.
   const tasks   = useTasks();
@@ -270,14 +288,31 @@ export const useIsland = () => {
     [state, running, notice],
   );
 
+  const consumeClick  = drag.consumeClick;
   const onMascotClick = useCallback(() => {
+    if (consumeClick()) return;
     if (state === 'collapsed') openPinned();
-  }, [state, openPinned]);
+  }, [state, openPinned, consumeClick]);
 
   const controls = useMemo<PanelControlsProps>(
     () => ({ pinned: machine.pinned, onTogglePin: togglePin, onCollapse: collapseNow }),
     [machine.pinned, togglePin, collapseNow],
   );
 
-  return { state, elements, panel, controls, limbsVisible, notice, progress, pendingSelection: state === 'collapsed' && pending, onMascotClick, onPanelPointerDown, onNoticeView };
+  return {
+    state,
+    elements,
+    panel,
+    controls,
+    limbsVisible,
+    notice,
+    progress,
+    placement          : dock.placement,
+    dragging           : dock.dragging,
+    pendingSelection   : state === 'collapsed' && pending,
+    onMascotClick,
+    onPanelPointerDown,
+    onDragPointerDown  : drag.onPointerDown,
+    onNoticeView,
+  };
 };
