@@ -3,6 +3,7 @@ import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { IslandRest } from '@/modules/dock/types/islandRest';
 import type { ReduceLevel } from '@/modules/pdf/types/reduceLevel';
 import type { SaveMode } from '@/modules/settings/types/saveMode';
+import type { GpuMode } from '@/modules/transcribe/types/gpuMode';
 import type { TranscribeLevel } from '@/modules/transcribe/types/transcribeLevel';
 
 export interface AppSettings {
@@ -18,6 +19,9 @@ export interface AppSettings {
   notificationsOff      : boolean;
   // "Pasar audio a texto": the last level chosen.
   transcribeLevel       : TranscribeLevel;
+  // "Usar la tarjeta de video": Automático or Nunca; the cards that failed (with their driver), set by Rust.
+  transcribeGpu         : GpuMode;
+  gpuBlocked            : string[];
   // "Copiar texto de la pantalla": the shortcut chosen (null: Glup's own) and whether it is off. Ajustes
   // changes them through set_screen_text_shortcut, which first checks Windows accepts it.
   screenTextShortcut    : string | null;
