@@ -19,7 +19,6 @@ export const CLIPBOARD_TEXTS = {
   selectLabel   : (what: string) => `Seleccionar «${what}»`,
   imageName     : 'la imagen',
   selectAll     : 'Seleccionar todo',
-  removeSome    : (count: number) => `Quitar seleccionados (${count})`,
   removeTitle   : (count: number) => `¿Quitar ${count} ${count === 1 ? 'elemento' : 'elementos'} del portapapeles?`,
   removeBody    : 'Se quitan del portapapeles de Glup. Lo que tengas copiado ahora no cambia.',
   removeCancel  : 'Cancelar',

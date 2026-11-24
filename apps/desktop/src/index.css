@@ -19,6 +19,10 @@
   --color-lilac       : #9D90FA;
   --color-lilac-soft  : #C3BAFF;
   --color-warn        : #F0B46E;
+  /* Removing or deleting: a soft coral that reads on the dark surfaces, its dim fill and its ink. */
+  --color-danger      : #F2777A;
+  --color-danger-soft : #3A1D22;
+  --color-danger-ink  : #2A0E10;
   /* Ink on the white page of a PDF preview (watermark gray, page numbers black). */
   --color-ink         : #000000;
   --color-ink-gray    : #808080;

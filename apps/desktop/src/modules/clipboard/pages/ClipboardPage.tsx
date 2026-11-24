@@ -13,10 +13,10 @@ import { useTurnOffClipboard } from '@/modules/clipboard/hooks/useTurnOffClipboa
 import type { Clip } from '@/modules/clipboard/interfaces/clip';
 import { setClipPinned } from '@/modules/clipboard/services/clipboard';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
-import { Button } from '@/shared/components/Button';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { SelectAll } from '@/shared/components/SelectAll';
+import { SelectionBar } from '@/shared/components/SelectionBar';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { useCheckSelection } from '@/shared/hooks/useCheckSelection';
 
@@ -68,14 +68,7 @@ export const ClipboardPage = ({ onNavigate }: PageProps) => {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex items-end justify-between gap-4">
-        {header}
-        {count > 0 && (
-          <Button variant="secondary" onClick={() => ask(selection.selected)} className="h-9 shrink-0">
-            {CLIPBOARD_TEXTS.removeSome(count)}
-          </Button>
-        )}
-      </div>
+      {header}
       <ClipboardToolbar
         query={list.query}
         pausedUntil={status.pausedUntil}
@@ -94,7 +87,10 @@ export const ClipboardPage = ({ onNavigate }: PageProps) => {
       )}
       {clips.length > 0 && (
         <>
-          <SelectAll label={CLIPBOARD_TEXTS.selectAll} state={selection.state} onToggle={selection.toggleAll} />
+          <div className="flex min-h-9 items-center justify-between gap-3">
+            <SelectAll label={CLIPBOARD_TEXTS.selectAll} state={selection.state} onToggle={selection.toggleAll} />
+            <SelectionBar count={count} onRemove={() => ask(selection.selected)} onCancel={selection.clear} />
+          </div>
           <ClipList
             clips={clips}
             now={list.now}

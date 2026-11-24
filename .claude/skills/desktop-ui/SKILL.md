@@ -24,7 +24,7 @@ src/
 │   ├── utils/                       Funciones puras por concepto, con su *.test.ts al lado
 │   └── assets/                      Imágenes propias del módulo
 └── shared/                          Lo que usan dos o más módulos
-    ├── components/                  Button, Card, IconButton, FileChip, Switch, Skeleton, ProgressBar, ConfirmDialog, Checkbox, SelectAll…
+    ├── components/                  Button, Card, IconButton, FileChip, Switch, Skeleton, ProgressBar, ConfirmDialog, Checkbox, SelectAll, SelectionBar…
     ├── icons/                       Íconos SVG de trazo, uno por archivo
     ├── hooks/                       useFileDrop, useGlobalCursor, useCheckSelection (checks de una lista)…
     ├── constants/                   Nombres de comandos y eventos de Tauri (events.ts)…
@@ -64,6 +64,7 @@ Módulos actuales: `island` (la isla y su máquina de estados), `mascot` (Glup y
    rápidas, formatos) va en un JSON del módulo (`constants/actions.json`) tipado con su interface.
 9. **Estilos con Tailwind v4 y los tokens** de `index.css` (`@theme`): `bg-bg`, `bg-surface`,
    `bg-raised`, `border-line`, `text-text`, `text-muted`, `bg-mint`, `text-mint-ink`, `text-lilac`,
+   `text-danger`, `bg-danger-soft` (quitar o borrar: `Button variant="danger"`),
    `rounded-control`, `rounded-panel`. Nada de colores sueltos (`#fff`, `bg-white`, `text-red-500`)
    ni valores arbitrarios para colores. Un color o radio nuevo se agrega como token. Fuente: Plus
    Jakarta Sans, incluida localmente con `@fontsource`: la app funciona sin internet.
