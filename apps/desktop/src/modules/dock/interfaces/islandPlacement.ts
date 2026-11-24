@@ -1,3 +1,4 @@
+import type { BubbleLayout } from '@/modules/dock/interfaces/bubbleLayout';
 import type { DockShifts } from '@/modules/dock/interfaces/dockShifts';
 import type { DockEdge } from '@/modules/dock/types/dockEdge';
 import type { DockKind } from '@/modules/dock/types/dockKind';
@@ -14,4 +15,6 @@ export interface IslandPlacement {
   along  : number;
   shifts : DockShifts;
   rest   : IslandRest;
+  // Only a floating bubble has it (its edge is then meaningless).
+  bubble : BubbleLayout | null;
 }
