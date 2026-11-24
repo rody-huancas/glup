@@ -23,5 +23,6 @@
   { "id": "zip-files", "kind": "action", "section": "files", "icon": "zip", "actionId": "zip", "fileType": "files", "multiple": true, "title": "Juntar en ZIP", "description": "Muchos archivos en uno solo" },
   { "id": "clipboard", "kind": "page", "section": "pc", "icon": "clipboard", "page": "clipboard", "shortcut": "clipboard", "title": "Portapapeles", "description": "Lo que copiaste, para buscarlo y copiarlo de nuevo" },
   { "id": "cleanup", "kind": "page", "section": "pc", "icon": "cleanup", "page": "cleanup", "title": "Limpieza", "description": "Haz espacio en tu PC" },
-  { "id": "folder-sort", "kind": "page", "section": "pc", "icon": "folder-sort", "page": "folder-sort", "title": "Ordenar una carpeta", "description": "Descargas u otra, en carpetas por tipo o por fecha" }
+  { "id": "folder-sort", "kind": "page", "section": "pc", "icon": "folder-sort", "page": "folder-sort", "title": "Ordenar una carpeta", "description": "Descargas u otra, en carpetas por tipo o por fecha" },
+  { "id": "performance", "kind": "page", "section": "pc", "icon": "performance", "page": "performance", "title": "Rendimiento", "description": "Qué está usando tu PC y qué arranca con ella" }
 ]
