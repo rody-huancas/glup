@@ -41,6 +41,7 @@ pub fn run() {
         .manage(PageImageSessions::default())
         .manage(TaskRegistry::default())
         .manage(CleanupState::default())
+        .manage(services::folder_sort::FolderSortState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
         .manage(UpdateState::default())
@@ -66,6 +67,10 @@ pub fn run() {
             commands::actions::sign_pdf,
             commands::actions::organize_pdf,
             commands::actions::check_pdf_password,
+            commands::folder_sort::get_sort_folder,
+            commands::folder_sort::preview_folder_sort,
+            commands::folder_sort::sort_folder,
+            commands::folder_sort::undo_folder_sort,
             commands::cleanup::get_disk_space,
             commands::cleanup::scan_cleanup,
             commands::cleanup::clean_up,
@@ -155,6 +160,7 @@ pub fn run() {
             services::updates::spawn(app.handle().clone());
             services::shortcuts::apply_saved(app.handle());
             services::clipboard::spawn(app.handle().clone());
+            services::folder_sort::spawn_recovery(app.handle().clone());
             Ok(())
         })
         .run(tauri::generate_context!())
