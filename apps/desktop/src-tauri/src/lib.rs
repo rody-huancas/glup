@@ -42,6 +42,7 @@ pub fn run() {
         .manage(TaskRegistry::default())
         .manage(CleanupState::default())
         .manage(services::folder_sort::FolderSortState::default())
+        .manage(services::performance::PerformanceState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
         .manage(UpdateState::default())
@@ -79,6 +80,12 @@ pub fn run() {
             commands::signatures::delete_signature,
             commands::files::read_file_bytes,
             commands::photos::get_heif_support,
+            commands::performance::get_performance,
+            commands::performance::close_app,
+            commands::performance::force_close_app,
+            commands::performance::get_startup_apps,
+            commands::performance::set_startup_app,
+            commands::performance::get_app_icon,
             commands::photos::get_image_preview,
             commands::settings::get_settings,
             commands::settings::update_settings,
