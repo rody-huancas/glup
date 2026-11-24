@@ -17,7 +17,12 @@ use crate::services::{
     background::{self, BackgroundKind, REMOVED_SUFFIX},
     destination::{self, Destination},
     history::{self, format_size, HistoryEntry, NewEntryParams, SignedDetailParams},
-    image::{compress, convert, to_pdf::PdfBuilder, SourceFormat, TargetFormat, READ_ERROR},
+    image::{
+        compress, convert, decode::decode, guard,
+        metadata::{self, CarryParams},
+        to_pdf::PdfBuilder,
+        SourceFormat, TargetFormat, READ_ERROR,
+    },
     naming::{output_path, OutputKind, OutputNameParams},
     parallel::{run_parallel, worker_count, ParallelParams},
     pdf::{
@@ -34,7 +39,7 @@ use crate::services::{
         watermark::{self as pdf_watermark, WatermarkOptions, EMPTY_TEXT, WATERMARK_SUFFIX},
     },
     progress::{self, Stage},
-    settings::SaveMode,
+    settings::{self as app_settings, SaveMode},
     signatures, tasks,
     video::{self, plan::VideoOptions, ReduceVideoParams, VideoResult, ALREADY_LIGHT, REDUCED_SUFFIX as VIDEO_SUFFIX, VIDEO_EXTENSION},
 };
@@ -45,6 +50,7 @@ pub const SAVE_ERROR: &str        = "No pude guardar el archivo";
 pub const UNSUPPORTED_ERROR: &str = "Esto lo aprendo pronto";
 pub const SAME_FORMAT: &str       = "Ya está en este formato";
 pub const ALREADY_SMALL: &str     = "Ya pesaba poco";
+pub const JPG_GUARD_ERROR: &str   = "No pude pasarla a JPG sin que se viera peor: la dejé como estaba";
 
 pub const FILES_ZIP_PREFIX: &str   = "archivos";
 pub const RESULTS_ZIP_PREFIX: &str = "resultados";
@@ -77,6 +83,26 @@ pub struct SplitOptions {
     pub pages: Vec<u32>,
 }
 
+// "Fotos de iPhone a JPG": how much to keep (more quality, more weight).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum JpgQuality {
+    High,
+    #[default]
+    Normal,
+    Light,
+}
+
+impl JpgQuality {
+    pub fn value(self) -> u8 {
+        match self {
+            Self::High   => 92,
+            Self::Normal => 85,
+            Self::Light  => 75,
+        }
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionOptions {
@@ -99,6 +125,9 @@ pub struct ActionOptions {
     // "Reducir peso" for videos: what it is for, and the size typed.
     #[serde(default)]
     pub video: Option<VideoOptions>,
+    // "Fotos de iPhone a JPG".
+    #[serde(default)]
+    pub jpg: Option<JpgQuality>,
 }
 
 // "Reducir peso" for PDFs: the level and, optionally, a size the result must stay under.
@@ -229,6 +258,8 @@ struct Run<'a> {
     // Names handed out but maybe not written yet, so parallel workers never pick the same one.
     reserved: Mutex<HashSet<PathBuf>>,
     task: Option<String>,
+    // "Quitar ubicación" off: the GPS block of a photo goes into the new file with its date.
+    keep_location: bool,
 }
 
 impl Run<'_> {
@@ -346,8 +377,29 @@ fn convert_one(run: &Run, source: &Path, format: TargetFormat) -> Result<FileRes
         return Ok(FileResult::Unchanged(SAME_FORMAT.to_string()));
     }
 
-    let bytes = convert::convert(source, format)?;
+    let bytes = with_date(run, source, convert::convert(source, format)?);
     run.save(SaveParams { source, kind: OutputKind::Converted { extension: format.extension() }, bytes: &bytes }).map(FileResult::Saved)
+}
+
+// The date the photo was taken (and its place, if asked) in the new file, when its format holds it.
+fn with_date(run: &Run, source: &Path, bytes: Vec<u8>) -> Vec<u8> {
+    metadata::carry(CarryParams { source, bytes, keep_location: run.keep_location })
+}
+
+// "Fotos de iPhone a JPG": the photo upright and in sRGB, checked against itself before it is saved.
+fn to_jpg_one(run: &Run, source: &Path, quality: JpgQuality) -> Result<FileResult, String> {
+    if SourceFormat::from_path(source) == Some(SourceFormat::Jpeg) {
+        return Ok(FileResult::Unchanged(SAME_FORMAT.to_string()));
+    }
+
+    let image = decode(source)?;
+    let bytes = convert::encode_jpeg(&image, quality.value())?;
+    if !guard::looks_the_same(&image, &bytes) {
+        return Err(JPG_GUARD_ERROR.to_string());
+    }
+
+    let bytes = with_date(run, source, bytes);
+    run.save(SaveParams { source, kind: OutputKind::Converted { extension: TargetFormat::Jpg.extension() }, bytes: &bytes }).map(FileResult::Saved)
 }
 
 fn compress_one(run: &Run, source: &Path) -> Result<FileResult, String> {
@@ -358,8 +410,9 @@ fn compress_one(run: &Run, source: &Path) -> Result<FileResult, String> {
         return Ok(FileResult::Unchanged(ALREADY_SMALL.to_string()));
     }
 
-    let kind = OutputKind::Compressed { extension: &compressed.extension };
-    run.save(SaveParams { source, kind, bytes: &compressed.bytes }).map(FileResult::Saved)
+    let kind  = OutputKind::Compressed { extension: &compressed.extension };
+    let bytes = with_date(run, source, compressed.bytes);
+    run.save(SaveParams { source, kind, bytes: &bytes }).map(FileResult::Saved)
 }
 
 // "Quitar fondo" for one image: foto.jpg → foto-sin-fondo.png (or .jpg over white).
@@ -417,6 +470,14 @@ fn run_convert(run: &Run, format: TargetFormat) -> Collected {
     let detail               = |_: &Path, _: &Saved| format!("Convertido a {}", format.label());
 
     let (outcomes, entries) = collect_results(CollectParams { run, results, action: "convert", kind: IMAGE_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+fn run_to_jpg(run: &Run, quality: JpgQuality) -> Collected {
+    let (results, cancelled) = run.each_parallel(|source| to_jpg_one(run, source, quality));
+    let detail               = |_: &Path, _: &Saved| format!("Convertido a {}", TargetFormat::Jpg.label());
+
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: "to-jpg", kind: IMAGE_KIND, detail: &detail });
     Collected { outcomes, entries, batch: None, cancelled }
 }
 
@@ -609,13 +670,13 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
-        video: None,
+        video: None, jpg: None,
     });
     let destination = options.destination.unwrap_or_default();
     let paths       = request.paths.iter().map(PathBuf::from).collect::<Vec<_>>();
     let total       = paths.len();
     let action      = request.action_id.as_str();
-    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers");
+    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "to-jpg" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers");
     let scratch     = if bundled { Some(scratch_folder()?) } else { None };
 
     // Bundled results are made in the scratch folder first, then zipped into the real destination.
@@ -625,7 +686,8 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
     };
 
     let task     = request.task_id.clone();
-    let run      = Run { app, paths, destination: work_destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task };
+    let keep     = app_settings::read(app).settings.keep_location;
+    let run      = Run { app, paths, destination: work_destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task, keep_location: keep };
     let all_pdfs = run.paths.iter().all(|path| is_pdf(path));
     let videos   = run.paths.iter().all(|path| is_video(path));
     let split    = options.split.clone();
@@ -633,6 +695,7 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
 
     let collected = match (action, options.format) {
         ("convert", Some(format))     => run_convert(&run, format),
+        ("to-jpg", _)               => run_to_jpg(&run, options.jpg.unwrap_or_default()),
         ("compress", _) if all_pdfs => run_reduce_pdf(&run, options.reduce.unwrap_or_default()),
         ("compress", _) if videos   => run_reduce_video(&run, options.video.unwrap_or_default()),
         ("compress", _)             => run_compress(&run),
@@ -975,7 +1038,7 @@ pub fn begin_page_images(app: &AppHandle, request: PageImagesRequest) -> Result<
     let bundle      = request.bundle.unwrap_or(false);
     let destination = request.destination.unwrap_or_default();
     let control     = app.state::<ActionControl>();
-    let run         = Run { app, paths: vec![source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None };
+    let run         = Run { app, paths: vec![source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None, keep_location: false };
     let folder      = if bundle { scratch_folder()? } else { output_folder(&run, &source, IMAGES_SUFFIX)? };
 
     if let Some(task) = &request.task_id {
@@ -1002,7 +1065,7 @@ fn finish_page_images_inner(app: &AppHandle, request: FinishPageImagesRequest) -
     let session     = save_images::close(&app.state::<PageImageSessions>(), request.session).ok_or(SESSION_ERROR)?;
     let control     = app.state::<ActionControl>();
     let destination = session.destination.clone();
-    let run         = Run { app, paths: vec![session.source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None };
+    let run         = Run { app, paths: vec![session.source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None, keep_location: false };
     let done        = session.saved.len() as u32;
     let source      = session.source.as_path();
 
@@ -1065,6 +1128,7 @@ pub fn sign_pdf(app: &AppHandle, request: SignRequest) -> Result<ActionReport, S
         cancel      : &control.cancelled,
         reserved    : Mutex::new(HashSet::new()),
         task        : request.task_id.clone(),
+        keep_location : false,
     };
 
     run.progress(ProgressParams { current: 0, total: 1, name: &file_name(&source), active: 1 });
@@ -1128,6 +1192,7 @@ pub fn organize_pdf(app: &AppHandle, request: OrganizeRequest) -> Result<ActionR
         cancel      : &control.cancelled,
         reserved    : Mutex::new(HashSet::new()),
         task        : request.task_id.clone(),
+        keep_location : false,
     };
 
     run.progress(ProgressParams { current: 0, total: 1, name: &file_name(&source), active: 1 });
@@ -1418,6 +1483,7 @@ pub fn save_id_photo(app: &AppHandle, request: IdPhotoSaveRequest) -> Result<Act
         cancel      : &control.cancelled,
         reserved    : Mutex::new(HashSet::new()),
         task        : request.task_id.clone(),
+        keep_location : false,
     };
     run.progress(ProgressParams { current: 0, total: 1, name: "", active: 1 });
 
