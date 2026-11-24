@@ -1,3 +1,4 @@
+import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { ReduceLevel } from '@/modules/pdf/types/reduceLevel';
 import type { SaveMode } from '@/modules/settings/types/saveMode';
 import type { TranscribeLevel } from '@/modules/transcribe/types/transcribeLevel';
@@ -25,6 +26,8 @@ export interface AppSettings {
   clipboardExcluded     : string[];
   clipboardShortcut     : string | null;
   clipboardShortcutOff  : boolean;
+  // Where the island lives (null: on top in the middle); changed through set_island_dock.
+  islandDock            : IslandDock | null;
 }
 
 export interface SettingsView extends AppSettings {
