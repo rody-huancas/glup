@@ -28,7 +28,7 @@ pub enum Stage {
 impl ActionProgress {
     // A stage without a count (the bar moves on its own).
     pub fn at(task: &Option<String>, stage: Stage) -> Self {
-        Self { task_id: task.clone(), current: 0, total: 0, name: String::new(), active: 1, detail: None, stage }
+        Self { task_id: task.clone(), current: 0, total: 0, name: String::new(), active: 1, detail: None, stage, via: None }
     }
 }
 
@@ -69,6 +69,7 @@ impl DownloadSpan {
             active  : 1,
             detail  : Some(download_detail(current, self.total)),
             stage   : Stage::Downloading,
+            via     : None,
         }
     }
 

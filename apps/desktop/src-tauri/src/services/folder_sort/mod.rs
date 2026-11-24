@@ -289,7 +289,7 @@ fn records_folder(app: &AppHandle) -> Option<PathBuf> {
 }
 
 fn emit_progress(app: &AppHandle, task: &Option<String>, current: usize, total: usize, name: &str) {
-    progress::emit(app, ActionProgress { task_id: task.clone(), current, total, name: name.to_string(), active: 1, detail: None, stage: Stage::Working });
+    progress::emit(app, ActionProgress { task_id: task.clone(), current, total, name: name.to_string(), active: 1, detail: None, stage: Stage::Working, via: None });
 }
 
 // The record before anything moves: its folder, its mode and how many files the preview planned.
