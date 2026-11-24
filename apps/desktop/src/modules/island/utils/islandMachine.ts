@@ -1,8 +1,8 @@
+import type { DockArea } from '@/modules/dock/types/dockArea';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import type { IslandPhase } from '@/modules/island/types/islandPhase';
 import type { IslandState } from '@/modules/island/types/islandState';
 import { getIslandArea } from '@/modules/island/utils/islandArea';
-import type { IslandAreaKind } from '@/modules/island/utils/islandArea';
 
 export const INITIAL_MACHINE: IslandMachine = {
   phase      : 'collapsed',
@@ -13,6 +13,7 @@ export const INITIAL_MACHINE: IslandMachine = {
   fullscreen : false,
   trayHidden : false,
   capturing  : false,
+  moving     : false,
   notice     : null,
   resets     : 0,
   holds      : [],
@@ -25,9 +26,9 @@ const isHiddenBy = (machine: IslandMachine): boolean => machine.fullscreen || ma
 
 // Leaving the hidden state always lands on a clean pill.
 const revealed = (machine: IslandMachine): IslandMachine =>
-  isHiddenBy(machine) ? machine : { ...machine, phase: 'collapsed', pinned: false, notice: null, locked: false, resets: machine.resets + 1 };
+  isHiddenBy(machine) ? machine : { ...machine, phase: 'collapsed', pinned: false, notice: null, locked: false, moving: false, resets: machine.resets + 1 };
 
-const hidden = (machine: IslandMachine): IslandMachine => ({ ...machine, phase: 'hidden', pinned: false, notice: null });
+const hidden = (machine: IslandMachine): IslandMachine => ({ ...machine, phase: 'hidden', pinned: false, notice: null, moving: false });
 
 const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
   const { phase } = machine;
@@ -37,7 +38,7 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
       return { ...machine, inside: event.inside, locked: event.inside && machine.locked };
 
     case 'expand':
-      if (phase === 'hidden') return machine;
+      if (phase === 'hidden' || machine.moving) return machine;
       if (OPEN_PHASES.includes(phase)) return { ...machine, pinned: machine.pinned || event.pin };
       return { ...machine, phase: 'expanding', pinned: event.pin, notice: null };
 
@@ -54,9 +55,18 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
     case 'pin-toggled':
       return OPEN_PHASES.includes(phase) ? { ...machine, pinned: !machine.pinned } : machine;
 
-    // Only the resting pill widens; a new result while one is showing just replaces its text.
+    // Only the resting pill widens; a new result while one is showing just replaces its text. While it is
+    // dragged it stays a pill (the result is also told by its toast or notification).
     case 'notice':
+      if (machine.moving) return machine;
       return phase === 'collapsed' || phase === 'notice' ? { ...machine, phase: 'notice', notice: event.notice } : machine;
+
+    // Only the resting pill (or its notice, which gives way) can be dragged to another edge; while it
+    // goes, nothing opens it.
+    case 'moving':
+      if (!event.on) return { ...machine, moving: false };
+      if (phase !== 'collapsed' && phase !== 'notice') return machine;
+      return { ...machine, phase: 'collapsed', notice: null, moving: true };
 
     case 'notice-ended':
       return phase === 'notice' ? { ...machine, phase: 'collapsed', notice: null } : machine;
@@ -111,7 +121,7 @@ export const toIslandState = (phase: IslandPhase): IslandState => {
 
 // The region each phase needs; while opening the whole frame (elastic overshoot), while closing the
 // panel until it has shrunk.
-export const areaKindFor = (phase: IslandPhase): IslandAreaKind => {
+export const areaKindFor = (phase: IslandPhase): DockArea => {
   if (phase === 'expanding') return 'frame';
   if (phase === 'expanded' || phase === 'collapsing') return 'expanded';
   if (phase === 'notice') return 'notice';
@@ -121,7 +131,7 @@ export const areaKindFor = (phase: IslandPhase): IslandAreaKind => {
 // Phases where nothing is moving, so the watchdog can compare the region with the real window.
 export const isSettledPhase = (phase: IslandPhase): boolean => phase === 'collapsed' || phase === 'expanded';
 
-export const hoverEnabled = (machine: IslandMachine): boolean => machine.inside && !machine.locked;
+export const hoverEnabled = (machine: IslandMachine): boolean => machine.inside && !machine.locked && !machine.moving;
 
 // Leaving the panel does not close it while pinned or while the person is in the middle of something.
 // Glup eating or working no longer counts: tasks go on in the background with the pill's progress.
@@ -137,6 +147,7 @@ export const checkInvariants = (machine: IslandMachine): string[] => {
   if (machine.phase !== 'hidden' && (area.width < pill.width || area.height < pill.height)) broken.push('región menor que la pastilla');
   if ((machine.notice !== null) !== (machine.phase === 'notice')) broken.push('aviso fuera de la pastilla ancha');
   if (machine.pinned && !OPEN_PHASES.includes(machine.phase)) broken.push('fijada estando cerrada');
+  if (machine.moving && machine.phase !== 'collapsed') broken.push('arrastrada sin estar recogida');
 
   return broken;
 };
@@ -150,5 +161,6 @@ export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'tray') return `tray(${event.hidden ? 'oculta' : 'visible'})`;
   if (event.type === 'capture') return `capture(${event.on ? 'eligiendo zona' : 'terminó'})`;
   if (event.type === 'holds') return `holds(${event.holds.join(', ') || 'ninguno'})`;
+  if (event.type === 'moving') return `moving(${event.on ? 'arrastrando' : 'soltada'})`;
   return event.type;
 };

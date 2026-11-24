@@ -1,28 +1,14 @@
-import { HOVER_SHAPE, ISLAND_FRAME, ISLAND_SHAPES, NOTICE_SHAPE, SETTLE_SHAPE } from '@/modules/island/constants/islandShape';
+import { DEFAULT_DOCK, FALLBACK_WORK } from '@/modules/dock/constants/dock';
+import type { DockArea } from '@/modules/dock/types/dockArea';
+import { dockRegion } from '@/modules/dock/utils/dockLayout';
+import { placeIsland } from '@/modules/dock/utils/placement';
 import type { ShapeSize } from '@/modules/island/interfaces/islandShape';
-import { getShapeSize } from '@/modules/island/utils/islandPath';
 
-export type IslandAreaKind = 'collapsed' | 'expanded' | 'frame' | 'notice';
+// The machine's rules (the region never smaller than the pill…) are the same on every edge, so they are
+// checked on the island of always: on top in the middle. The real regions come from dockRegion.
+const CANONICAL = placeIsland({ dock: DEFAULT_DOCK, work: FALLBACK_WORK });
 
-// Room for the notice's elastic overshoot.
-const NOTICE_OVERSHOOT = 1.12;
-
-// The collapsed area also fits the hover inflate and the landing shake, ears included.
-const COLLAPSED_AREA = getShapeSize({
-  ...ISLAND_SHAPES.collapsed,
-  width  : Math.max(ISLAND_SHAPES.collapsed.width, HOVER_SHAPE.width, SETTLE_SHAPE.width),
-  height : Math.max(ISLAND_SHAPES.collapsed.height, HOVER_SHAPE.height, SETTLE_SHAPE.height),
-});
-
-const ISLAND_AREAS: Record<IslandAreaKind, ShapeSize> = {
-  collapsed : COLLAPSED_AREA,
-  expanded  : getShapeSize(ISLAND_SHAPES.expanded),
-  frame     : ISLAND_FRAME,
-  notice    : getShapeSize({
-    ...NOTICE_SHAPE,
-    width  : NOTICE_SHAPE.width * NOTICE_OVERSHOOT,
-    height : NOTICE_SHAPE.height * NOTICE_OVERSHOOT,
-  }),
+export const getIslandArea = (kind: DockArea): ShapeSize => {
+  const { width, height } = dockRegion(CANONICAL, kind);
+  return { width, height };
 };
-
-export const getIslandArea = (kind: IslandAreaKind): ShapeSize => ISLAND_AREAS[kind];

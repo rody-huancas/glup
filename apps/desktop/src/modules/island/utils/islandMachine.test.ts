@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import { getIslandArea } from '@/modules/island/utils/islandArea';
 import { getToggleDelay } from '@/modules/island/utils/collapseDelay';
-import { areaKindFor, checkInvariants, INITIAL_MACHINE, isHeldOpen, islandReducer, toIslandState } from '@/modules/island/utils/islandMachine';
+import { areaKindFor, checkInvariants, hoverEnabled, INITIAL_MACHINE, isHeldOpen, islandReducer, toIslandState } from '@/modules/island/utils/islandMachine';
 
 const NOTICE = { message: 'Listo · contrato.pdf', tone: 'success' as const };
 
@@ -118,6 +118,36 @@ describe('island machine', () => {
     expect(run([{ type: 'fullscreen', on: false }], both).phase).toBe('collapsed');
   });
 
+  it('while it is dragged it does not open, not even on hover, and opens again once dropped', () => {
+    const moving = run([{ type: 'pointer', inside: true }, { type: 'moving', on: true }]);
+
+    expect(moving.moving).toBe(true);
+    expect(hoverEnabled(moving)).toBe(false);
+    expect(run([{ type: 'expand', pin: false }], moving).phase).toBe('collapsed');
+    expect(run([{ type: 'expand', pin: true }], moving).phase).toBe('collapsed');
+
+    const dropped = run([{ type: 'moving', on: false }], moving);
+    expect(hoverEnabled(dropped)).toBe(true);
+    expect(run([{ type: 'expand', pin: false }], dropped).phase).toBe('expanding');
+  });
+
+  it('only the resting pill can be dragged; a notice gives way to it', () => {
+    const open = run([...OPEN, { type: 'moving', on: true }]);
+    expect(open.moving).toBe(false);
+    expect(open.phase).toBe('expanded');
+
+    const telling = run([{ type: 'notice', notice: NOTICE }, { type: 'moving', on: true }]);
+    expect(telling.phase).toBe('collapsed');
+    expect(telling.notice).toBeNull();
+    expect(run([{ type: 'notice', notice: NOTICE }], telling).phase).toBe('collapsed');
+  });
+
+  it('a fullscreen app or the tray in the middle of a drag drop it', () => {
+    const moving = run([{ type: 'moving', on: true }, { type: 'fullscreen', on: true }]);
+    expect(moving.moving).toBe(false);
+    expect(run([{ type: 'fullscreen', on: false }], moving).moving).toBe(false);
+  });
+
   it('locks hover after closing with the cursor inside until it leaves', () => {
     const closed = run([...OPEN, { type: 'collapse', farewell: true }, { type: 'settled', phase: 'collapsed' }]);
     expect(closed.locked).toBe(true);
@@ -143,6 +173,8 @@ describe('island machine', () => {
       { type: 'tray', hidden: false },
       { type: 'capture', on: true },
       { type: 'capture', on: false },
+      { type: 'moving', on: true },
+      { type: 'moving', on: false },
       { type: 'reset' },
       { type: 'holds', holds: ['dialog'] },
       { type: 'holds', holds: [] },
