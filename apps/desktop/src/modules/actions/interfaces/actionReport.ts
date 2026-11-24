@@ -1,5 +1,6 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ProgressStage } from '@/modules/actions/types/progressStage';
+import type { ProgressVia } from '@/modules/actions/types/progressVia';
 
 export interface FileOutcome {
   source     : string;
@@ -35,4 +36,5 @@ export interface ActionProgress {
   detail? : string | null;
   // What the task is doing now (downloading, checking, preparing, working, saving).
   stage   : ProgressStage;
+  via?    : ProgressVia;
 }

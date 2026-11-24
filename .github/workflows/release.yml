@@ -47,6 +47,28 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # The Vulkan SDK (headers, glslc, vulkan-1.lib) to build glup-voz.exe: the LunarG installer, pinned
+      # and checked, with its silent install. Only the base components (~1 min).
+      - name: Vulkan SDK
+        shell: pwsh
+        run: |
+          $version = '1.4.363.0'
+          $url     = "https://sdk.lunarg.com/sdk/download/$version/windows/vulkansdk-windows-X64-$version.exe"
+          $file    = Join-Path $env:RUNNER_TEMP 'vulkansdk.exe'
+          Invoke-WebRequest $url -OutFile $file
+          $hash = (Get-FileHash $file -Algorithm SHA256).Hash
+          if ($hash -ne '94A82D378F7A5E3E54C9DB7D2FB7016AF136E14AC0A18DBF0F2F67A36352D141') { throw "Vulkan SDK: hash inesperado $hash" }
+          # A windowed installer: Start-Process -Wait, or PowerShell would go on before it ends.
+          $setup = Start-Process $file -ArgumentList '--root', "C:\VulkanSDK\$version", '--accept-licenses', '--default-answer', '--confirm-command', 'install' -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw 'Vulkan SDK: no se pudo instalar' }
+          "VULKAN_SDK=C:\VulkanSDK\$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "C:\VulkanSDK\$version\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      # glup-voz.exe ("Pasar audio a texto" on the graphics card), built apart and copied where Tauri
+      # takes its sidecars (tauri.release.conf.json, externalBin).
+      - name: glup-voz
+        run: pnpm voz:build -Release
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

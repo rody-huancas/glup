@@ -87,6 +87,7 @@ export const NOTIFICATION_OPEN_EVENT  = 'notification-open';
 export const PREPARE_ID_PHOTO         = 'prepare_id_photo';
 export const ID_PHOTO_PREVIEW         = 'id_photo_preview';
 export const SAVE_ID_PHOTO            = 'save_id_photo';
+export const GET_TRANSCRIBE_ENGINE    = 'get_transcribe_engine';
 export const GET_TRANSCRIBE_MODEL     = 'get_transcribe_model';
 export const DOWNLOAD_TRANSCRIBE_MODEL = 'download_transcribe_model';
 export const DELETE_TRANSCRIBE_MODEL  = 'delete_transcribe_model';

@@ -1,0 +1,22 @@
+[package]
+name        = "glup-voz"
+version     = "0.1.0"
+description = "Glup: pasar audio a texto con la tarjeta de video (Vulkan)"
+authors     = ["Glup contributors"]
+license     = "MIT"
+edition     = "2021"
+
+# whisper.cpp (MIT) through whisper-rs (Unlicense) with ggml's Vulkan backend (MIT). Building it needs
+# CMake and the Vulkan SDK (VULKAN_SDK, glslc); running it, the Vulkan loader the graphics driver
+# installs (vulkan-1.dll). Nothing of Vulkan goes inside Glup itself.
+[dependencies]
+whisper-rs     = { version = "0.16", features = ["vulkan"] }
+# The raw calls to list the cards ggml found (the same crate whisper-rs uses).
+whisper-rs-sys = { version = "0.15", features = ["vulkan"] }
+serde          = { version = "1", features = ["derive"] }
+serde_json     = "1"
+
+[[bin]]
+name = "glup-voz"
+path = "src/main.rs"
+test = false

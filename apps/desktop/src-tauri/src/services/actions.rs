@@ -197,6 +197,16 @@ pub struct ActionProgress {
     pub detail: Option<String>,
     // What it is doing now (services/progress.rs), the same for every task.
     pub stage: Stage,
+    // Who does the work, when it can be the graphics card or the processor ("Pasar audio a texto").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub via: Option<Via>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Via {
+    Gpu,
+    Cpu,
 }
 
 // Shared cancel flag: files in progress always finish, new ones are not started.
@@ -272,6 +282,7 @@ impl Run<'_> {
             active  : params.active,
             detail  : None,
             stage   : Stage::Working,
+            via     : None,
         };
 
         progress::emit(self.app, progress);
@@ -1412,7 +1423,7 @@ fn video_progress(run: &Run, index: usize, done: f64, name: &str) {
     let detail  = if total > 1 { format!("Video {} de {total} · {percent} %", index + 1) } else { format!("{percent} %") };
     let overall = ((index as f64 + done) / total as f64 * 1000.0) as usize;
 
-    let progress = ActionProgress { task_id: run.task.clone(), current: overall, total: 1000, name: name.to_string(), active: 1, detail: Some(detail), stage: Stage::Working };
+    let progress = ActionProgress { task_id: run.task.clone(), current: overall, total: 1000, name: name.to_string(), active: 1, detail: Some(detail), stage: Stage::Working, via: None };
     progress::emit(run.app, progress);
 }
 

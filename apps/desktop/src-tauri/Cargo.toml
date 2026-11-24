@@ -6,6 +6,14 @@ authors     = ["Glup contributors"]
 license     = "MIT"
 edition     = "2021"
 
+# "Pasar audio a texto" on the graphics card lives in its own program (voz/, glup-voz.exe) so that a
+# broken driver can only close that one. It is built on its own (`cargo build -p glup-voz`): built
+# together with Glup, Cargo would join whisper-rs's features and Glup would link Vulkan too.
+[workspace]
+members         = [".", "voz"]
+default-members = ["."]
+resolver        = "2"
+
 # Desktop only (Windows, and Mac and Linux if they come): the app links the library as an rlib. The
 # staticlib and cdylib of the Tauri template are for iOS and Android, and cost about 0,8 GB per build.
 # No doctests: the tests are unit tests inside the library.

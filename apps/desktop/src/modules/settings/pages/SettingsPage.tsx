@@ -10,6 +10,7 @@ import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPi
 import { GENERAL_TEXTS } from '@/modules/settings/constants/general';
 import { SAVE_TEXTS, SETTINGS_TEXTS } from '@/modules/settings/constants/saveLocation';
 import { ShortcutSetting } from '@/modules/shortcuts/components/ShortcutSetting';
+import { GpuSetting } from '@/modules/transcribe/components/GpuSetting';
 import { Card } from '@/shared/components/Card';
 import { UpdateCard } from '@/modules/updates/components/UpdateCard';
 import { VersionRow } from '@/modules/updates/components/VersionRow';
@@ -18,7 +19,8 @@ import { SectionLabel } from '@/shared/components/SectionLabel';
 
 // A newer version first (if any), then General (starting with the computer, the notifications, the
 // shortcut of "Copiar texto de la pantalla" and whether its texts stay in the history, the version),
-// the Portapapeles, where results are saved and what Glup downloaded.
+// the Portapapeles, where results are saved, "Pasar audio a texto" (graphics card or processor) and
+// what Glup downloaded.
 export const SettingsPage = ({ files }: PageProps) => (
   <div className="flex flex-col gap-6">
     <PageHeader title={SETTINGS_TEXTS.title} subtitle={SETTINGS_TEXTS.subtitle} />
@@ -46,6 +48,7 @@ export const SettingsPage = ({ files }: PageProps) => (
         <SaveLocationPicker location={files.saveLocation} />
       </Card>
     </section>
+    <GpuSetting />
     <LearnedSection />
   </div>
 );

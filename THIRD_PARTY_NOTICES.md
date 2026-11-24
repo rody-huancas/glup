@@ -146,6 +146,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### glup-voz: whisper.cpp con Vulkan (la tarjeta de video)
+
+- **Qué es**: `glup-voz.exe`, un programa aparte que va en el instalador junto a `glup.exe`. Lleva
+  whisper.cpp con el backend Vulkan de ggml (sus shaders SPIR-V van compilados dentro), del mismo
+  autor y con la misma licencia MIT de arriba. Glup lo ejecuta para escuchar con la tarjeta de video;
+  si no hay una que sirva, no se usa.
+- **Vulkan**: los encabezados de [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers)
+  (Apache-2.0 o MIT) se usan al compilar; `glslc` ([shaderc](https://github.com/google/shaderc),
+  Apache-2.0) solo compila los shaders y no se distribuye. El cargador `vulkan-1.dll`
+  ([Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader), Apache-2.0) **no va en el
+  instalador**: lo instala el driver de la tarjeta de video. Nada de CUDA ni de otras bibliotecas de
+  los fabricantes.
+
 ### whisper-rs (el puente de Rust con whisper.cpp)
 
 - **Autor**: tazz4843 y colaboradores — [tazz4843/whisper-rs](https://github.com/tazz4843/whisper-rs).

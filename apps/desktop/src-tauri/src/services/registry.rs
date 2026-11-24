@@ -1,5 +1,5 @@
-// The few registry calls "Al encender la PC" needs: list the values of a key, read and write one binary
-// value. Nothing is ever deleted (only the tests remove their own key).
+// The few registry calls Glup needs: list the values and the subkeys of a key, write one binary value
+// ("Al encender la PC"). Nothing is ever deleted (only the tests remove their own key).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Root {
     // HKEY_CURRENT_USER: this person's.
@@ -23,7 +23,7 @@ mod engine {
     use windows_sys::Win32::{
         Foundation::{ERROR_SUCCESS, ERROR_MORE_DATA},
         System::Registry::{
-            RegCloseKey, RegCreateKeyExW, RegEnumValueW, RegOpenKeyExW, RegSetValueExW, HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_QUERY_VALUE, KEY_READ,
+            RegCloseKey, RegCreateKeyExW, RegEnumKeyExW, RegEnumValueW, RegOpenKeyExW, RegSetValueExW, HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_QUERY_VALUE, KEY_READ,
             KEY_SET_VALUE, REG_BINARY, REG_EXPAND_SZ, REG_OPTION_NON_VOLATILE, REG_SZ,
         },
     };
@@ -90,6 +90,22 @@ mod engine {
         found
     }
 
+    pub fn subkeys(root: Root, path: &str) -> Vec<String> {
+        let Some(key) = open(root, path, KEY_READ) else { return Vec::new() };
+        let mut found = Vec::new();
+
+        for index in 0.. {
+            let mut name = vec![0_u16; 256];
+            let mut size = name.len() as u32;
+            let status   = unsafe { RegEnumKeyExW(key.0, index, name.as_mut_ptr(), &mut size, null(), null_mut(), null_mut(), null_mut()) };
+            if status != ERROR_SUCCESS {
+                break;
+            }
+            found.push(String::from_utf16_lossy(&name[..size as usize]));
+        }
+        found
+    }
+
     pub fn set_binary(root: Root, path: &str, name: &str, data: &[u8]) -> bool {
         let Some(key) = create(root, path) else { return false };
         unsafe { RegSetValueExW(key.0, wide(name).as_ptr(), 0, REG_BINARY, data.as_ptr(), data.len() as u32) == ERROR_SUCCESS }
@@ -118,6 +134,11 @@ pub use engine::*;
 
 #[cfg(not(windows))]
 pub fn values(_: Root, _: &str) -> Vec<Value> {
+    Vec::new()
+}
+
+#[cfg(not(windows))]
+pub fn subkeys(_: Root, _: &str) -> Vec<String> {
     Vec::new()
 }
 

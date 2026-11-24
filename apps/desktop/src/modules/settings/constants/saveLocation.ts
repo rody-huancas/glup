@@ -24,6 +24,8 @@ export const DEFAULT_SETTINGS: SettingsView = {
   welcomeSeen           : true,
   notificationsOff      : false,
   transcribeLevel       : 'fast',
+  transcribeGpu         : 'auto',
+  gpuBlocked            : [],
   screenTextShortcut    : null,
   screenTextShortcutOff : false,
   screenTextHistoryOff  : false,

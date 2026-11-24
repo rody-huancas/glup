@@ -1,4 +1,6 @@
-use tauri::AppHandle;
+use std::sync::Arc;
+
+use tauri::{AppHandle, Manager};
 use serde::Deserialize;
 
 use crate::{
@@ -6,7 +8,7 @@ use crate::{
     services::{
         background::model::ModelStatus,
         tasks::{self, TaskSummary},
-        transcribe::{self, model::Level, SaveSubtitlesRequest, TranscribeReport, TranscribeRequest, DOWNLOAD_ACTION_ID, TRANSCRIBE_ACTION},
+        transcribe::{self, engine::TranscribeSession, model::Level, SaveSubtitlesRequest, TranscribeEngine, TranscribeReport, TranscribeRequest, DOWNLOAD_ACTION_ID, TRANSCRIBE_ACTION},
     },
 };
 
@@ -83,4 +85,16 @@ pub fn estimate_transcription(request: EstimateRequest) -> u64 {
 #[tauri::command]
 pub async fn save_subtitles(request: SaveSubtitlesRequest) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || transcribe::save_subtitles(request)).await.map_err(|error| error.to_string()).and_then(|result| result)
+}
+
+// Ajustes: graphics card or processor, and which card. The first time it looks for the cards (in
+// glup-voz, a second or two); then it answers from memory.
+#[tauri::command]
+pub async fn get_transcribe_engine(app: AppHandle) -> Result<TranscribeEngine, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let session = app.state::<Arc<TranscribeSession>>().inner().clone();
+        transcribe::engine_for(&app, &session)
+    })
+    .await
+    .map_err(|error| error.to_string())
 }

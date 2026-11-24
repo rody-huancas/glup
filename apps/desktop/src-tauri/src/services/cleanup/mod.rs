@@ -206,7 +206,7 @@ struct ProgressParams<'a> {
 }
 
 fn emit_progress(params: ProgressParams) {
-    let progress = ActionProgress { task_id: params.task.clone(), current: params.current, total: params.total, name: params.name.to_string(), active: 1, detail: None, stage: Stage::Working };
+    let progress = ActionProgress { task_id: params.task.clone(), current: params.current, total: params.total, name: params.name.to_string(), active: 1, detail: None, stage: Stage::Working, via: None };
 
     if let Some(task) = params.task {
         crate::services::tasks::progress(params.app, task, &progress);

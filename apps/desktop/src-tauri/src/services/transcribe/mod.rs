@@ -1,8 +1,11 @@
-// "Pasar audio a texto": Whisper on the processor, the audio read by FFmpeg (the LGPL one of videos,
-// downloaded together with the model when it is not there yet).
+// "Pasar audio a texto": Whisper on the graphics card when it can (glup-voz, Vulkan) and on the
+// processor otherwise; the audio read by FFmpeg (the LGPL one of videos, downloaded together with the
+// model when it is not there yet).
 pub mod audio;
 pub mod compose;
+pub mod device;
 pub mod engine;
+pub mod gpu;
 pub mod model;
 
 #[cfg(test)]
@@ -24,7 +27,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
 use crate::services::{
-    actions::{ActionControl, ActionProgress},
+    actions::{ActionControl, ActionProgress, Via},
     background::{
         download::{self, fetch_http, DownloadEnd, DownloadParams},
         model::{delete_in, model_path, models_folder, status_in, ModelStatus},
@@ -33,12 +36,15 @@ use crate::services::{
     history::{self, NewEntryParams},
     naming::{output_path, OutputKind, OutputNameParams},
     progress::{self, DownloadSpan, Stage},
+    settings,
     tasks::TaskSummary,
     text::compose::to_windows_lines,
     transcribe::{
         audio::{decode, seconds_of},
         compose::{compose, history_detail, srt, FileSegments},
+        device::{ChooseParams, Engine, GpuMode},
         engine::{Listened, ListenParams, TranscribeSession},
+        gpu::GpuFailure,
         model::{estimate_seconds, Level},
     },
     video::{
@@ -60,6 +66,63 @@ pub const SAVE_ERROR: &str        = "No pude guardar los subtítulos";
 
 // Reading the sound is a small part of the work; listening, the rest.
 const DECODE_SHARE: f64 = 0.05;
+
+// Where the samples go for glup-voz (next to the models; removed after each audio).
+const GPU_SAMPLES: &str = "voz-muestras.f32";
+
+// --- Graphics card or processor ---
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscribeEngine {
+    pub mode   : GpuMode,
+    pub engine : Engine,
+}
+
+// A card (or the probe) that failed is remembered with its driver: the processor until it changes.
+fn remember_failure(app: &AppHandle, key: String) {
+    let current = settings::read(app).settings;
+    if current.gpu_blocked.contains(&key) {
+        return;
+    }
+    let blocked = device::with_blocked(current.gpu_blocked.clone(), key);
+    let _       = settings::update(app, settings::Settings { gpu_blocked: blocked, ..current });
+}
+
+// Which one it uses now. The cards are looked for once while Glup runs, in glup-voz: a driver that
+// breaks while Vulkan starts closes that program, never Glup.
+pub fn engine_for(app: &AppHandle, session: &TranscribeSession) -> TranscribeEngine {
+    let mode = settings::read(app).settings.transcribe_gpu;
+    if mode == GpuMode::Never {
+        return TranscribeEngine { mode, engine: Engine::Chosen };
+    }
+
+    let drivers = device::drivers();
+    let devices = match session.gpu_devices() {
+        Ok(devices)                     => Some(devices),
+        Err(GpuFailure::Missing)        => None,
+        Err(GpuFailure::Failed(reason)) => {
+            eprintln!("[transcribe] la tarjeta de video no respondió al buscarla: {reason}");
+            remember_failure(app, device::probe_key(&drivers));
+            None
+        }
+    };
+    let blocked = settings::read(app).settings.gpu_blocked;
+    TranscribeEngine { mode, engine: device::choose(&ChooseParams { mode, devices: devices.as_deref(), blocked: &blocked, drivers: &drivers }) }
+}
+
+// The card failed (loading the model or in the middle of an audio): it is remembered as "no usar"
+// with this driver, and the work goes on with the processor.
+fn card_failed(app: &AppHandle, engine: &Engine, failure: GpuFailure) {
+    eprintln!("[transcribe] la tarjeta de video falló, sigo con el procesador: {failure:?}");
+    if let (Engine::Gpu { name }, GpuFailure::Failed(_)) = (engine, failure) {
+        remember_failure(app, device::card_key(name, &device::drivers()));
+    }
+}
+
+fn via_of(on_card: &AtomicBool) -> Via {
+    if on_card.load(Ordering::SeqCst) { Via::Gpu } else { Via::Cpu }
+}
 
 // --- What Glup has learned ---
 
@@ -217,8 +280,22 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
     let mut cancelled = false;
 
     // Loading Whisper takes seconds and cannot be interrupted; another audio a moment ago reuses it.
-    if !session.is_loaded(&model) {
-        emit(app, ActionProgress::at(&request.task_id, Stage::Preparing));
+    // On the card first, when there is one; if it fails, on the processor.
+    let engine    = engine_for(app, &session).engine;
+    let on_card   = Arc::new(AtomicBool::new(matches!(engine, Engine::Gpu { .. })));
+    let scratch   = models_folder(app)?.join(GPU_SAMPLES);
+    let preparing = |via: Via| emit(app, ActionProgress { via: Some(via), ..ActionProgress::at(&request.task_id, Stage::Preparing) });
+
+    if on_card.load(Ordering::SeqCst) && !session.gpu_is_loaded(&model) {
+        preparing(Via::Gpu);
+        if let Err(failure) = session.gpu_prepare(&model) {
+            card_failed(app, &engine, failure);
+            on_card.store(false, Ordering::SeqCst);
+        }
+        clock.lap("cargar el modelo en la tarjeta");
+    }
+    if !on_card.load(Ordering::SeqCst) && !session.is_loaded(&model) {
+        preparing(Via::Cpu);
         session.prepare(&model)?;
         clock.lap("cargar el modelo");
     }
@@ -239,6 +316,7 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
                 active  : 1,
                 detail  : Some(detail),
                 stage   : Stage::Working,
+                via     : Some(via_of(&on_card)),
             });
         };
 
@@ -252,17 +330,18 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
         clock.lap("leer el sonido");
 
         // Whisper's own flag follows the shared one (Cancelar on the task) while it listens.
-        let watcher = watch_cancel(app.clone(), cancel.clone());
+        let watcher       = watch_cancel(app.clone(), cancel.clone());
         let progress_app  = app.clone();
         let progress_task = request.task_id.clone();
         let progress_name = name.clone();
-        let listened = session.listen(ListenParams {
+        let progress_card = on_card.clone();
+        let mut params    = ListenParams {
             model       : &model,
             samples     : &samples,
             language    : request.options.language.map(LanguageCode::code),
             cancel      : cancel.clone(),
             on_progress : Box::new(move |percent| {
-                let done = DECODE_SHARE + (1.0 - DECODE_SHARE) * percent.clamp(0, 100) as f64 / 100.0;
+                let done  = DECODE_SHARE + (1.0 - DECODE_SHARE) * percent.clamp(0, 100) as f64 / 100.0;
                 let shown = (done * 100.0).round() as u32;
                 emit(&progress_app, ActionProgress {
                     task_id : progress_task.clone(),
@@ -272,11 +351,32 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
                     active  : 1,
                     detail  : Some(if total > 1 { format!("{progress_name} · {shown} %") } else { format!("{shown} %") }),
                     stage   : Stage::Working,
+                    via     : Some(via_of(&progress_card)),
                 });
             }),
-        });
+        };
+
+        // On the card; if it fails halfway, this same audio again on the processor (what was done
+        // before stays done).
+        let listened = if on_card.load(Ordering::SeqCst) {
+            match session.gpu_listen(&mut params, &scratch) {
+                Ok(listened) => Ok(listened),
+                Err(failure) => {
+                    card_failed(app, &engine, failure);
+                    on_card.store(false, Ordering::SeqCst);
+                    if !session.is_loaded(&model) {
+                        preparing(Via::Cpu);
+                        session.prepare(&model)?;
+                    }
+                    report(DECODE_SHARE);
+                    session.listen(params)
+                }
+            }
+        } else {
+            session.listen(params)
+        };
         watcher.store(true, Ordering::SeqCst);
-        clock.lap("escuchar");
+        clock.lap(if on_card.load(Ordering::SeqCst) { "escuchar con la tarjeta" } else { "escuchar" });
 
         match listened? {
             Listened::Segments(segments) => files.push(FileSegments { name, segments }),

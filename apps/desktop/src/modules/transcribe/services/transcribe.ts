@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { ModelStatus } from '@/modules/background/interfaces/modelStatus';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSummary } from '@/modules/tasks/interfaces/taskSummary';
+import type { TranscribeEngine } from '@/modules/transcribe/interfaces/transcribeEngine';
 import type { TranscribeOptions } from '@/modules/transcribe/interfaces/transcribeOptions';
 import type { TranscribeReport } from '@/modules/transcribe/interfaces/transcribeReport';
 import type { TranscribeLevel } from '@/modules/transcribe/types/transcribeLevel';
@@ -9,6 +10,7 @@ import {
   DELETE_TRANSCRIBE_MODEL,
   DOWNLOAD_TRANSCRIBE_MODEL,
   ESTIMATE_TRANSCRIPTION,
+  GET_TRANSCRIBE_ENGINE,
   GET_TRANSCRIBE_MODEL,
   SAVE_SUBTITLES,
   TRANSCRIBE_AUDIO,
@@ -25,6 +27,9 @@ interface SaveSubtitlesParams {
   subtitles   : string;
   destination : SaveDestination;
 }
+
+// The graphics card or the processor, and why (the first time it looks for the cards).
+export const getTranscribeEngine = (): Promise<TranscribeEngine> => invoke<TranscribeEngine>(GET_TRANSCRIBE_ENGINE);
 
 // Whether that level is learned (FFmpeg included) and what its download weighs.
 export const getTranscribeModel = (level: TranscribeLevel): Promise<ModelStatus> => invoke<ModelStatus>(GET_TRANSCRIBE_MODEL, { level });

@@ -35,6 +35,7 @@ pnpm dev                                   # tauri dev (la primera compilación 
 pnpm build                                 # instalador (release: solo si se pide)
 pnpm version:set 0.2.0                     # versión (Cargo.toml manda; package.json la sigue)
 pnpm sweep                                 # borra de target lo que no se usó en 3 días (sweep:dry solo lista)
+pnpm voz:build                             # glup-voz.exe, la tarjeta de video de «Pasar audio a texto» (pide el Vulkan SDK)
 
 pnpm --filter desktop typecheck            # tsc
 pnpm --filter desktop test                 # vitest
