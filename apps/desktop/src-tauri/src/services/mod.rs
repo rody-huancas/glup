@@ -17,6 +17,7 @@ pub mod island_window;
 pub mod naming;
 pub mod notify;
 pub mod parallel;
+pub mod performance;
 pub mod pdf;
 pub mod progress;
 pub mod screen_text;
