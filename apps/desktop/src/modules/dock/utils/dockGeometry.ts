@@ -144,6 +144,13 @@ export const shapeBox = (placement: IslandPlacement, shape: IslandShape): Rect =
   return mapRect(placement, [start, start + width + ear * 2], [0, height]);
 };
 
+// A strip against the screen's edge, `along` long around the pill's spot and `depth` deep (for corners,
+// a square of side `along` at the corner): what reveals a hidden Glup.
+export const edgeStrip = (placement: IslandPlacement, along: number, depth: number): Rect => {
+  if (isCorner(placement.edge)) return mapRect(placement, [0, along], [0, along]);
+  return mapRect(placement, [placement.along - along / 2, placement.along + along / 2], [0, depth]);
+};
+
 // Its body, without the ears: where the content of the shape (Glup, a notice, the panel) goes.
 export const bodyBox = (placement: IslandPlacement, shape: IslandShape): Rect => {
   const { width, height, ear } = metricsOf(shape, isCorner(placement.edge));
