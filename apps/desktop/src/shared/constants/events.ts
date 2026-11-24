@@ -14,6 +14,7 @@ export const SET_ISLAND_DOCK          = 'set_island_dock';
 export const ISLAND_DRAG_EVENT        = 'island-drag';
 export const ISLAND_TOGGLE_EVENT      = 'island-toggle';
 export const SET_ISLAND_MODE          = 'set_island_mode';
+export const SET_ISLAND_BUBBLE        = 'set_island_bubble';
 export const GET_TASKBAR_STATE        = 'get_taskbar_state';
 export const LOG_ISLAND               = 'log_island';
 export const TRAY_VISIBILITY_EVENT    = 'island-tray-visibility';
