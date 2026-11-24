@@ -63,7 +63,7 @@ describe('tools.json', () => {
 
   it('marks the quick tools for Inicio', () => {
     expect(QUICK_TOOLS.map((tool) => tool.id)).toEqual([
-      'merge-pdf', 'split-pdf', 'compress-pdf', 'sign-pdf', 'pdf-to-images', 'convert-image', 'compress-image', 'remove-background',
+      'merge-pdf', 'split-pdf', 'compress-pdf', 'sign-pdf', 'pdf-to-images', 'convert-image', 'iphone-to-jpg', 'compress-image', 'remove-background',
     ]);
   });
 });
