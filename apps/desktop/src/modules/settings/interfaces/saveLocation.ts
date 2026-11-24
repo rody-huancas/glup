@@ -9,9 +9,12 @@ export interface SaveLocation {
   picking       : boolean;
   destination   : SaveDestination;
   bundleZip      : boolean;
+  // "Quitar ubicación" off.
+  keepLocation   : boolean;
   // Last "Reducir peso" level for PDFs.
   reduceLevel    : ReduceLevel;
   choose         : (mode: SaveMode) => void;
   setBundleZip   : (bundle: boolean) => void;
+  setKeepLocation: (keep: boolean) => void;
   setReduceLevel : (level: ReduceLevel) => void;
 }
