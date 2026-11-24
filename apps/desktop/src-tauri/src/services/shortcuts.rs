@@ -1,5 +1,5 @@
 // Glup's keyboard shortcuts, registered with Windows so they work from any app: "Copiar texto de la
-// pantalla" and "Portapapeles". Each can be changed or turned off in Ajustes and is kept in settings.json.
+// pantalla", "Portapapeles" and opening and closing the panel (the way back to a hidden Glup). Each can be changed or turned off in Ajustes and is kept in settings.json.
 use std::{collections::HashMap, str::FromStr, sync::Mutex};
 
 use serde::{Deserialize, Serialize};
@@ -8,15 +8,17 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Modifiers, Shortcut};
 
 use crate::services::{
     clipboard,
+    island_window,
     notify::{self, NotifyRequest},
     screen_text,
     settings::{self, Settings},
 };
 
-// Three modifiers, which neither Windows nor the usual programs use. T for "texto"; H for the
-// "historial" of what was copied.
+// Three modifiers, which neither Windows nor the usual programs use. T for "texto", H for the
+// "historial" of what was copied, G for Glup itself.
 pub const SCREEN_TEXT_DEFAULT: &str = "Ctrl+Alt+Shift+KeyT";
 pub const CLIPBOARD_DEFAULT: &str   = "Ctrl+Alt+Shift+KeyH";
+pub const ISLAND_DEFAULT: &str      = "Ctrl+Alt+Shift+KeyG";
 
 pub const TAKEN_ERROR: &str   = "Ese atajo ya lo usa otro programa. Prueba con otro.";
 pub const INVALID_ERROR: &str = "Ese atajo no me sirve. Usa Ctrl, Alt o Windows junto con otra tecla.";
@@ -28,15 +30,17 @@ pub const SETTINGS_PAGE: &str = "settings";
 pub enum ShortcutTarget {
     ScreenText,
     Clipboard,
+    Island,
 }
 
-pub const TARGETS: [ShortcutTarget; 2] = [ShortcutTarget::ScreenText, ShortcutTarget::Clipboard];
+pub const TARGETS: [ShortcutTarget; 3] = [ShortcutTarget::ScreenText, ShortcutTarget::Clipboard, ShortcutTarget::Island];
 
 impl ShortcutTarget {
     pub fn default_shortcut(self) -> &'static str {
         match self {
             Self::ScreenText => SCREEN_TEXT_DEFAULT,
             Self::Clipboard  => CLIPBOARD_DEFAULT,
+            Self::Island     => ISLAND_DEFAULT,
         }
     }
 
@@ -45,6 +49,7 @@ impl ShortcutTarget {
         match self {
             Self::ScreenText => "copiar texto de la pantalla",
             Self::Clipboard  => "abrir el portapapeles",
+            Self::Island     => "abrir y cerrar Glup",
         }
     }
 
@@ -53,6 +58,7 @@ impl ShortcutTarget {
         match self {
             Self::ScreenText => "«Copiar texto de la pantalla»",
             Self::Clipboard  => "«Portapapeles»",
+            Self::Island     => "«Abrir y cerrar Glup»",
         }
     }
 
@@ -60,6 +66,7 @@ impl ShortcutTarget {
         match self {
             Self::ScreenText => (settings.screen_text_shortcut.clone(), settings.screen_text_shortcut_off),
             Self::Clipboard  => (settings.clipboard_shortcut.clone(), settings.clipboard_shortcut_off),
+            Self::Island     => (settings.island_shortcut.clone(), settings.island_shortcut_off),
         }
     }
 
@@ -70,6 +77,7 @@ impl ShortcutTarget {
         match self {
             Self::ScreenText => Settings { screen_text_shortcut: custom, screen_text_shortcut_off: !enabled, ..settings.clone() },
             Self::Clipboard  => Settings { clipboard_shortcut: custom, clipboard_shortcut_off: !enabled, ..settings.clone() },
+            Self::Island     => Settings { island_shortcut: custom, island_shortcut_off: !enabled, ..settings.clone() },
         }
     }
 }
@@ -208,6 +216,7 @@ pub fn dispatch(app: &AppHandle, pressed: &Shortcut) {
     match target {
         Some(ShortcutTarget::ScreenText) => screen_text::start(app),
         Some(ShortcutTarget::Clipboard)  => clipboard::open_screen(app),
+        Some(ShortcutTarget::Island)     => island_window::request_toggle(app),
         None                             => {}
     }
 }
@@ -271,9 +280,19 @@ mod tests {
     }
 
     #[test]
-    fn a_first_run_has_both_default_shortcuts_on() {
+    fn a_first_run_has_every_default_shortcut_on() {
         assert_eq!(active(ShortcutTarget::ScreenText, &Settings::default()).as_deref(), Some(SCREEN_TEXT_DEFAULT));
         assert_eq!(active(ShortcutTarget::Clipboard, &Settings::default()).as_deref(), Some(CLIPBOARD_DEFAULT));
+        assert_eq!(active(ShortcutTarget::Island, &Settings::default()).as_deref(), Some(ISLAND_DEFAULT));
+    }
+
+    #[test]
+    fn the_three_defaults_never_share_keys() {
+        let saved = Settings::default();
+        for target in TARGETS {
+            assert_eq!(clash(target, target.default_shortcut(), &saved), None);
+            assert!(is_valid(target.default_shortcut()));
+        }
     }
 
     #[test]
