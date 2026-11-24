@@ -12,4 +12,6 @@ export interface ActionResult {
   revealOpens : boolean;
   // "Sacar texto": the text to read, copy or save.
   text?       : ExtractedText;
+  // "Ordenar una carpeta": the record to undo it (its notice offers "Deshacer").
+  undoId?     : string;
 }

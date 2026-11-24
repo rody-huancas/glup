@@ -13,5 +13,6 @@ export const TOAST_FACES: Record<'happy' | 'confused', Partial<Face>> = {
 
 export const NOTICE_TEXTS = {
   see   : 'Ver',
+  undo  : 'Deshacer',
   close : 'Cerrar aviso',
 };

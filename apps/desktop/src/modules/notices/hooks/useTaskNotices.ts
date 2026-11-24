@@ -31,7 +31,7 @@ export const useTaskNotices = ({ phaseRef, insideRef, onNavigate }: UseTaskNotic
     if (!result) return;
 
     const started   = startedAt.current.get(task.id) ?? task.createdAt;
-    const toast     = { taskId: task.id, message: result.message, tone: result.tone, owner: task.owner };
+    const toast     = { taskId: task.id, message: result.message, tone: result.tone, owner: task.owner, undoId: result.undoId };
     const panelOpen = () => toIslandState(phaseRef.current) === 'expanded';
     startedAt.current.delete(task.id);
 
