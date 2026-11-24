@@ -23,6 +23,7 @@ pub mod settings;
 pub mod shortcuts;
 pub mod signatures;
 pub mod startup;
+pub mod taskbar;
 pub mod tasks;
 pub mod transcribe;
 pub mod text;
