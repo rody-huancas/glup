@@ -54,7 +54,7 @@ fn check(app: &AppHandle, window: &WebviewWindow) {
         }
     }
 
-    let clickable = island_window::stored_state(window).is_none_or(|state| state.clickable);
+    let clickable = island_window::stored_state(window).is_none_or(|state| state.shape.clickable);
     let expected  = island_window::current_area(window);
     let applied   = island_window::applied_region(window);
 
