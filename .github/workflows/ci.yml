@@ -1,4 +1,5 @@
-# Checks every PR and every push to master: types, Vitest, cargo check and cargo test (without the ignored ones).
+# Checks every PR and every push to master: types, Vitest, cargo check and cargo test (without the ignored ones),
+# and that glup-voz (the graphics card's program, built apart) still compiles.
 name: CI
 
 on:
@@ -45,3 +46,27 @@ jobs:
       - name: cargo test
         working-directory: apps/desktop/src-tauri
         run: cargo test --locked
+
+      # The Vulkan SDK (headers, glslc, vulkan-1.lib) to build glup-voz.exe: the LunarG installer, pinned
+      # and checked, with its silent install. Only the base components (~1 min).
+      - name: Vulkan SDK
+        shell: pwsh
+        run: |
+          $version = '1.4.363.0'
+          $url     = "https://sdk.lunarg.com/sdk/download/$version/windows/vulkansdk-windows-X64-$version.exe"
+          $file    = Join-Path $env:RUNNER_TEMP 'vulkansdk.exe'
+          Invoke-WebRequest $url -OutFile $file
+          $hash = (Get-FileHash $file -Algorithm SHA256).Hash
+          if ($hash -ne '94A82D378F7A5E3E54C9DB7D2FB7016AF136E14AC0A18DBF0F2F67A36352D141') { throw "Vulkan SDK: hash inesperado $hash" }
+          # A windowed installer: Start-Process -Wait, or PowerShell would go on before it ends.
+          $setup = Start-Process $file -ArgumentList '--root', "C:\VulkanSDK\$version", '--accept-licenses', '--default-answer', '--confirm-command', 'install' -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw 'Vulkan SDK: no se pudo instalar' }
+          "VULKAN_SDK=C:\VulkanSDK\$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "C:\VulkanSDK\$version\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: cargo check glup-voz
+        shell: pwsh
+        working-directory: apps/desktop/src-tauri
+        run: |
+          $env:CMAKE_PROJECT_INCLUDE = "$PWD/voz/short-paths.cmake" -replace '\\', '/'
+          cargo check --locked -p glup-voz
