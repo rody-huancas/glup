@@ -1,5 +1,6 @@
 import { LearnedSection } from '@/modules/background/components/LearnedSection';
 import { ClipboardSettings } from '@/modules/clipboard/components/ClipboardSettings';
+import { DockPositionSetting } from '@/modules/dock/components/DockPositionSetting';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { ScreenTextHistoryToggle } from '@/modules/screen-text/components/ScreenTextHistoryToggle';
 import { AutostartToggle } from '@/modules/settings/components/AutostartToggle';
@@ -27,6 +28,8 @@ export const SettingsPage = ({ files }: PageProps) => (
         <AutostartToggle />
         <div className="border-t border-line" />
         <NotificationsToggle />
+        <div className="border-t border-line" />
+        <DockPositionSetting />
         <div className="border-t border-line" />
         <ShortcutSetting target="screen-text" />
         <ScreenTextHistoryToggle />
