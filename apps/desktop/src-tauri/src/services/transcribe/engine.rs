@@ -1,5 +1,6 @@
-// Whisper (whisper.cpp through whisper-rs) on the processor. The model stays loaded between files and
-// is let go after 5 minutes without use, like the background model.
+// Whisper (whisper.cpp through whisper-rs) on the processor, or on the graphics card through glup-voz
+// (gpu.rs). Either way the model stays loaded between files and is let go after 5 minutes without use,
+// like the background model.
 use std::{
     ffi::c_void,
     path::{Path, PathBuf},
@@ -13,7 +14,10 @@ use std::{
 
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
 
-use crate::services::transcribe::compose::Segment;
+use crate::services::transcribe::{
+    compose::Segment,
+    gpu::{self, GpuDevice, GpuFailure, GpuListenParams, GpuListened, GpuWorker},
+};
 
 pub const MODEL_ERROR: &str  = "No pude cargar lo que aprendí para escuchar audios. Bórralo en Ajustes y descárgalo otra vez.";
 pub const LISTEN_ERROR: &str = "No pude pasar este audio a texto";
@@ -28,9 +32,19 @@ struct Loaded {
     last_used : Instant,
 }
 
+// The card's side: glup-voz running with its model, and the cards it found.
+#[derive(Default)]
+struct GpuSlot {
+    worker    : Option<GpuWorker>,
+    // Looked for once while Glup runs (None: not yet).
+    devices   : Option<Result<Vec<GpuDevice>, GpuFailure>>,
+    last_used : Option<Instant>,
+}
+
 #[derive(Default)]
 pub struct TranscribeSession {
     loaded   : Mutex<Option<Loaded>>,
+    gpu      : Mutex<GpuSlot>,
     watching : AtomicBool,
 }
 
@@ -89,7 +103,7 @@ impl TranscribeSession {
         Ok(context)
     }
 
-    // One watcher at a time lets the model go after IDLE_LIMIT without use.
+    // One watcher at a time lets each model go (the processor's and the card's) after IDLE_LIMIT without use.
     fn watch(self: &Arc<Self>) {
         if self.watching.swap(true, Ordering::SeqCst) {
             return;
@@ -98,11 +112,15 @@ impl TranscribeSession {
         let session = Arc::clone(self);
         thread::spawn(move || loop {
             thread::sleep(WATCH_EVERY);
-            let Ok(mut loaded) = session.loaded.lock() else { break };
+            let (Ok(mut loaded), Ok(mut gpu)) = (session.loaded.lock(), session.gpu.lock()) else { break };
             if loaded.as_ref().is_some_and(|current| current.last_used.elapsed() >= IDLE_LIMIT) {
                 *loaded = None;
             }
-            if loaded.is_none() {
+            if gpu.last_used.is_some_and(|used| used.elapsed() >= IDLE_LIMIT) {
+                gpu.worker    = None;
+                gpu.last_used = None;
+            }
+            if loaded.is_none() && gpu.worker.is_none() {
                 session.watching.store(false, Ordering::SeqCst);
                 break;
             }
@@ -112,6 +130,81 @@ impl TranscribeSession {
     pub fn release(&self) {
         if let Ok(mut loaded) = self.loaded.lock() {
             *loaded = None;
+        }
+        self.drop_gpu();
+    }
+
+    // The cards glup-voz sees, looked for once while Glup runs. If the probe itself fails (the program
+    // dies while Vulkan starts), that is the answer until Glup starts again.
+    pub fn gpu_devices(&self) -> Result<Vec<GpuDevice>, GpuFailure> {
+        let mut slot = self.gpu.lock().map_err(|_| GpuFailure::Missing)?;
+        if let Some(found) = &slot.devices {
+            return found.clone();
+        }
+
+        // That glup-voz closes after answering: loading a model starts another one, so nothing stays
+        // open holding video memory just because Ajustes asked.
+        let found = gpu::worker_path().ok_or(GpuFailure::Missing).and_then(|path| GpuWorker::start(&path)?.devices());
+        slot.devices = Some(found.clone());
+        found
+    }
+
+    fn worker(slot: &mut GpuSlot) -> Result<&mut GpuWorker, GpuFailure> {
+        if !slot.worker.as_mut().is_some_and(GpuWorker::alive) {
+            let path    = gpu::worker_path().ok_or(GpuFailure::Missing)?;
+            slot.worker = Some(GpuWorker::start(&path)?);
+        }
+        slot.worker.as_mut().ok_or(GpuFailure::Missing)
+    }
+
+    pub fn gpu_is_loaded(&self, model: &Path) -> bool {
+        self.gpu.lock().is_ok_and(|mut slot| slot.worker.as_mut().is_some_and(|worker| worker.alive() && worker.model.as_deref() == Some(model)))
+    }
+
+    // The model on the card (it stays there for the next audio).
+    pub fn gpu_prepare(self: &Arc<Self>, model: &Path) -> Result<(), GpuFailure> {
+        {
+            let mut slot = self.gpu.lock().map_err(|_| GpuFailure::Missing)?;
+            Self::worker(&mut slot)?.load(model)?;
+            slot.last_used = Some(Instant::now());
+        }
+        self.watch();
+        Ok(())
+    }
+
+    // On the card. On a failure glup-voz is closed; `params` stay whole for the processor to listen.
+    pub fn gpu_listen(self: &Arc<Self>, params: &mut ListenParams, scratch: &Path) -> Result<Listened, GpuFailure> {
+        let result = {
+            let mut slot   = self.gpu.lock().map_err(|_| GpuFailure::Missing)?;
+            let worker     = Self::worker(&mut slot)?;
+            worker.load(params.model)?;
+            let listened   = worker.listen(GpuListenParams {
+                samples     : params.samples,
+                language    : params.language,
+                cancel      : &params.cancel,
+                scratch,
+                on_progress : &mut *params.on_progress,
+            });
+            slot.last_used = Some(Instant::now());
+            listened
+        };
+        self.watch();
+
+        match result {
+            Ok(GpuListened::Segments(segments)) => Ok(Listened::Segments(segments)),
+            Ok(GpuListened::Cancelled)          => Ok(Listened::Cancelled),
+            Err(failure)                        => {
+                self.drop_gpu();
+                Err(failure)
+            }
+        }
+    }
+
+    // Closes glup-voz (after a failure, or when the model is let go).
+    pub fn drop_gpu(&self) {
+        if let Ok(mut slot) = self.gpu.lock() {
+            slot.worker    = None;
+            slot.last_used = None;
         }
     }
 
