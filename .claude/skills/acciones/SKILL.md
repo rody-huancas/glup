@@ -111,7 +111,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
 | Video (1+) | Reducir peso (Para WhatsApp, Para correo, Lo más liviano o un peso máximo; la primera vez pide descargar FFmpeg) |
 | Imagen (1) | Foto tamaño carnet (pasaporte 3,5 × 4,5, cuadrada 5 × 5 o a medida; foto y hoja 10 × 15 a 300 ppp; usa el modelo de Quitar fondo y el detector de rostros de Windows) |
-| Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper en el procesador, Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |
+| Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper con la tarjeta de video si hay una que sirva —`glup-voz.exe`, Vulkan— y si no con el procesador; Ajustes › «Usar la tarjeta de video»: Automático o Nunca; el progreso dice con cuál; Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
 | Sin archivos (Herramientas y su atajo) | Portapapeles (solo Windows, apagado hasta que se activa: recuerda textos e imágenes copiados, cifrados en la PC, para buscarlos y copiarlos de nuevo; no es una acción sobre archivos) |
