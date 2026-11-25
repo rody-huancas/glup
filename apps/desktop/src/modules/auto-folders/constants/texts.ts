@@ -1,0 +1,98 @@
+import type { AutoToolId } from '@/modules/auto-folders/types/autoToolId';
+import type { FileGroup } from '@/modules/auto-folders/types/fileGroup';
+import type { OriginalChoice } from '@/modules/auto-folders/types/originalChoice';
+import { formatCount } from '@/shared/utils/numbers';
+
+export const AUTO_FOLDERS_TEXTS = {
+  title        : 'Carpetas automáticas',
+  subtitle     : 'Cuando llega algo a una carpeta, lo hago solo mientras estoy abierto.',
+  pauseAll     : 'Pausar todas',
+  pauseAllHint : 'No hago nada hasta que las vuelvas a encender',
+  newRule      : 'Nueva regla',
+  emptyTitle   : 'Todavía no hay reglas',
+  emptyBody    : 'Empieza con una de estas o arma la tuya.',
+  fromScratch  : 'Armar una desde cero',
+  templates    : 'Para empezar',
+  rules        : 'Tus reglas',
+  ruleOn       : 'Encendida',
+  ruleOff      : 'Pausada',
+  processed    : (count: number) => (count === 1 ? '1 archivo hecho' : `${formatCount(count)} archivos hechos`),
+  never        : 'Todavía no llegó nada',
+  lastRun      : (when: string) => `la última vez ${when}`,
+  waiting      : (count: number) => (count === 1 ? '1 en espera' : `${formatCount(count)} en espera`),
+  edit         : 'Editar',
+  duplicate    : 'Duplicar',
+  remove       : 'Borrar',
+  removeTitle  : (name: string) => `¿Borro «${name}»?`,
+  removeBody   : 'Dejo de hacerlo. Lo que ya hice queda donde está.',
+  removeYes    : 'Borrar regla',
+  removeNo     : 'Mejor no',
+  asking       : (count: number, folder: string) => `Llegaron ${formatCount(count)} archivos a ${folder} mientras estaba cerrado. ¿Los hago?`,
+  askYes       : 'Hacerlos',
+  askNo        : 'Solo lo nuevo',
+  needs        : 'Para seguir con esta regla tengo que aprender algo primero. La pausé hasta que me des permiso.',
+  needsHeld    : (count: number) => (count === 1 ? '1 archivo espera' : `${formatCount(count)} archivos esperan`),
+  needsShow    : 'Ver qué necesito',
+  // The editor.
+  editTitle    : 'Editar regla',
+  newTitle     : 'Nueva regla',
+  when         : 'Cuando llegue',
+  whatLabel    : 'Qué archivos tomo',
+  actionLabel  : 'Qué hago con ellos',
+  originalLbl  : 'Qué hago con el original',
+  to           : 'a',
+  then         : 'y',
+  folderPick   : 'Elegir carpeta',
+  pickTitle    : 'Elige la carpeta que vigilo',
+  onlyBig      : 'Solo si pesa más de',
+  megabytes    : 'MB',
+  extensions   : 'Extensiones',
+  extensionsAt : 'psd, dwg',
+  saveIn       : 'Guardar el resultado en',
+  name         : 'Nombre',
+  sortNote     : 'Los muevo a subcarpetas dentro de la misma carpeta; «Deshacer» del Historial los devuelve.',
+  trashNote    : 'Solo si el resultado salió bien, y siempre a la papelera: desde el Historial lo devuelvo.',
+  onlyLoose    : 'Solo miro los archivos sueltos de la carpeta, no sus subcarpetas.',
+  previewTitle : 'Con lo que ya está en la carpeta',
+  previewNone  : 'Ahora no hay nada que esta regla tome: la uso con lo que llegue.',
+  previewSome  : (count: number, size: string) => (count === 1 ? `Tomaría 1 archivo (${size}):` : `Tomaría ${formatCount(count)} archivos (${size}):`),
+  previewMore  : (count: number) => `y ${formatCount(count)} más`,
+  downloading  : (count: number) => (count === 1 ? '1 descarga en curso: la tomo cuando termine.' : `${formatCount(count)} descargas en curso: las tomo cuando terminen.`),
+  applyAll     : (count: number) => (count === 1 ? 'Hacerlo también con el que ya está' : `Hacerlo también con los ${formatCount(count)} que ya están`),
+  onlyNew      : 'Solo con lo que llegue desde ahora',
+  activate     : 'Activar regla',
+  save         : 'Guardar',
+  cancel       : 'Cancelar',
+  previewing   : 'Miro la carpeta…',
+  folderNeeded : 'Elige una carpeta',
+  extNeeded    : 'Escribe al menos una extensión',
+  sizeWrong    : 'Escribe el peso en MB, con un número',
+  errorTitle   : 'No pude leer tus reglas',
+};
+
+export const GROUP_TEXTS: Record<FileGroup, { label: string; sentence: string }> = {
+  photos : { label: 'Fotos', sentence: 'una foto' },
+  iphone : { label: 'Fotos de iPhone (HEIC)', sentence: 'una foto de iPhone' },
+  pdf    : { label: 'PDF', sentence: 'un PDF' },
+  videos : { label: 'Videos', sentence: 'un video' },
+  audios : { label: 'Audios', sentence: 'un audio' },
+  any    : { label: 'Cualquier archivo', sentence: 'cualquier archivo' },
+  custom : { label: 'Extensiones a mano', sentence: 'un archivo' },
+};
+
+// What the rule does, as the sentence says it («…, pasarlo a JPG y…»).
+export const TOOL_TEXTS: Record<AutoToolId, { label: string; sentence: string }> = {
+  'folder-sort'       : { label: 'Ordenarlo', sentence: 'ordenarlo' },
+  'iphone-to-jpg'     : { label: 'Pasarlo a JPG', sentence: 'pasarlo a JPG' },
+  'convert-image'     : { label: 'Convertirlo', sentence: 'convertirlo' },
+  'compress-image'    : { label: 'Reducir el peso de la imagen', sentence: 'reducir su peso' },
+  'compress-pdf'      : { label: 'Reducir el peso del PDF', sentence: 'reducir su peso' },
+  'compress-video'    : { label: 'Reducir el peso del video', sentence: 'reducir su peso' },
+  'transcribe'        : { label: 'Pasar el audio a texto', sentence: 'pasar su audio a texto' },
+  'remove-background' : { label: 'Quitar el fondo', sentence: 'quitarle el fondo' },
+};
+
+export const ORIGINAL_TEXTS: Record<OriginalChoice, { label: string; sentence: string }> = {
+  keep  : { label: 'Dejar el original', sentence: 'dejar el original' },
+  trash : { label: 'Mover el original a la papelera después de hacerlo bien', sentence: 'mover el original a la papelera' },
+};
