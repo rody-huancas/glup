@@ -87,6 +87,66 @@ SOFTWARE.
   `DirectML.dll` junto al instalador, se rige por los términos de Microsoft para DirectML (no es
   MIT) y hay que agregarlos aquí.
 
+## Mejorar calidad
+
+### Real-ESRGAN (los dos modelos)
+
+- **Qué es**: los modelos de inteligencia artificial que agrandan fotos chicas o borrosas (x2 y x4).
+  Glup **no los incluye en el instalador**: descarga el del nivel elegido una sola vez, con permiso de
+  la persona, la primera vez que se usa «Mejorar calidad», y aparecen en Ajustes › Lo que aprendí.
+  Corren en la computadora, con el mismo ONNX Runtime y DirectML de «Quitar fondo»; las fotos nunca
+  salen de ella.
+- **Autor**: Xintao Wang y colaboradores — [xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
+  ([artículo](https://arxiv.org/abs/2107.10833)).
+- **Archivos**: las exportaciones ONNX (fp32) de los pesos oficiales hechas por
+  [jonathanst29/tinier-upscale-models](https://huggingface.co/jonathanst29/tinier-upscale-models),
+  fijadas a la revisión `899dc1e4b22bbf1955c2f1739c085edc080cb366` y verificadas con su SHA-256
+  (`apps/desktop/src-tauri/src/services/upscale/model.rs`):
+  - «Rápido»: `realesr-general-x4v3.onnx` (SRVGGNetCompact, 4,9 MB).
+  - «Más detalle»: `realesrgan-x4plus.onnx` (RRDBNet, 67 MB).
+- **Licencia**: BSD-3-Clause.
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2021, Xintao Wang
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+## Marca de agua
+
+### Las letras
+
+- Glup no trae fuentes propias para la marca de agua: usa las que ya vienen con Windows (Segoe UI,
+  Arial, Georgia, Consolas, Impact, Segoe Script), leídas de `C:\Windows\Fonts` en la computadora de
+  la persona. No se copian ni se reparten.
+- Las dibuja [ab_glyph](https://github.com/alexheretic/ab-glyph) (Apache-2.0), una dependencia de Rust.
+
 ## Videos
 
 ### FFmpeg (el programa que reduce el peso de los videos y abre fotos HEIC y AVIF)
