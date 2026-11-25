@@ -1,12 +1,16 @@
 import { ACTIONS_TEXTS, STAGE_TEXTS, VIA_TEXTS, WORKING_TEXTS } from '@/modules/actions/constants/texts';
 import type { ActionProgress } from '@/modules/actions/interfaces/actionReport';
 import type { ActionId } from '@/modules/actions/types/actionId';
+import type { ProgressStage } from '@/modules/actions/types/progressStage';
 
 interface LabelParams {
   progress   : ActionProgress | null;
   actionId   : ActionId | null;
   cancelling : boolean;
 }
+
+// Stages counted in bytes, files or pages: the bar fills only with these.
+const COUNTED_STAGES: ProgressStage[] = ['downloading', 'working', 'straightening', 'reading'];
 
 // The counted part is over but the task is not: what is left is writing it down.
 const countDone = (progress: ActionProgress): boolean => progress.total > 0 && progress.current >= progress.total;
@@ -15,7 +19,7 @@ const countDone = (progress: ActionProgress): boolean => progress.total > 0 && p
 // moves the bar on its own. So the bar never sits full while Glup is still checking or saving.
 export const progressFraction = (progress: ActionProgress | null): number | null => {
   if (!progress) return null;
-  if (progress.stage !== 'downloading' && progress.stage !== 'working') return null;
+  if (!COUNTED_STAGES.includes(progress.stage)) return null;
   if (progress.total <= 1 && !progress.detail) return null;
   if (progress.total <= 0 || countDone(progress)) return null;
 
@@ -36,4 +40,4 @@ export const progressLabel = ({ progress, actionId, cancelling }: LabelParams): 
 
 // The line under the bar: "120 MB de 514 MB", "35 %", or nothing (the "N de M" row covers files).
 export const progressDetail = (progress: ActionProgress | null): string | null =>
-  progress && (progress.stage === 'downloading' || progress.stage === 'working') && !countDone(progress) ? progress.detail ?? null : null;
+  progress && COUNTED_STAGES.includes(progress.stage) && !countDone(progress) ? progress.detail ?? null : null;

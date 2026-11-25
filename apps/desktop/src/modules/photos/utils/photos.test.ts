@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FileInfo } from '@/modules/actions/interfaces/fileInfo';
-import { allHeic, isHeic, needsPhotoTool, needsRustPreview } from '@/modules/photos/utils/photos';
+import { allHeic, isHeic, needsPhotoTool, needsRustPreview, pathNeedsPhotoTool } from '@/modules/photos/utils/photos';
 
 const file = (path: string): FileInfo => ({ path, name: path, extension: '', size: 1, kind: 'image', pages: null, protected: false, duration: null, width: null, height: null });
 
@@ -29,5 +29,14 @@ describe('photos', () => {
     expect(needsPhotoTool(avif, { heic: true, avif: false, ffmpeg: false })).toBe(true);
     expect(needsPhotoTool(heic, { heic: false, avif: false, ffmpeg: true })).toBe(false);
     expect(needsPhotoTool([file('a.png')], { heic: false, avif: false, ffmpeg: false })).toBe(false);
+  });
+
+  it('tells which photo needs FFmpeg, one by one (the scanner reloads those)', () => {
+    const none = { heic: false, avif: false, ffmpeg: false };
+    expect(pathNeedsPhotoTool('C:/a/IMG_1.HEIC', none)).toBe(true);
+    expect(pathNeedsPhotoTool('C:/a/foto.avif', { ...none, heic: true })).toBe(true);
+    expect(pathNeedsPhotoTool('C:/a/foto.avif', { ...none, avif: true })).toBe(false);
+    expect(pathNeedsPhotoTool('C:/a/foto.jpg', none)).toBe(false);
+    expect(pathNeedsPhotoTool('C:/a/IMG_1.heic', { ...none, ffmpeg: true })).toBe(false);
   });
 });

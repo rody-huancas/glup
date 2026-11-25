@@ -3,6 +3,7 @@ import { PageContent } from '@/modules/main-window/components/PageContent';
 import { Sidebar } from '@/modules/main-window/components/Sidebar';
 import type { MainPanelState, PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { OrganizePage } from '@/modules/organize/pages/OrganizePage';
+import { ScanPage } from '@/modules/scan/pages/ScanPage';
 import { SignPage } from '@/modules/sign/pages/SignPage';
 import { WelcomeScreen } from '@/modules/welcome/components/WelcomeScreen';
 
@@ -24,6 +25,7 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
     />
     {panel.signing && <SignPage target={panel.signing} destination={panel.files.saveLocation.destination} onExit={panel.stopSigning} />}
     {panel.organizing && <OrganizePage target={panel.organizing} destination={panel.files.saveLocation.destination} onExit={panel.stopOrganize} />}
+    {panel.scanning && <ScanPage target={panel.scanning} location={panel.files.saveLocation} onExit={panel.stopScan} />}
     {!panel.fullScreen && <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />}
     {panel.welcome.visible && <WelcomeScreen onAnswer={panel.welcome.answer} />}
   </div>

@@ -53,6 +53,8 @@ interface UseActionSelectionParams {
   onSign      : (path: string) => void;
   // "Organizar páginas" opens its own screen too.
   onOrganize  : (path: string) => void;
+  // So does "Escanear documento", with every photo.
+  onScan      : (paths: string[]) => void;
 }
 
 interface ExecuteParams {
@@ -113,7 +115,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -128,6 +130,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const bundleRef                 = useRef(bundle);
   const signRef                   = useRef(onSign);
   const organizeRef               = useRef(onOrganize);
+  const scanRef                   = useRef(onScan);
   const loadId                    = useRef(0);
   // The step after learning: the background choice, or what the video is for.
   const learnDone                 = useRef<ActionsPhase>('background');
@@ -138,7 +141,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     bundleRef.current      = bundle;
     signRef.current        = onSign;
     organizeRef.current    = onOrganize;
-  }, [onFinished, destination, bundle, onSign, onOrganize]);
+    scanRef.current        = onScan;
+  }, [onFinished, destination, bundle, onSign, onOrganize, onScan]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -275,6 +279,13 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     // So does the organizing screen.
     if (actionId === 'organize-pages') {
       organizeRef.current(selection.paths[0]);
+      finishedRef.current();
+      return;
+    }
+
+    // And the scanning one, with every photo.
+    if (actionId === 'scan') {
+      scanRef.current(selection.paths);
       finishedRef.current();
       return;
     }

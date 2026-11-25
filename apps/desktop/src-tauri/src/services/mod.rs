@@ -21,6 +21,7 @@ pub mod performance;
 pub mod pdf;
 pub mod progress;
 pub mod registry;
+pub mod scan;
 pub mod screen_text;
 pub mod settings;
 pub mod shortcuts;

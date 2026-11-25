@@ -19,6 +19,7 @@
   { "id": "remove-background", "label": "Quitar fondo", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "extract-text", "label": "Sacar texto", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "id-photo", "label": "Foto tamaño carnet", "fileType": "image", "fileCount": "single", "primary": false },
+  { "id": "scan", "label": "Escanear documento", "fileType": "image", "fileCount": "any", "primary": false },
   { "id": "extract-text", "label": "Sacar texto", "fileType": "pdf-mixed", "fileCount": "multiple", "primary": false },
   { "id": "merge", "label": "Unir en un PDF", "fileType": "pdf-mixed", "fileCount": "multiple", "primary": true },
   { "id": "compress", "label": "Reducir peso", "fileType": "video", "fileCount": "any", "primary": true },

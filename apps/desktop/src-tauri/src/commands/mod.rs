@@ -12,6 +12,7 @@ pub mod links;
 pub mod notify;
 pub mod performance;
 pub mod photos;
+pub mod scan;
 pub mod screen_text;
 pub mod settings;
 pub mod shortcuts;

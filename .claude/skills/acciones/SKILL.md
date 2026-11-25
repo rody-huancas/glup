@@ -98,6 +98,25 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 - **Texto sobre las páginas** (marca de agua, números): `services/pdf/stamp.rs` lo dibuja encima del
   contenido, derecho como se ve la página (respeta `/Rotate` y el recuadro), con Helvetica estándar
   (sin incrustar fuentes). La vista previa del paso usa los mismos números que Rust.
+- **Escanear documento** (`services/scan/`, `modules/scan`): fotos de hojas a un PDF recto y limpio.
+  Pantalla entera como Organizar. Rust abre cada foto una vez (derecha, HEIC y AVIF incluidos) y guarda
+  una copia de 1600 px para la revisión; ahí busca la hoja con código propio, sin OpenCV:
+  - Umbral de Otsu, la región clara más grande, la envolvente convexa de sus filas y el cuadrilátero de
+    mayor área.
+  - Solo cuenta como hoja si es convexa, cubre el 12 % de la foto, la llena y tiene bordes nítidos;
+    si no, propone la foto entera y lo dice.
+  Las esquinas viajan como proporciones (0 a 1) de la foto. El PDF final vuelve a leer las fotos
+  enteras:
+  - Homografía propia y una página a su proporción real (A4 o Carta si se parece, con 6 % de margen).
+  - Se divide la luz del papel medida por bloques (quita sombras y el amarillo), y luego Color (más
+    contraste), Gris o Blanco y negro (umbral adaptativo de Bradley, 1 bit por píxel con Flate).
+  - Color y gris van en JPEG 80.
+  - «Que se pueda buscar el texto» usa `ocr::recognize_words` y deja cada palabra invisible
+    (`3 Tr`) en su caja, con Helvetica WinAnsi de ancho fijo y `Tz`.
+  - Etapas `straightening`, `reading` y `saving`, con Cancelar entre hojas.
+  - Un HEIC o AVIF que este Windows no abre (`pathNeedsPhotoTool`) hace que la pantalla pida
+    descargar FFmpeg con el mismo paso que Convertir (`LearnModelStep` con `photos`). Lo pregunta solo
+    la primera vez y después queda un aviso; al terminar la descarga, esas fotos se vuelven a abrir.
 - **Lenguaje**: los nombres de acciones son verbos cortos («Reducir peso», «Unir», «A imágenes»).
   «Comprimir» no se usa para bajar el peso, porque se confunde con ZIP.
 
@@ -105,7 +124,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 
 | Tipo | Acciones |
 | --- | --- |
-| Imagen (también HEIC/HEIF y AVIF) | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso (un HEIC sale en JPG), A PDF, Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
+| Imagen (también HEIC/HEIF y AVIF) | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso (un HEIC sale en JPG), A PDF, Escanear documento (fotos de hojas → un PDF recto y limpio, en la familia PDF), Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
 | Solo HEIC/HEIF (1+) | A JPG («Fotos de iPhone a JPG» en Habilidades y en Inicio: calidad Normal, Alta o Liviana; red de seguridad que compara con la foto) |
 | PDF (1) | Reducir peso (Normal, Al máximo, peso objetivo), Firmar, Separar páginas, Organizar páginas (girar, quitar y reordenar), A imágenes, Poner contraseña, Marca de agua, Numerar páginas, Sacar imágenes |
 | PDF con contraseña (1) | Quitar contraseña (la única; con otros archivos se rechaza: «Primero quítale la contraseña») |

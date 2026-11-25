@@ -27,9 +27,10 @@ interface UseHomeFilesParams {
   onFilesIncoming : () => void;
   onSign          : (path: string) => void;
   onOrganize      : (path: string) => void;
+  onScan          : (paths: string[]) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // Glup eating no longer keeps the island open, so only the setter is used.
@@ -46,7 +47,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });

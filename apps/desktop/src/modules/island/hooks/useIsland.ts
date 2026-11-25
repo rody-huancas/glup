@@ -173,7 +173,7 @@ export const useIsland = () => {
 
   useIslandWatchdog({ machine, send, isMoving, placementRef });
 
-  // While signing or organizing, Esc belongs to that screen (it asks before leaving).
+  // While signing, organizing or scanning, Esc belongs to that screen (it asks before leaving).
   useKeyDown({ key: 'Escape', enabled: state === 'expanded' && !panel.fullScreen, handler: collapseNow });
 
   const actionsVisible = state === 'expanded' && (panel.files.selection !== null || panel.page === 'clipboard');
