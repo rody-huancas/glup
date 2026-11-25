@@ -39,9 +39,10 @@ interface UseHomeFilesParams {
   onSubtitles     : (path: string) => void;
   onImages        : (screen: ImageScreen, paths: string[]) => void;
   onReadQr        : (paths: string[]) => void;
+  onRename        : (paths: string[]) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr, onRename }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // Glup eating no longer keeps the island open, so only the setter is used.
@@ -58,7 +59,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr, onRename });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });
@@ -160,12 +161,17 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
   // Resolves true when that action was chosen; false when the files were refused, do not fit it or
   // came with none (they wait in Inicio for a choice).
   const openWith = useCallback(({ paths, actionId }: OpenWithParams): Promise<boolean> => new Promise((resolve) => {
+    // «Renombrar en lote» takes files of any kind (a .docx alone is no selection): straight to its screen.
+    if (actionId === 'batch-rename') {
+      onRename(paths);
+      return resolve(true);
+    }
     outsideDone.current   = resolve;
     pendingAction.current = actionId;
     void handlePaths(paths).then((loaded) => {
       if (!loaded || actionId === null) settleOutside(false);
     });
-  }), [handlePaths, settleOutside]);
+  }), [handlePaths, settleOutside, onRename]);
 
   // Real runs set Glup's mood from the task store (useTaskMood); here only the "learning" answer.
   useEffect(() => {

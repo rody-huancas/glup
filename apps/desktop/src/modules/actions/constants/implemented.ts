@@ -6,13 +6,13 @@ import { isWindows } from '@/shared/utils/platform';
 
 // Actions that really run; the rest still answer "Esto lo aprendo pronto".
 export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
-  image       : ['convert', 'to-jpg', 'compress', 'to-pdf', 'scan', 'remove-background', 'social-size', 'photo-mark', 'upscale', 'read-qr', 'extract-text', 'id-photo', 'zip'],
-  pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'read-qr', 'zip'],
-  'pdf-mixed' : ['merge', 'extract-text', 'zip'],
-  'pdf-locked': ['unlock'],
-  video       : ['compress', 'transcribe', 'extract-audio', 'trim', 'subtitles', 'to-gif', 'zip'],
-  audio       : ['transcribe', 'trim', 'zip'],
-  mixed       : ['zip'],
+  image       : ['convert', 'to-jpg', 'compress', 'to-pdf', 'scan', 'remove-background', 'social-size', 'photo-mark', 'upscale', 'read-qr', 'extract-text', 'id-photo', 'batch-rename', 'zip'],
+  pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'read-qr', 'batch-rename', 'zip'],
+  'pdf-mixed' : ['merge', 'extract-text', 'batch-rename', 'zip'],
+  'pdf-locked': ['unlock', 'batch-rename'],
+  video       : ['compress', 'transcribe', 'extract-audio', 'trim', 'subtitles', 'to-gif', 'batch-rename', 'zip'],
+  audio       : ['transcribe', 'trim', 'batch-rename', 'zip'],
+  mixed       : ['batch-rename', 'zip'],
 };
 
 // Results that can be delivered in one zip: one per file (2 or more files)…
