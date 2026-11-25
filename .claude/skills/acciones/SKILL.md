@@ -117,6 +117,18 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   - Un HEIC o AVIF que este Windows no abre (`pathNeedsPhotoTool`) hace que la pantalla pida
     descargar FFmpeg con el mismo paso que Convertir (`LearnModelStep` con `photos`). Lo pregunta solo
     la primera vez y después queda un aviso; al terminar la descarga, esas fotos se vuelven a abrir.
+- **Desde el Explorador** (`services/explorer`, `modules/explorer`):
+  - **Entradas:** el clic derecho «Glup» (subcomandos por tipo, con las herramientas de `tools.json`
+    que tienen `menu`) y «Enviar a › Glup».
+  - **Llegada de los archivos:** como argumentos; lo que llega en 500 ms con la misma opción es un
+    solo pedido y una sola tarea.
+  - **En el panel:** el pedido entra como un drop con la acción ya elegida (`openWith`). Si queda un
+    paso (`menuNeedsStep` en `tools.json`, obligatorio junto a `menu`), o si es «Enviar a», la isla se
+    abre en ese paso; si no, corre con las opciones de siempre y solo avisa al terminar.
+  - **Ajustes y registro:** dos interruptores en Ajustes › General (`explorerMenuOff`, `sendToOff`).
+    Las entradas se reescriben al arrancar; el instalador (solo NSIS, sin MSI) las pone y las quita
+    con `--install-shell` y `--uninstall-shell`.
+  - **Una herramienta nueva en el menú:** basta con `menu` y `menuNeedsStep` en `tools.json`.
 - **Lenguaje**: los nombres de acciones son verbos cortos («Reducir peso», «Unir», «A imágenes»).
   «Comprimir» no se usa para bajar el peso, porque se confunde con ZIP.
 
