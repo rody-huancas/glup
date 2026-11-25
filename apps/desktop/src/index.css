@@ -23,6 +23,35 @@
   --color-danger      : #F2777A;
   --color-danger-soft : #3A1D22;
   --color-danger-ink  : #2A0E10;
+  /* The six families of tools: their color, the dark fill of their cards, a deeper one (hover, the
+     active item, Glup's box while it works) and the ink that reads on the color. Every pair used is AA
+     on the panel: the color on its dark fill (5,3 to 8,2), the text on it (10,7+), the ink on the color
+     (5,6 to 8,9). */
+  --color-fam-images         : #B9A8F5;
+  --color-fam-images-dark    : #302C3E;
+  --color-fam-images-deep    : #46405A;
+  --color-fam-images-ink     : #2B2738;
+  --color-fam-pdf            : #F2777A;
+  --color-fam-pdf-dark       : #3A2429;
+  --color-fam-pdf-deep       : #573135;
+  --color-fam-pdf-ink        : #341F24;
+  --color-fam-media          : #F6C36B;
+  --color-fam-media-dark     : #3A3126;
+  --color-fam-media-deep     : #584831;
+  --color-fam-media-ink      : #352B22;
+  --color-fam-text           : #7CC4F2;
+  --color-fam-text-dark      : #26313D;
+  --color-fam-text-deep      : #334859;
+  --color-fam-text-ink       : #212B38;
+  --color-fam-clipboard      : #7DE3B8;
+  --color-fam-clipboard-dark : #263633;
+  --color-fam-clipboard-deep : #345148;
+  --color-fam-clipboard-ink  : #21302E;
+  --color-fam-pc             : #C9CDD6;
+  --color-fam-pc-dark        : #333338;
+  --color-fam-pc-deep        : #4A4B51;
+  --color-fam-pc-ink         : #2E2D33;
+
   /* Ink on the white page of a PDF preview (watermark gray, page numbers black). */
   --color-ink         : #000000;
   --color-ink-gray    : #808080;
