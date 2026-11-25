@@ -71,8 +71,13 @@ por usuario y no pide administrador.
   - Las vuelve a escribir al arrancar, por si una actualización cambió la ruta.
   - El instalador (solo NSIS; no hay `.msi`) lo llama con `--install-shell` al instalar y con
     `--uninstall-shell` al desinstalar (`src-tauri/windows/installer-hooks.nsh`).
-- **En desarrollo:** `pnpm dev` también las escribe, apuntando a `target\debug\glup.exe`. Apágalas
-  en Ajustes › General o con `glup.exe --uninstall-shell`.
+- **En desarrollo:** una compilación de desarrollo no escribe nada fuera de sí misma: ni el clic
+  derecho, ni «Enviar a», ni el arranque con Windows. Si encuentra entradas que apuntan a
+  `target\debug`, las borra al iniciar. Para probarlas, arranca con `GLUP_DEV_SHELL=1`
+  (`services/dev_build.rs`).
+- **Sin consolas:** `glup.exe` es un programa de ventana también en desarrollo. Sus logs llegan
+  igual a la terminal de `pnpm dev`, y los procesos que abre el Explorador no muestran ninguna
+  ventana.
 - **Windows 11:** hoy Glup aparece en «Mostrar más opciones». Para el menú moderno haría falta:
   - **Un controlador `IExplorerCommand`:** un servidor COM, en una DLL o en un `.exe` registrado como
     servidor fuera de proceso, que dé el título, el ícono, el estado según la selección y los
