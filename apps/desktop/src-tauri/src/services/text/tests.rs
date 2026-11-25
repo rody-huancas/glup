@@ -130,6 +130,7 @@ fn the_history_line_points_at_the_saved_txt() {
         undo    : None,
         saved   : None,
         seconds : None,
+        rule    : None,
     };
     let moved = point_entry(vec![entry], "1", Path::new("C:/docs/contrato.txt"));
     assert_eq!((moved[0].name.as_str(), moved[0].path.as_str()), ("contrato.txt", "C:/docs/contrato.txt"));

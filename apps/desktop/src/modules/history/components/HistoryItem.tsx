@@ -1,4 +1,5 @@
 import { getSelectionIcon } from '@/modules/actions/utils/fileIcon';
+import { useTrashUndo } from '@/modules/auto-folders/hooks/useTrashUndo';
 import { useSortUndo } from '@/modules/folder-sort/hooks/useSortUndo';
 import { HistoryTextDetail } from '@/modules/history/components/HistoryTextDetail';
 import { HISTORY_TEXTS } from '@/modules/history/constants/history';
@@ -16,6 +17,7 @@ import { FolderIcon } from '@/shared/icons/FolderIcon';
 import { RenameIcon } from '@/shared/icons/RenameIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 import { useId } from 'react';
+import { TrashIcon } from '@/shared/icons/TrashIcon';
 
 interface HistoryItemProps {
   entry      : HistoryEntry;
@@ -37,11 +39,16 @@ export const HistoryItem = ({ entry, now, missing, expanded, selection, onOpen, 
   const sorted   = entry.type === 'folder-sort';
   const renamed  = entry.type === 'batch-rename';
   const rename   = useRenameUndo();
+  const trashed  = entry.type === 'auto-trash';
+  const back     = useTrashUndo();
   const text     = entry.type === 'screen-text' ? entry.text : undefined;
-  const icon     = entry.type === 'cleanup' || entry.type === 'folder-sort' || entry.type === 'screen-text' || entry.type === 'duplicates' || entry.type === 'batch-rename' ? null : getSelectionIcon(entry.type);
+  const icon     = entry.type === 'cleanup' || entry.type === 'folder-sort' || entry.type === 'screen-text' || entry.type === 'duplicates' || entry.type === 'batch-rename' || entry.type === 'auto-trash' ? null : getSelectionIcon(entry.type);
   const undoId   = entry.undo;
   const title    = text ? textPreview(text) : entry.name;
-  const detail   = missing ? HISTORY_TEXTS.missing : text ? HISTORY_TEXTS.textDetail(getHistoryDetail(entry, now)) : getHistoryDetail(entry, now);
+  const plain    = missing ? HISTORY_TEXTS.missing : text ? HISTORY_TEXTS.textDetail(getHistoryDetail(entry, now)) : getHistoryDetail(entry, now);
+  const detail   = entry.rule ? `${plain} · ${HISTORY_TEXTS.byRule(entry.rule)}` : plain;
+  const undoing  = renamed ? rename.running : trashed ? back.running : sortUndo.running;
+  const undo     = (id: string) => (renamed ? rename.undo(id) : trashed ? back.undo(id) : sortUndo.undo(id));
 
   return (
     <li {...REVEAL_PROPS.card} id={historyEntryElementId(entry.id)} className="rounded-[14px] bg-raised">
@@ -50,7 +57,7 @@ export const HistoryItem = ({ entry, now, missing, expanded, selection, onOpen, 
         <button
           type="button"
           onClick={() => (text ? onExpand(entry.id) : onOpen(entry))}
-          disabled={cleanup || sorted || renamed}
+          disabled={cleanup || sorted || renamed || trashed}
           aria-expanded={text ? expanded : undefined}
           aria-controls={text && expanded ? detailId : undefined}
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[14px] py-2.5 pl-2 pr-3 text-left transition-colors hover:bg-line disabled:cursor-default disabled:hover:bg-transparent"
@@ -59,15 +66,16 @@ export const HistoryItem = ({ entry, now, missing, expanded, selection, onOpen, 
           {!icon && cleanup && <CleanupIcon className="size-7 text-mint" />}
           {!icon && sorted && <FolderIcon className="size-7 text-mint" />}
           {!icon && renamed && <RenameIcon className="size-7 text-fam-pc" />}
+          {!icon && trashed && <TrashIcon className="size-7 text-fam-pc" />}
           {!icon && text !== undefined && <ScreenTextIcon className="size-7 text-lilac" />}
-          {!icon && !cleanup && !sorted && !renamed && text === undefined && <FileIcon className="size-7 text-muted" />}
+          {!icon && !cleanup && !sorted && !renamed && !trashed && text === undefined && <FileIcon className="size-7 text-muted" />}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold text-text">{title}</p>
             <p className={missing ? 'truncate text-xs text-lilac-soft' : 'truncate text-xs text-muted'}>{detail}</p>
           </div>
         </button>
         {undoId && (
-          <Button variant="secondary" onClick={() => (renamed ? rename.undo(undoId) : sortUndo.undo(undoId))} disabled={renamed ? rename.running : sortUndo.running} className="mr-2.5 h-8 shrink-0 px-3 text-xs">
+          <Button variant="secondary" onClick={() => undo(undoId)} disabled={undoing} className="mr-2.5 h-8 shrink-0 px-3 text-xs">
             {HISTORY_TEXTS.undo}
           </Button>
         )}

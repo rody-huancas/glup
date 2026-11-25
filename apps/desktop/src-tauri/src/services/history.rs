@@ -43,6 +43,9 @@ pub struct HistoryEntry {
     // Seconds of audio passed to text, for "Tu semana" in Inicio.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub seconds: Option<f64>,
+    // "Carpetas automáticas": the rule that did it on its own.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule: Option<String>,
 }
 
 pub struct NewEntryParams<'a> {
@@ -134,6 +137,7 @@ pub fn new_entry(params: NewEntryParams) -> HistoryEntry {
         undo    : None,
         saved   : None,
         seconds : None,
+        rule    : None,
     }
 }
 
@@ -153,6 +157,7 @@ pub fn fileless_entry(params: FilelessEntryParams) -> HistoryEntry {
         undo    : None,
         saved   : None,
         seconds : None,
+        rule    : None,
     }
 }
 
@@ -298,6 +303,7 @@ mod tests {
             undo    : None,
             saved   : None,
             seconds : None,
+            rule    : None,
         }
     }
 

@@ -287,6 +287,8 @@ struct Run<'a> {
     task: Option<String>,
     // "Quitar ubicación" off: the GPS block of a photo goes into the new file with its date.
     keep_location: bool,
+    // At most this many files at once (Carpetas automáticas works lightly, in the background).
+    threads: usize,
 }
 
 impl Run<'_> {
@@ -322,7 +324,7 @@ impl Run<'_> {
 
     // Up to (cores - 1) files at once; progress counts finished files.
     fn each_parallel<T: Send>(&self, work: impl Fn(&Path) -> T + Sync) -> (Vec<Option<T>>, bool) {
-        let threads = worker_count().min(self.paths.len()).max(1);
+        let threads = worker_count().min(self.threads).min(self.paths.len()).max(1);
         self.progress(ProgressParams { current: 0, total: self.paths.len(), name: "", active: threads });
 
         let results = run_parallel(ParallelParams {
@@ -780,6 +782,22 @@ fn bundle(params: BundleParams) -> Collected {
 pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, String> {
     let control = app.state::<ActionControl>();
     control.begin(&request.task_id);
+    run_with(RunWithParams { app, request, cancel: &control.cancelled, rule: None, threads: usize::MAX })
+}
+
+pub struct RunWithParams<'a> {
+    pub app     : &'a AppHandle,
+    pub request : ActionRequest,
+    pub cancel  : &'a AtomicBool,
+    // The rule of Carpetas automáticas that runs it, written on its history lines.
+    pub rule    : Option<String>,
+    pub threads : usize,
+}
+
+// The same action with its own cancel flag: Carpetas automáticas never shares Cancelar with the tasks
+// of the person.
+pub fn run_with(params: RunWithParams) -> Result<ActionReport, String> {
+    let RunWithParams { app, request, cancel, rule, threads } = params;
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
@@ -800,7 +818,7 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
 
     let task     = request.task_id.clone();
     let keep     = app_settings::read(app).settings.keep_location;
-    let run      = Run { app, paths, destination: work_destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task, keep_location: keep };
+    let run      = Run { app, paths, destination: work_destination, cancel, reserved: Mutex::new(HashSet::new()), task, keep_location: keep, threads };
     let all_pdfs = run.paths.iter().all(|path| is_pdf(path));
     let videos   = run.paths.iter().all(|path| is_video(path));
     let split    = options.split.clone();
@@ -846,7 +864,8 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         let _ = fs::remove_dir_all(folder);
     }
 
-    let _ = history::append(app, collected.entries);
+    let entries = collected.entries.into_iter().map(|entry| HistoryEntry { rule: rule.clone(), ..entry }).collect();
+    let _       = history::append(app, entries);
 
     Ok(ActionReport {
         action_id   : request.action_id,
@@ -1155,7 +1174,7 @@ pub fn begin_page_images(app: &AppHandle, request: PageImagesRequest) -> Result<
     let bundle      = request.bundle.unwrap_or(false);
     let destination = request.destination.unwrap_or_default();
     let control     = app.state::<ActionControl>();
-    let run         = Run { app, paths: vec![source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None, keep_location: false };
+    let run         = Run { app, paths: vec![source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None, keep_location: false, threads: usize::MAX };
     let folder      = if bundle { scratch_folder()? } else { output_folder(&run, &source, IMAGES_SUFFIX)? };
 
     if let Some(task) = &request.task_id {
@@ -1182,7 +1201,7 @@ fn finish_page_images_inner(app: &AppHandle, request: FinishPageImagesRequest) -
     let session     = save_images::close(&app.state::<PageImageSessions>(), request.session).ok_or(SESSION_ERROR)?;
     let control     = app.state::<ActionControl>();
     let destination = session.destination.clone();
-    let run         = Run { app, paths: vec![session.source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None, keep_location: false };
+    let run         = Run { app, paths: vec![session.source.clone()], destination, cancel: &control.cancelled, reserved: Mutex::new(HashSet::new()), task: None, keep_location: false, threads: usize::MAX };
     let done        = session.saved.len() as u32;
     let source      = session.source.as_path();
 
@@ -1246,6 +1265,7 @@ pub fn sign_pdf(app: &AppHandle, request: SignRequest) -> Result<ActionReport, S
         reserved    : Mutex::new(HashSet::new()),
         task        : request.task_id.clone(),
         keep_location : false,
+        threads       : usize::MAX,
     };
 
     run.progress(ProgressParams { current: 0, total: 1, name: &file_name(&source), active: 1 });
@@ -1310,6 +1330,7 @@ pub fn organize_pdf(app: &AppHandle, request: OrganizeRequest) -> Result<ActionR
         reserved    : Mutex::new(HashSet::new()),
         task        : request.task_id.clone(),
         keep_location : false,
+        threads       : usize::MAX,
     };
 
     run.progress(ProgressParams { current: 0, total: 1, name: &file_name(&source), active: 1 });
@@ -1695,6 +1716,7 @@ pub fn run_single(params: SingleParams) -> Result<ActionReport, String> {
         reserved      : Mutex::new(HashSet::new()),
         task          : params.task_id.clone(),
         keep_location : false,
+        threads       : usize::MAX,
     };
     let report = |outcomes: Vec<FileOutcome>, batch: Option<&Saved>, cancelled: bool| ActionReport {
         action_id        : params.action.to_string(),
@@ -1768,6 +1790,7 @@ pub fn save_id_photo(app: &AppHandle, request: IdPhotoSaveRequest) -> Result<Act
         reserved    : Mutex::new(HashSet::new()),
         task        : request.task_id.clone(),
         keep_location : false,
+        threads       : usize::MAX,
     };
     run.progress(ProgressParams { current: 0, total: 1, name: "", active: 1 });
 
@@ -1812,6 +1835,7 @@ pub fn scan_document(app: &AppHandle, request: scan::ScanRequest) -> Result<Acti
         reserved      : Mutex::new(HashSet::new()),
         task          : request.task_id.clone(),
         keep_location : false,
+        threads       : usize::MAX,
     };
 
     let rendered = scan::render(scan::RenderParams { app, request: &request, cancel: &control.cancelled });
