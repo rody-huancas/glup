@@ -32,7 +32,19 @@ src/
 ```
 
 Módulos actuales: `island` (la isla y su máquina de estados), `mascot` (Glup y sus animaciones),
-`main-window` (el layout del panel), `home`, `actions`, `tasks`, `pdf`, `sign`, `organize`, `cleanup`,
+`main-window` (el layout del panel; la barra lateral, de arriba abajo: Glup, el buscador con Ctrl+K
+—un combobox que encuentra herramientas, familias y ajustes—, Inicio, Habilidades —`tools`: el
+buscador y las 6 familias; al escribir, los resultados agrupados por familia—, Historial con sus entradas nuevas, los favoritos —la
+estrella de cada `ToolCard`, en `settings.json` como `favoriteTools`—, el espacio libre, la tarea en
+curso, Ajustes y «Todo en tu PC». Las pantallas que no tienen lista propia con scroll scrollean
+enteras con espacio al final; las de `SELF_SCROLLING` llenan la caja. Una pantalla a la que se entra desde otra
+(una familia → Habilidades; Limpieza, Ordenar, Rendimiento → Tu PC; Portapapeles → su familia,
+`backTarget`) lleva «← …» arriba y vuelve también con Esc, Alt+← y el botón de atrás del mouse
+(`useBackNavigation`). Cada herramienta tiene su propio ícono, nombrado en `tools.json` (`icon`) y
+dibujado con el set de trazo de `shared/icons`. Inicio: la franja menta, «Lo
+que hicimos» —4 cifras y un gráfico de cápsulas apiladas por familia en SVG propio, sin librerías,
+con tabla oculta para lectores de pantalla y barras de ejemplo rayadas sin datos— y una fila con
+Accesos rápidos, Lo último y Tu PC; todo del historial local), `home`, `actions`, `tasks`, `pdf`, `sign`, `organize`, `cleanup`,
 `history`, `settings`, `text`, `screen-text`, `shortcuts`, `clipboard`, `tools`, `updates`, `video`, `notices`, `id-photo`, `transcribe`, `folder-sort`, `photos`, `performance`, `families`. Se crean **solo las subcarpetas que se usan**.
 
 ## Reglas obligatorias
