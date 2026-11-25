@@ -14,7 +14,7 @@ export const BackLink = ({ target, onNavigate }: BackLinkProps) => (
     type="button"
     onClick={() => onNavigate(target)}
     title={MAIN_WINDOW_TEXTS.backHint}
-    className="mb-3 flex h-7 shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-md pr-2 text-[13px] font-semibold text-muted outline-none hover:text-text focus-visible:outline-2 focus-visible:outline-lilac"
+    className="flex h-7 shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-md pr-2 text-[13px] font-semibold text-muted outline-none hover:text-text focus-visible:outline-2 focus-visible:outline-lilac"
   >
     <ArrowLeftIcon className="size-4" />
     {pageTitle(target)}
