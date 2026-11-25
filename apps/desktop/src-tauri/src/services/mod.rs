@@ -25,6 +25,7 @@ pub mod performance;
 pub mod photo_mark;
 pub mod pdf;
 pub mod progress;
+pub mod qr;
 pub mod registry;
 pub mod scan;
 pub mod screen_text;
