@@ -15,7 +15,7 @@ import { useIslandWatchdog } from '@/modules/island/hooks/useIslandWatchdog';
 import { createIslandElements } from '@/modules/island/utils/elements';
 import { ISLAND_TIMING } from '@/modules/island/constants/island';
 import type { HoldReason } from '@/modules/island/types/holdReason';
-import { logBubble } from '@/modules/island/utils/islandLog';
+import { logBubble, logPosition } from '@/modules/island/utils/islandLog';
 import { closesOnLeave, hoverEnabled, hoverOpens, toIslandState } from '@/modules/island/utils/islandMachine';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
@@ -67,6 +67,7 @@ export const useIsland = () => {
     if (placementRef.current === dock.placement) return;
 
     placementRef.current = dock.placement;
+    logPosition('redibujo la isla en su lugar nuevo');
     relayout();
   }, [dock.placement, relayout, send]);
 
@@ -126,8 +127,11 @@ export const useIsland = () => {
   useLaunchOpen({ onOpen: openPinned });
 
   useEffect(() => {
+    logPosition(`cursor ${inside ? 'dentro' : 'fuera'} de la isla`);
     send({ type: 'pointer', inside });
   }, [inside, send]);
+
+  useEffect(() => logPosition(`fase: ${machine.phase}`), [machine.phase]);
 
   const hovering = hoverEnabled(machine);
 

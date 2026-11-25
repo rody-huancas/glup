@@ -13,3 +13,6 @@ export const logIsland = (line: string) => log('isla', line);
 
 // The bubble's clicks, focus and blur, to tell a lost click from one that arrived.
 export const logBubble = (line: string) => log('burbuja', line);
+
+// Ajustes › Posición: what moves while the slider or the marker is held (settings, window, region, phase).
+export const logPosition = (line: string) => log('posicion', line);

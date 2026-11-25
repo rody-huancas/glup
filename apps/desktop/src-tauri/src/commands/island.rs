@@ -14,6 +14,8 @@ use crate::services::{
 #[tauri::command]
 pub fn set_island_area(window: WebviewWindow, rect: IslandRect, clickable: Option<bool>, round: Option<bool>) -> Result<(), String> {
     let shape = AreaShape { clickable: clickable.unwrap_or(true), round: round.unwrap_or(false) };
+    #[cfg(debug_assertions)]
+    eprintln!("[glup:posicion] set_island_area {}x{} en {},{}", rect.width, rect.height, rect.x, rect.y);
     island_window::set_area(&window, rect, shape).map_err(|error| error.to_string())
 }
 
@@ -65,6 +67,8 @@ pub fn get_taskbar_state() -> taskbar::TaskbarState {
 
 #[tauri::command]
 pub fn set_island_dock(app: AppHandle, dock: IslandDock) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    eprintln!("[glup:posicion] set_island_dock {:?} {:.0} %", dock.edge, dock.offset * 100.0);
     let saved = settings::read(&app).settings;
     settings::update(&app, Settings { island_dock: Some(dock), ..saved }).map(|_| ())
 }

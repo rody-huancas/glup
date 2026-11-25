@@ -165,7 +165,12 @@ pub fn set_frame(window: &WebviewWindow, request: FrameRequest) -> Result<()> {
     // A bubble dragged within its screen keeps the window (only its resting area changes): moving it
     // again on every step would only make it flicker.
     if !(same_place && already_there) {
+        #[cfg(debug_assertions)]
+        eprintln!("[glup:posicion] ventana movida a {},{} ({}x{})", position.x, position.y, size.width, size.height);
         place(window, &frame)?;
+    } else {
+        #[cfg(debug_assertions)]
+        eprintln!("[glup:posicion] ventana: ya estaba ahí, no la muevo");
     }
     if let Ok(mut current) = window.state::<IslandFrame>().0.lock() {
         *current = Some(frame);
