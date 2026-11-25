@@ -4,6 +4,7 @@ export interface IslandElements {
   panel        : RefObject<HTMLDivElement | null>;
   fill         : RefObject<SVGPathElement | null>;
   outline      : RefObject<SVGPathElement | null>;
+  glow         : RefObject<SVGPathElement | null>;
   content      : RefObject<HTMLDivElement | null>;
   lift         : RefObject<HTMLDivElement | null>;
   flyer        : RefObject<HTMLDivElement | null>;

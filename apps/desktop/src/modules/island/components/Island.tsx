@@ -11,6 +11,7 @@ import { IslandPillDot } from '@/modules/island/components/IslandPillDot';
 import { IslandPillProgress } from '@/modules/island/components/IslandPillProgress';
 import { IslandSilhouette } from '@/modules/island/components/IslandSilhouette';
 import { useIsland } from '@/modules/island/hooks/useIsland';
+import { useIslandBorder } from '@/modules/island/hooks/useIslandBorder';
 import { setPanelOpen } from '@/modules/island/store/panelStore';
 import { rectStyle } from '@/modules/island/utils/islandStyles';
 import { MainPanel } from '@/modules/main-window/components/MainPanel';
@@ -23,6 +24,7 @@ import { preventSelectionStart } from '@/shared/utils/selection';
 // bubble adds its shadow and its progress ring around the circle, outside the clip.
 export const Island = () => {
   const island                         = useIsland();
+  useIslandBorder();
   const { elements, panel, placement } = island;
   const expanded                       = island.state === 'expanded';
   const bubble                         = placement.kind === 'bubble';
@@ -52,7 +54,7 @@ export const Island = () => {
         onPointerDownCapture={island.onPanelPointerDown}
         onPointerDown={island.onDragPointerDown}
       >
-        <IslandSilhouette fillRef={elements.fill} outlineRef={elements.outline} />
+        <IslandSilhouette fillRef={elements.fill} outlineRef={elements.outline} glowRef={elements.glow} />
         <IslandContent contentRef={elements.content} placement={placement} interactive={expanded}>
           <MainPanel panel={panel} controls={island.controls} avatarAnchorRef={elements.avatarAnchor} />
         </IslandContent>
