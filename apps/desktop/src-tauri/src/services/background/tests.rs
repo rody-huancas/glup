@@ -13,7 +13,7 @@ use sha2::{Digest, Sha256};
 
 use super::{
     cutout,
-    download::{copy_chunks, download, matches_hash, sha256_of, CopyParams, Copied, DownloadEnd, DownloadParams, Fetched, HashWriter, CORRUPT_ERROR, NETWORK_ERROR},
+    download::{copy_chunks, download, matches_hash, sha256_of, CopyParams, Copied, DownloadEnd, DownloadParams, Fetched, HashWriter, ATTEMPTS, CORRUPT_ERROR, FAMILIES, NETWORK_ERROR},
     mask::{apply_mask, mask_from_logits, on_white, preprocess, Mask, MEAN, MODEL_SIDE, STD},
     model::{delete_in, model_path, part_path, status_in, ModelFile},
     session::{infer, is_idle, open, Device},
@@ -209,7 +209,7 @@ fn a_resumed_download_with_a_damaged_part_is_caught() {
     let bytes  = served_bytes();
     let model  = fake_model(&folder.0, &bytes);
 
-    let _ = run_download(&folder.0, &model, &server(bytes.clone(), Some(1_200_000), true));
+    let _ = run_download(&folder.0, &model, &server(bytes.clone(), Some(600_000), true));
     let part      = part_path(&folder.0, &model);
     let mut saved = fs::read(&part).expect("part");
     saved[10] ^= 0xFF;
@@ -296,11 +296,12 @@ fn a_cut_download_resumes_where_it_stopped() {
     let bytes  = served_bytes();
     let model  = fake_model(&folder.0, &bytes);
 
-    assert_eq!(run_download(&folder.0, &model, &server(bytes.clone(), Some(1_200_000), true)), Err(NETWORK_ERROR.to_string()));
+    // Cut every time after 900 KB: it goes on by itself ATTEMPTS times, then asks.
+    assert_eq!(run_download(&folder.0, &model, &server(bytes.clone(), Some(900_000), true)), Err(NETWORK_ERROR.to_string()));
 
     let partial = status_in(&folder.0, &model);
     assert!(!partial.installed);
-    assert_eq!(partial.partial, 1_200_000);
+    assert_eq!(partial.partial, 900_000 * ATTEMPTS as u64);
 
     // The second try only asks for the rest; the hash checks the joined file.
     let asked = std::cell::Cell::new(0u64);
@@ -311,7 +312,43 @@ fn a_cut_download_resumes_where_it_stopped() {
     };
 
     assert_eq!(run_download(&folder.0, &model, &spy), Ok(DownloadEnd::Installed));
-    assert_eq!(asked.get(), 1_200_000);
+    assert_eq!(asked.get(), 900_000 * ATTEMPTS as u64);
+}
+
+#[test]
+fn a_cut_in_the_middle_goes_on_by_itself() {
+    let folder = Folder::new("retry");
+    let bytes  = served_bytes();
+    let model  = fake_model(&folder.0, &bytes);
+    let asked  = std::cell::RefCell::new(Vec::new());
+    let cut    = server(bytes.clone(), Some(1_000_000), true);
+    let whole  = server(bytes, None, true);
+    // The first answer is cut at 1 MB; the second one sends the rest.
+    let flaky  = |start: u64| {
+        asked.borrow_mut().push(start);
+        if asked.borrow().len() == 1 { cut(start) } else { whole(start) }
+    };
+
+    assert_eq!(run_download(&folder.0, &model, &flaky), Ok(DownloadEnd::Installed));
+    assert_eq!(*asked.borrow(), vec![0, 1_000_000]);
+}
+
+#[test]
+fn a_server_that_ignores_the_range_is_started_over() {
+    let folder = Folder::new("whole-again");
+    let bytes  = served_bytes();
+    let model  = fake_model(&folder.0, &bytes);
+    std::fs::write(part_path(&folder.0, &model), &bytes[..700_000]).unwrap();
+
+    // 200 with the whole file instead of 206: nothing is glued onto the part, it starts from zero.
+    assert_eq!(run_download(&folder.0, &model, &server(bytes, None, false)), Ok(DownloadEnd::Installed));
+}
+
+#[test]
+fn ipv4_is_tried_before_everything() {
+    use ureq::config::IpFamily;
+
+    assert_eq!(FAMILIES, [IpFamily::Ipv4Only, IpFamily::Any]);
 }
 
 #[test]
@@ -384,7 +421,7 @@ fn real_model_times_per_image() {
             let started  = Instant::now();
             let input    = preprocess(&image.to_rgb8());
             let ready    = started.elapsed().as_secs_f32();
-            let logits   = match infer(&mut session, &input) {
+            let logits   = match infer(&mut session, &input, [1, 3, MODEL_SIDE as usize, MODEL_SIDE as usize]) {
                 Ok(logits) => logits,
                 Err(error) => {
                     println!("{device:?} {}: falló ({error})", path.display());
