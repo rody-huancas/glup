@@ -13,6 +13,7 @@ import {
 import type { BatteryInfo } from '@/modules/performance/interfaces/batteryInfo';
 import type { DiskSpace } from '@/modules/performance/interfaces/diskSpace';
 import type { UsageLevel } from '@/modules/performance/types/usageLevel';
+import { formatDecimal } from '@/shared/utils/numbers';
 
 interface Levels {
   working : number;
@@ -70,4 +71,4 @@ export const batteryStatePhrase = (battery: BatteryInfo): string => {
 
 // "12", "0,4": one decimal under 10, Spanish comma.
 export const percentText = (value: number): string =>
-  new Intl.NumberFormat('es', { maximumFractionDigits: value < 10 ? 1 : 0 }).format(value);
+  formatDecimal(value, value < 10 ? 1 : 0);
