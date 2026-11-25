@@ -30,4 +30,5 @@ export const HISTORY_TEXTS = {
   selectEntry  : (name: string) => `Seleccionar ${name}`,
   textDetail   : (detail: string) => `Texto de la pantalla · ${detail}`,
   undo         : 'Deshacer',
+  byRule       : (rule: string) => `lo hizo «${rule}»`,
 };

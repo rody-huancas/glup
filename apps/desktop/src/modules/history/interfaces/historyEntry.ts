@@ -7,8 +7,8 @@ export interface HistoryEntry {
   name   : string;
   path   : string;
   // 'video' comes from SupportedFileType.
-  type   : SupportedFileType | 'zip' | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates' | 'batch-rename';
-  action : ActionId | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates';
+  type   : SupportedFileType | 'zip' | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates' | 'batch-rename' | 'auto-trash';
+  action : ActionId | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates' | 'auto-trash';
   detail : string;
   date   : string;
   // What was copied from the screen, to see it and copy it again.
@@ -18,4 +18,6 @@ export interface HistoryEntry {
   // Bytes it saved (a reduced file, a cleaning) and seconds of audio passed to text: "Tu semana".
   saved?   : number;
   seconds? : number;
+  // Carpetas automáticas: the rule that did it on its own.
+  rule?    : string;
 }
