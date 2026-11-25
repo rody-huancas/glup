@@ -14,7 +14,7 @@ import type { Family } from '@/modules/families/interfaces/family';
 import type { FamilyStyle } from '@/modules/families/interfaces/familyStyle';
 import type { FamilyId } from '@/modules/families/types/familyId';
 
-// In this order in Inicio and in Herramientas.
+// In this order in Habilidades and in the search.
 export const FAMILY_IDS: FamilyId[] = ['images', 'pdf', 'media', 'text', 'clipboard', 'pc'];
 
 export const FAMILIES: Record<FamilyId, Family> = {
@@ -138,7 +138,6 @@ export const FAMILY_STYLES: Record<FamilyId, FamilyStyle> = {
 };
 
 export const FAMILY_TEXTS = {
-  title      : 'Familias de herramientas',
   tools      : (count: number) => (count === 1 ? '1 herramienta' : `${count} herramientas`),
   saved      : (count: number) => (count === 1 ? '1 guardado' : `${count} guardados`),
   clipOff    : 'Apagado',

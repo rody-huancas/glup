@@ -2,7 +2,7 @@ use tauri::{ipc::Response, AppHandle, WebviewWindow};
 
 use crate::services::screen_text::{self, ReadZoneRequest};
 
-// Herramientas › "Copiar texto de la pantalla" (the shortcut and the tray start it from Rust).
+// Habilidades › "Copiar texto de la pantalla" (the shortcut and the tray start it from Rust).
 #[tauri::command]
 pub fn start_screen_text(app: AppHandle) {
     screen_text::start(&app);

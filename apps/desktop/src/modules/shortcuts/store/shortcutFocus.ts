@@ -1,6 +1,6 @@
 import type { ShortcutTarget } from '@/modules/shortcuts/types/shortcutTarget';
 
-// "Cambiar" on a card in Herramientas: Ajustes opens with that shortcut's setting in view and focused.
+// "Cambiar" on a card in Habilidades: Ajustes opens with that shortcut's setting in view and focused.
 let requested: ShortcutTarget | null = null;
 
 export const requestShortcutFocus = (target: ShortcutTarget) => {

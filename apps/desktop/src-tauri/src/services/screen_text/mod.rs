@@ -106,7 +106,7 @@ pub fn ocr_scale(width: u32, height: u32) -> u32 {
     if width.max(height) <= UPSCALE_LIMIT { UPSCALE } else { 1 }
 }
 
-// From the shortcut, the tray or Herramientas. Off the main thread: it waits for the island to fade out.
+// From the shortcut, the tray or Habilidades. Off the main thread: it waits for the island to fade out.
 pub fn start(app: &AppHandle) {
     if app.state::<ScreenTextState>().busy.swap(true, Ordering::SeqCst) {
         return;

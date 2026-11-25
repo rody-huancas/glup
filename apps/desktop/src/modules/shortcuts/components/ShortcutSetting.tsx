@@ -18,7 +18,7 @@ export const ShortcutSetting = ({ target }: ShortcutSettingProps) => {
   const view       = setting.view;
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Arriving from "Cambiar" in Herramientas: in view, with the focus on its first control.
+  // Arriving from "Cambiar" in Habilidades: in view, with the focus on its first control.
   useEffect(() => {
     if (!view || !takeShortcutFocus(target)) return;
 
