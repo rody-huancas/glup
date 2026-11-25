@@ -59,6 +59,8 @@ pub fn run() {
         .manage(services::duplicates::DuplicatesState::default())
         .manage(services::media::serve::MediaFiles::default())
         .manage(services::media::MediaSession::default())
+        .manage(services::space::SpaceState::default())
+        .manage(services::rename::RenameState::default())
         // The file of the trimming screen, to its player, in pieces (services/media/serve.rs).
         .register_asynchronous_uri_scheme_protocol(services::media::serve::SCHEME, |context, request, responder| {
             let app = context.app_handle().clone();
@@ -100,6 +102,14 @@ pub fn run() {
             commands::media::get_media_wave,
             commands::media::close_media,
             commands::media::trim_media,
+            commands::space::get_space_places,
+            commands::space::analyze_space,
+            commands::space::get_space_view,
+            commands::space::trash_space_item,
+            commands::space::rename_preview,
+            commands::space::rename_folder_files,
+            commands::space::apply_rename,
+            commands::space::undo_rename,
             commands::qr::qr_preview,
             commands::qr::save_qr,
             commands::qr::copy_qr,
@@ -241,6 +251,7 @@ pub fn run() {
             services::shortcuts::apply_saved(app.handle());
             services::clipboard::spawn(app.handle().clone());
             services::folder_sort::spawn_recovery(app.handle().clone());
+            services::rename::spawn_recovery(app.handle().clone());
             // The right click and "Enviar a" point at this Glup; the files this launch brings, gathered.
             services::explorer::sync(app.handle());
             services::explorer::receive(app.handle(), &std::env::args().collect::<Vec<_>>());

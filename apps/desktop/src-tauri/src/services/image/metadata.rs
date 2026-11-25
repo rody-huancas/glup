@@ -43,8 +43,8 @@ pub struct PhotoMetadata {
     pub gps  : Vec<Field>,
 }
 
-#[cfg(test)]
 impl PhotoMetadata {
+    // When the photo was taken ("2026:11:25 14:30:00"), for "Renombrar en lote".
     pub fn date_taken(&self) -> Option<String> {
         self.exif.iter().chain(&self.main).find(|field| field.tag == DATE_ORIGINAL || field.tag == DATE_TIME).map(|field| String::from_utf8_lossy(&field.value).trim_end_matches('\0').to_string())
     }

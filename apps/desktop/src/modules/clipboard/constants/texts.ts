@@ -1,3 +1,5 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 export const CLIPBOARD_TEXTS = {
   title         : 'Portapapeles',
   subtitle      : 'Lo que copiaste, para buscarlo y copiarlo de nuevo.',
@@ -19,7 +21,7 @@ export const CLIPBOARD_TEXTS = {
   selectLabel   : (what: string) => `Seleccionar «${what}»`,
   imageName     : 'la imagen',
   selectAll     : 'Seleccionar todo',
-  removeTitle   : (count: number) => `¿Quitar ${count} ${count === 1 ? 'elemento' : 'elementos'} del portapapeles?`,
+  removeTitle   : (count: number) => `¿Quitar ${formatCount(count)} ${count === 1 ? 'elemento' : 'elementos'} del portapapeles?`,
   removeBody    : 'Se quitan del portapapeles de Glup. Lo que tengas copiado ahora no cambia.',
   removeCancel  : 'Cancelar',
   removeOk      : 'Quitar',
@@ -47,7 +49,7 @@ export const CLIPBOARD_INTRO_TEXTS = {
 // Turning it off with something kept.
 export const CLIPBOARD_OFF_TEXTS = {
   title     : '¿También borrar lo que guardé?',
-  body      : (count: number) => (count === 1 ? 'Es 1 elemento. Se queda solo en tu PC.' : `Son ${count} elementos. Se quedan solo en tu PC.`),
+  body      : (count: number) => (count === 1 ? 'Es 1 elemento. Se queda solo en tu PC.' : `Son ${formatCount(count)} elementos. Se quedan solo en tu PC.`),
   keep      : 'Conservar',
   deleteAll : 'Borrar todo',
 };
@@ -59,7 +61,7 @@ export const CLIPBOARD_SETTINGS_TEXTS = {
   disabledHint  : 'Apagado: no guardo nada de lo que copias',
   limit         : 'Cuántos guardo',
   limitHint     : 'Al pasar el límite borro los más antiguos; los fijados nunca',
-  limitOption   : (count: number) => `${count} elementos`,
+  limitOption   : (count: number) => `${formatCount(count)} elementos`,
   excluded      : 'Programas excluidos',
   excludedHint  : 'Lo que copies desde estos programas no se guarda (por ejemplo, el de tu banco).',
   noExcluded    : 'Ninguno por ahora.',

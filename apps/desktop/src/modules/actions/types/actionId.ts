@@ -28,4 +28,5 @@ export type ActionId =
   | 'upscale'
   | 'read-qr'
   | 'create-qr'
+  | 'batch-rename'
   | 'zip';

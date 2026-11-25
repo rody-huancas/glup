@@ -1,7 +1,9 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 export const ORGANIZE_TEXTS = {
   title       : 'Organizar páginas',
   hint        : 'Arrastra para cambiar el orden. Ctrl+clic o Mayús+clic para elegir varias.',
-  selected    : (count: number) => `${count} elegidas`,
+  selected    : (count: number) => `${formatCount(count)} elegidas`,
   rotate      : 'Girar',
   rotateLeft  : 'Girar a la izquierda',
   rotateRight : 'Girar a la derecha',
@@ -17,9 +19,9 @@ export const ORGANIZE_TEXTS = {
   removed     : 'Quitada',
   noChanges   : 'Todavía no cambiaste nada.',
   allRemoved  : 'Deja al menos una página para guardar.',
-  pages       : (count: number) => `${count} ${count === 1 ? 'página' : 'páginas'}`,
-  removedN    : (count: number) => `${count} ${count === 1 ? 'quitada' : 'quitadas'}`,
-  rotatedN    : (count: number) => `${count} ${count === 1 ? 'girada' : 'giradas'}`,
+  pages       : (count: number) => `${formatCount(count)} ${count === 1 ? 'página' : 'páginas'}`,
+  removedN    : (count: number) => `${formatCount(count)} ${count === 1 ? 'quitada' : 'quitadas'}`,
+  rotatedN    : (count: number) => `${formatCount(count)} ${count === 1 ? 'girada' : 'giradas'}`,
   unreadable  : 'No pude abrir este PDF',
   exitTitle   : '¿Salir sin guardar?',
   exitBody    : 'Se perderán los cambios que hiciste en las páginas.',

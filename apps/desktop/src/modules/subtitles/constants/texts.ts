@@ -1,4 +1,5 @@
 import type { SubtitleMode } from '@/modules/subtitles/types/subtitleMode';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const SUBTITLES_TEXTS = {
   title       : 'Subtítulos',
@@ -14,7 +15,7 @@ export const SUBTITLES_TEXTS = {
   queued      : 'Espero a que termine la otra tarea…',
   failed      : 'No pude sacar los subtítulos',
   retry       : 'Probar de nuevo',
-  phrases     : (count: number) => (count === 1 ? '1 frase' : `${count} frases`),
+  phrases     : (count: number) => (count === 1 ? '1 frase' : `${formatCount(count)} frases`),
   list        : 'Frases',
   start       : 'Desde',
   end         : 'Hasta',

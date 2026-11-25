@@ -7,6 +7,7 @@ import type { PeriodStats } from '@/modules/home/interfaces/periodStats';
 import type { ActivityRange } from '@/modules/home/types/activityRange';
 import { toolOfEntry } from '@/modules/home/utils/quickTools';
 import type { Tool } from '@/modules/tools/types/tool';
+import { formatCount } from '@/shared/utils/numbers';
 
 const DAYS_IN_WEEK = 7;
 
@@ -92,7 +93,7 @@ export const activityBuckets = ({ entries, tools, range, now }: ActivityParams):
 export const bucketSummary = (bucket: ActivityBucket): string => {
   const parts = FAMILY_IDS.filter((family) => bucket.counts[family] > 0).map((family) => {
     const count = bucket.counts[family];
-    return `${count} ${FAMILY_UNITS[family][count === 1 ? 0 : 1]}`;
+    return `${formatCount(count)} ${FAMILY_UNITS[family][count === 1 ? 0 : 1]}`;
   });
   return `${bucket.title}: ${parts.length > 0 ? parts.join(', ') : ACTIVITY_TEXTS.nothing}`;
 };

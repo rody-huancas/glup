@@ -1,4 +1,5 @@
 import type { InkColor, SolidInk } from '@/modules/sign/types/inkColor';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const SIGN_TEXTS = {
   thumbnails      : 'Páginas',
@@ -20,7 +21,7 @@ export const SIGN_TEXTS = {
   deleteBody      : 'Se quita de tus firmas y de las páginas donde la ubicaste.',
   delete          : 'Borrar',
   keep            : 'Cancelar',
-  page            : (page: number, total: number) => `Página ${page} de ${total}`,
+  page            : (page: number, total: number) => `Página ${page} de ${formatCount(total)}`,
   previous        : 'Página anterior',
   next            : 'Página siguiente',
   zoomFit         : 'Ajustar',

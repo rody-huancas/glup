@@ -83,6 +83,26 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   Windows no puede y FFmpeg no está, se pide descargarlo (`photos` en `LEARNABLES`, el mismo FFmpeg)
   y corre en la misma tarea. Siempre derechas, la principal de una ráfaga, el mosaico entero y en
   sRGB. Las miniaturas las hace Rust (`get_image_preview`): el webview no muestra HEIC.
+- **Qué ocupa espacio** (`services/space`, `modules/space`, página `space` de Tu PC): solo lee. Cada
+  carpeta se lista en pocas llamadas (`FileIdBothDirectoryInfo`: tamaño en disco, id y etiqueta de
+  reparse de muchas entradas a la vez, sin abrir archivos), con una cola compartida para la mitad de los
+  núcleos; el árbol crece bajo un candado por carpeta y la pantalla lo pide mientras analiza. Los
+  archivos solo en la nube se cuentan aparte, las uniones y enlaces simbólicos no se siguen (las carpetas
+  de OneDrive sí, tienen otra etiqueta) y un archivo con varios nombres (enlaces duros, pnpm) se cuenta
+  una vez por su id. El mapa es un treemap propio en SVG (`utils/treemap.ts`). «Mandar a la papelera»
+  nunca en Windows, programas ni AppData, ni en un proyecto, un programa o un archivo conocido que no se
+  borra, ni en una carpeta que tenga cualquiera de esos adentro a cualquier profundidad: el análisis
+  marca cada carpeta mientras la lee (`folder_marks`, las reglas de Archivos repetidos) y la marca sube a
+  las de arriba, así `trash_block` responde sin volver a recorrer y dice por qué en una línea. Los
+  archivos y carpetas grandes conocidos (discos virtuales, pagefile, juegos, copias del iPhone, cachés)
+  viven en `services/space/known.json` con su explicación y si se pueden borrar. El color del mapa es el
+  tipo que más pesa adentro, más pálido cuanto menos domina (`utils/colors.ts`, letras siempre legibles).
+- **Renombrar en lote** (`services/rename`, `modules/rename`, página `batch-rename`): reglas puras en
+  orden (`rules.rs`), nunca sobre la extensión; los conflictos (`check.rs`) bloquean «Aplicar». Se
+  aplica en dos pasos (nombre temporal único y definitivo) con el registro escrito antes (`journal.rs`:
+  `.json` + `.log`), así a↔b funciona y «Deshacer» (aviso e Historial) sirve aunque Glup se cierre a la
+  mitad (`spawn_recovery`). Su opción del clic derecho es una línea propia en `*\shell` (`ANY_FILE`),
+  no dentro de «Glup».
 - **Crear y leer un QR** (`services/qr`, `modules/qr`; páginas `qr-create` y `qr-read` de Texto):
   `content.rs` arma lo que guarda (texto, WiFi con sus caracteres escapados, WhatsApp con código de país,
   vCard, mailto), `render.rs` lo dibuja (formas, colores, logo con corrección H) como PNG o SVG, y cada

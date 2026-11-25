@@ -1,7 +1,8 @@
 import type { SkipReason } from '@/modules/folder-sort/types/skipReason';
 import type { SortMode } from '@/modules/folder-sort/types/sortMode';
+import { formatCount } from '@/shared/utils/numbers';
 
-const plural = (count: number, singular: string, many: string): string => `${count} ${count === 1 ? singular : many}`;
+const plural = (count: number, singular: string, many: string): string => `${formatCount(count)} ${count === 1 ? singular : many}`;
 
 export const FOLDER_SORT_TEXTS = {
   title        : 'Ordenar una carpeta',
@@ -28,7 +29,7 @@ export const FOLDER_SORT_TEXTS = {
   nothing      : 'No hay archivos sueltos que pueda ordenar aquí',
   files        : (count: number) => plural(count, 'archivo', 'archivos'),
   more         : (count: number) => `y ${plural(count, 'archivo', 'archivos')} más`,
-  skipped      : (count: number) => `Lo que no voy a tocar (${count})`,
+  skipped      : (count: number) => `Lo que no voy a tocar (${formatCount(count)})`,
   skippedHint  : 'Lo dejo donde está',
   showFiles    : (folder: string) => `Ver los archivos que van a ${folder}`,
   failed       : 'No pude leer esa carpeta. Revisa que siga ahí y vuelve a intentarlo.',

@@ -22,10 +22,12 @@ import { PhotoMarkIcon } from '@/shared/icons/PhotoMarkIcon';
 import { QrCreateIcon } from '@/shared/icons/QrCreateIcon';
 import { QrReadIcon } from '@/shared/icons/QrReadIcon';
 import { RemoveBackgroundIcon } from '@/shared/icons/RemoveBackgroundIcon';
+import { RenameIcon } from '@/shared/icons/RenameIcon';
 import { ScanIcon } from '@/shared/icons/ScanIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 import { SignIcon } from '@/shared/icons/SignIcon';
 import { SocialSizeIcon } from '@/shared/icons/SocialSizeIcon';
+import { SpaceIcon } from '@/shared/icons/SpaceIcon';
 import { SplitIcon } from '@/shared/icons/SplitIcon';
 import { SubtitlesIcon } from '@/shared/icons/SubtitlesIcon';
 import { TextIcon } from '@/shared/icons/TextIcon';
@@ -59,6 +61,8 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'upscale'           : UpscaleIcon,
   'qr-create'         : QrCreateIcon,
   'qr-read'           : QrReadIcon,
+  'space'             : SpaceIcon,
+  'rename'            : RenameIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,

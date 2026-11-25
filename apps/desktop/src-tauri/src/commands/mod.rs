@@ -21,6 +21,7 @@ pub mod scan;
 pub mod screen_text;
 pub mod settings;
 pub mod shortcuts;
+pub mod space;
 pub mod subtitles;
 pub mod signatures;
 pub mod startup;

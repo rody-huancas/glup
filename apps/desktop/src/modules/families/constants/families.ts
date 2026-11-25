@@ -13,6 +13,7 @@ import pcSmall from '@/modules/families/assets/glup-tu-pc-128.webp';
 import type { Family } from '@/modules/families/interfaces/family';
 import type { FamilyStyle } from '@/modules/families/interfaces/familyStyle';
 import type { FamilyId } from '@/modules/families/types/familyId';
+import { formatCount } from '@/shared/utils/numbers';
 
 // In this order in Habilidades and in the search.
 export const FAMILY_IDS: FamilyId[] = ['images', 'pdf', 'media', 'text', 'clipboard', 'pc'];
@@ -138,8 +139,8 @@ export const FAMILY_STYLES: Record<FamilyId, FamilyStyle> = {
 };
 
 export const FAMILY_TEXTS = {
-  tools      : (count: number) => (count === 1 ? '1 herramienta' : `${count} herramientas`),
-  saved      : (count: number) => (count === 1 ? '1 guardado' : `${count} guardados`),
+  tools      : (count: number) => (count === 1 ? '1 herramienta' : `${formatCount(count)} herramientas`),
+  saved      : (count: number) => (count === 1 ? '1 guardado' : `${formatCount(count)} guardados`),
   clipOff    : 'Apagado',
   free       : (gigabytes: number) => `${gigabytes} GB libres`,
   newResult  : 'resultado nuevo de Limpieza',

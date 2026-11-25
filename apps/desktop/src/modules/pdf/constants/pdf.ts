@@ -1,3 +1,5 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 // Thumbnail heights in CSS pixels; rendered at the screen's pixel ratio.
 export const THUMBNAIL_HEIGHTS = {
   order : 48,
@@ -21,11 +23,11 @@ export const PAGE_IMAGE_HEADERS = {
 
 export const PDF_TEXTS = {
   orderTitle    : 'Ordena los archivos',
-  mergeButton   : (count: number) => `Unir ${count} archivos`,
+  mergeButton   : (count: number) => `Unir ${formatCount(count)} archivos`,
   moveUp        : 'Subir',
   moveDown      : 'Bajar',
   dragHandle    : 'Arrastrar para ordenar',
-  pagesCount    : (count: number) => `${count} ${count === 1 ? 'página' : 'páginas'}`,
+  pagesCount    : (count: number) => `${formatCount(count)} ${count === 1 ? 'página' : 'páginas'}`,
   splitTitle    : '¿Cómo lo separo?',
   splitAll      : 'Todas por separado',
   splitAllHint  : 'Un PDF por página',
@@ -34,14 +36,14 @@ export const PDF_TEXTS = {
   pagesTitle    : 'Elige las páginas',
   pagesField    : 'Páginas',
   pagesExample  : '1-3, 5, 8-10',
-  pagesButton   : (count: number) => `Crear PDF con ${count} ${count === 1 ? 'página' : 'páginas'}`,
+  pagesButton   : (count: number) => `Crear PDF con ${formatCount(count)} ${count === 1 ? 'página' : 'páginas'}`,
   imagesTitle   : '¿En qué formato?',
-  pageProgress  : (page: number, total: number) => `Página ${page} de ${total}`,
+  pageProgress  : (page: number, total: number) => `Página ${page} de ${formatCount(total)}`,
   password      : 'Primero quítale la contraseña',
 };
 
 export const RANGE_ERRORS = {
   empty   : 'Escribe al menos una página',
   invalid : (part: string) => `No entiendo "${part}"`,
-  missing : (page: number, total: number) => `La página ${page} no existe: el PDF tiene ${total}`,
+  missing : (page: number, total: number) => `La página ${page} no existe: el PDF tiene ${formatCount(total)}`,
 };

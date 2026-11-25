@@ -1,4 +1,5 @@
 import type { DockEdge } from '@/modules/dock/types/dockEdge';
+import { formatDecimal } from '@/shared/utils/numbers';
 
 export const DOCK_TEXTS = {
   title         : 'Posición de Glup',
@@ -25,7 +26,7 @@ export const LOOK_TEXTS = {
   bubbleHint  : 'Un círculo flotante que dejas donde quieras',
   delay       : 'Cuánto esperar en el borde',
   delayHint   : 'Para que no salga al pasar sin querer',
-  delayOption : (ms: number) => `${(ms / 1000).toLocaleString('es', { maximumFractionDigits: 2 })} s`,
+  delayOption : (ms: number) => `${formatDecimal(ms / 1000, 2)} s`,
   taskbar     : 'Tu barra de tareas se oculta sola en ese borde y también sale al llevar el cursor ahí: pueden competir. Mejor elige otro borde para Glup.',
   introTitle  : 'Glup queda oculto',
   introBody   : (shortcut: string | null) =>

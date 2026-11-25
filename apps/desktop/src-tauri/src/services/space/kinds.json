@@ -1,0 +1,6 @@
+{
+  "photos": ["jpg", "jpeg", "png", "gif", "webp", "avif", "bmp", "tif", "tiff", "heic", "heif", "hif", "svg", "ico", "raw", "cr2", "cr3", "nef", "arw", "dng", "orf", "rw2", "psd", "xcf"],
+  "videos": ["mp4", "mkv", "mov", "avi", "wmv", "webm", "m4v", "mpg", "mpeg", "3gp", "flv", "mts", "m2ts", "vob"],
+  "documents": ["pdf", "doc", "docx", "odt", "rtf", "txt", "md", "pages", "epub", "mobi", "xls", "xlsx", "xlsm", "ods", "csv", "tsv", "numbers", "ppt", "pptx", "pps", "ppsx", "odp", "key", "one", "pst", "ost"],
+  "programs": ["exe", "msi", "msix", "msixbundle", "appx", "appxbundle", "dll", "sys", "apk", "dmg", "pkg", "deb", "rpm", "jar", "bin", "iso", "vhd", "vhdx", "vmdk"]
+}

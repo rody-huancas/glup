@@ -1,4 +1,5 @@
 import type { FileKind } from '@/modules/duplicates/types/fileKind';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const DUPLICATES_TEXTS = {
   title       : 'Archivos repetidos',
@@ -22,7 +23,7 @@ export const DUPLICATES_TEXTS = {
   same        : 'Copias exactas',
   alike       : 'Fotos parecidas',
   alikeHint   : 'Se parecen, pero no son iguales: mira antes de quitar alguna.',
-  copies      : (count: number) => `${count} copias`,
+  copies      : (count: number) => `${formatCount(count)} copias`,
   frees       : (size: string) => `${size} para liberar`,
   keep        : 'Queda',
   review      : 'Revisar',
@@ -36,13 +37,13 @@ export const DUPLICATES_TEXTS = {
   kindLabel   : 'Tipo',
   folderLabel : 'Carpeta',
   allFolders  : 'Todas las carpetas',
-  more        : (count: number) => `Ver ${count} grupos más`,
+  more        : (count: number) => `Ver ${formatCount(count)} grupos más`,
   nothingHere : 'Nada con ese filtro.',
-  marked      : (count: number, size: string) => (count === 1 ? `1 marcado · ${size}` : `${count} marcados · ${size}`),
+  marked      : (count: number, size: string) => (count === 1 ? `1 marcado · ${size}` : `${formatCount(count)} marcados · ${size}`),
   remove      : (size: string) => `Quitar ${size}`,
   removing    : 'Quitando…',
   confirmTitle: '¿Las quito?',
-  confirmBody : (count: number, size: string) => `Mando ${count === 1 ? '1 archivo' : `${count} archivos`} (${size}) a la papelera. Si te arrepientes, los recuperas de ahí.`,
+  confirmBody : (count: number, size: string) => `Mando ${count === 1 ? '1 archivo' : `${formatCount(count)} archivos`} (${size}) a la papelera. Si te arrepientes, los recuperas de ahí.`,
   confirm     : 'Quitar',
   keepLooking : 'Seguir mirando',
 };

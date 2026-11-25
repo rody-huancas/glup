@@ -1,4 +1,5 @@
 import type { CategoryId } from '@/modules/cleanup/types/categoryId';
+import { formatCount } from '@/shared/utils/numbers';
 
 interface CategoryText {
   name : string;
@@ -29,8 +30,8 @@ export const CLEANUP_TEXTS = {
   nothingHere : 'Nada por aquí',
   intro       : 'Reviso los temporales, las cachés de los navegadores, la papelera, Descargas y tus carpetas personales. No borro nada sin que lo marques.',
   expired     : 'Pasó un rato desde la última revisión y los archivos pueden haber cambiado.',
-  marked      : (count: number) => (count === 0 ? 'Nada marcado' : `${count} ${count === 1 ? 'archivo marcado' : 'archivos marcados'}`),
-  found       : (count: number) => `${count} ${count === 1 ? 'elemento' : 'elementos'}`,
+  marked      : (count: number) => (count === 0 ? 'Nada marcado' : `${formatCount(count)} ${count === 1 ? 'archivo marcado' : 'archivos marcados'}`),
+  found       : (count: number) => `${formatCount(count)} ${count === 1 ? 'elemento' : 'elementos'}`,
   expand      : 'Ver lo encontrado',
   collapse    : 'Ocultar lo encontrado',
   mark        : (name: string) => `Marcar ${name}`,
@@ -46,7 +47,7 @@ export const CLEANUP_TEXTS = {
   emptyBin    : 'Se vacía la papelera (ya no se puede recuperar)',
   confirm     : 'Liberar',
   keep        : 'Cancelar',
-  files       : (count: number) => `${count} ${count === 1 ? 'archivo' : 'archivos'}`,
+  files       : (count: number) => `${formatCount(count)} ${count === 1 ? 'archivo' : 'archivos'}`,
 };
 
 export const CATEGORY_TEXTS: Record<CategoryId, CategoryText> = {
