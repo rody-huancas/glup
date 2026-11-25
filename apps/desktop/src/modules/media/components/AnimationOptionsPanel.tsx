@@ -1,11 +1,11 @@
 import { formatFileSize } from '@/modules/actions/utils/fileSize';
-import { MediaOption } from '@/modules/media/components/MediaOption';
 import { ANIMATION_TEXTS } from '@/modules/media/constants/texts';
 import type { AnimationOptions } from '@/modules/media/interfaces/animationOptions';
 import type { AnimationFormat } from '@/modules/media/types/animationFormat';
 import { GIF_FPS, SUGGESTED_SECONDS } from '@/modules/media/utils/animation';
 import { OptionGroup } from '@/modules/pdf/components/OptionGroup';
 import { Button } from '@/shared/components/Button';
+import { ChoiceCard } from '@/shared/components/ChoiceCard';
 import { Switch } from '@/shared/components/Switch';
 import { useId } from 'react';
 
@@ -37,7 +37,7 @@ export const AnimationOptionsPanel = ({ options, widths, sourceW, seconds, weigh
       <div className="flex flex-col gap-1.5">
         <span id={formatId} className="text-[11px] font-semibold text-muted">{ANIMATION_TEXTS.format}</span>
         <div role="radiogroup" aria-labelledby={formatId} className="grid grid-cols-2 gap-2">
-          {FORMATS.map((format) => <MediaOption key={format} label={ANIMATION_TEXTS.formats[format].label} hint={ANIMATION_TEXTS.formats[format].hint} selected={options.format === format} onChoose={() => onChange({ format })} />)}
+          {FORMATS.map((format) => <ChoiceCard accent="media" key={format} label={ANIMATION_TEXTS.formats[format].label} hint={ANIMATION_TEXTS.formats[format].hint} selected={options.format === format} onChoose={() => onChange({ format })} />)}
         </div>
       </div>
       <div className="flex flex-wrap items-end gap-4">
