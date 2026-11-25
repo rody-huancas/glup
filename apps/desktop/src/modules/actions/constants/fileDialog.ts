@@ -10,6 +10,8 @@ const VIDEO_FILTER: DialogFilter = { name: 'Videos', extensions: VIDEO_EXTENSION
 const AUDIO_FILTER: DialogFilter = { name: 'Audios', extensions: AUDIO_EXTENSIONS };
 const PHOTO_FILTER: DialogFilter = { name: 'Fotos de iPhone', extensions: HEIC_EXTENSIONS };
 
+const MEDIA_FILTER: DialogFilter = { name: 'Videos y audios', extensions: [...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS] };
+
 const ANY_FILTER: DialogFilter = {
   name       : 'PDF, imágenes, videos y audios',
   extensions : [...FILE_EXTENSIONS.pdf, ...FILE_EXTENSIONS.image, ...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS],
@@ -23,4 +25,5 @@ export const DIALOG_FILTERS: Record<DialogFileType, DialogFilter[]> = {
   any   : [ANY_FILTER, PDF_FILTER, IMAGE_FILTER, VIDEO_FILTER, AUDIO_FILTER],
   files  : [],
   iphone : [PHOTO_FILTER, IMAGE_FILTER],
+  media  : [MEDIA_FILTER, VIDEO_FILTER, AUDIO_FILTER],
 };
