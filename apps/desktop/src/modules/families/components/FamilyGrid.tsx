@@ -1,3 +1,4 @@
+import { useAutoFoldersAttention } from '@/modules/auto-folders/hooks/useAutoFolders';
 import { useCleanup } from '@/modules/cleanup/hooks/useCleanup';
 import { FamilyCard } from '@/modules/families/components/FamilyCard';
 import { FAMILY_IDS } from '@/modules/families/constants/families';
@@ -14,13 +15,15 @@ interface FamilyGridProps {
 export const FamilyGrid = ({ title, onOpen }: FamilyGridProps) => {
   const facts      = useFamilyFacts();
   const { unseen } = useCleanup();
+  // A rule of Carpetas automáticas waits for an answer or a download.
+  const waiting    = useAutoFoldersAttention();
 
   return (
     <section className="flex shrink-0 flex-col gap-3">
       <SectionLabel>{title}</SectionLabel>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))] gap-3">
         {FAMILY_IDS.map((family) => (
-          <FamilyCard key={family} family={family} fact={facts[family]} badge={family === 'pc' && unseen} onOpen={onOpen} />
+          <FamilyCard key={family} family={family} fact={facts[family]} badge={family === 'pc' && (unseen || waiting)} onOpen={onOpen} />
         ))}
       </div>
     </section>
