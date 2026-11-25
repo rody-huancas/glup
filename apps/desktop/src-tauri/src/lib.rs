@@ -69,6 +69,7 @@ pub fn run() {
             commands::actions::organize_pdf,
             commands::actions::check_pdf_password,
             commands::folder_sort::get_sort_folder,
+            commands::folder_sort::get_downloads_to_sort,
             commands::folder_sort::preview_folder_sort,
             commands::folder_sort::sort_folder,
             commands::folder_sort::undo_folder_sort,
