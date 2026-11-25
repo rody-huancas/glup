@@ -10,12 +10,12 @@ const place = (edge: DockEdge) => placeIsland({ dock: { edge, offset: 0.5, scree
 const sweeps = (path: string): string[] => [...path.matchAll(/A [\d.]+ [\d.]+ 0 0 (\d)/g)].map((match) => match[1]);
 
 describe('dock geometry', () => {
-  it('on top it draws the pill of always, centered in the window', () => {
+  it('on top it draws its pill (a little taller, for Glup peeking), centered in the window', () => {
     const placement = place('top');
     const path      = buildDockPath(placement, dockShape(placement, 'collapsed'));
 
-    expect(path.startsWith('M 514 0 L 686 0 A 12 12 0 0 0 674 12 L 674 18 A 14 14 0 0 1 660 32')).toBe(true);
-    expect(path.endsWith('A 12 12 0 0 0 514 0 Z')).toBe(true);
+    expect(path.startsWith('M 513 0 L 687 0 A 12 12 0 0 0 675 12 L 675 24 A 14 14 0 0 1 661 38')).toBe(true);
+    expect(path.endsWith('A 12 12 0 0 0 513 0 Z')).toBe(true);
   });
 
   it('at the bottom it is the same pill mirrored, so every arc turns the other way', () => {

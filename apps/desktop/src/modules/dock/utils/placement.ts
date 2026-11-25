@@ -1,4 +1,4 @@
-import { DOCK_SHAPES, KIND_OF, NOTICE_OVERSHOOT, OVERSHOOT } from '@/modules/dock/constants/dock';
+import { DOCK_SHAPES, KIND_OF, NOTICE_OVERSHOOT, OVERSHOOT, TOP_PILL_SHAPES } from '@/modules/dock/constants/dock';
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { DockEdge } from '@/modules/dock/types/dockEdge';
@@ -26,9 +26,16 @@ const fitCenter = (center: number, length: number, edge: number): number => (len
 
 const isHorizontal = (edge: DockEdge): boolean => edge === 'top' || edge === 'bottom';
 
+// The shapes of an edge: the top one has its own pill, where Glup peeks out (TOP_PILL_SHAPES).
+export const edgeShapes = (edge: DockEdge): Record<ShapeRole, IslandShape> =>
+  edge === 'top' ? { ...DOCK_SHAPES.horizontal, ...TOP_PILL_SHAPES } : DOCK_SHAPES[KIND_OF[edge]];
+
+// Glup peeks out of the pill only on the top edge (the bubble has no edge).
+export const usesPeek = (placement: IslandPlacement): boolean => placement.kind === 'horizontal' && placement.edge === 'top';
+
 // The resting pill and what grows from it (hover, the landing shake) have to fit at its spot.
 const pillLength = (edge: DockEdge): number => {
-  const shapes = DOCK_SHAPES[KIND_OF[edge]];
+  const shapes = edgeShapes(edge);
   return Math.max(alongLength(shapes.collapsed), alongLength(shapes.hover), alongLength(shapes.settle));
 };
 
@@ -46,7 +53,7 @@ export const offsetAt = (edge: DockEdge, position: number, edgeLength: number): 
 
 const placeOnEdge = ({ dock, work, rest = 'pill' }: PlaceIslandParams): IslandPlacement => {
   const edge     = dock.edge;
-  const shapes   = DOCK_SHAPES[KIND_OF[edge]];
+  const shapes   = edgeShapes(edge);
   const length   = isHorizontal(edge) ? work.width : work.height;
   const room     = isHorizontal(edge) ? work.height : work.width;
   const pill     = pillLength(edge);
@@ -110,7 +117,7 @@ const NOTHING: IslandShape       = { width: 0, height: 0, earRadius: 0, bottomRa
 export const dockShape = (placement: IslandPlacement, role: ShapeRole): IslandShape => {
   if (placement.rest === 'hidden' && RESTING_ROLES.includes(role)) return { ...NOTHING };
 
-  const base  = DOCK_SHAPES[placement.kind][role];
+  const base  = placement.kind === 'bubble' ? DOCK_SHAPES.bubble[role] : edgeShapes(placement.edge)[role];
   const shift = role === 'expanded' ? placement.shifts.expanded : role === 'notice' ? placement.shifts.notice : 0;
   return { ...base, shift };
 };

@@ -83,6 +83,20 @@ export const NOTICE_OVERSHOOT = 1.12;
 // Near a corner, this close to both edges (CSS pixels), the island goes into the corner.
 export const CORNER_ZONE = 140;
 
+// The top pill shows Glup peeking out (glup-peek, its flat base on the pill's lower edge): a little
+// taller than the bottom one, so its head, headphones and paws fit whole. The other edges keep theirs.
+export const TOP_PILL_SHAPES: Partial<Record<ShapeRole, IslandShape>> = {
+  collapsed    : shape(150, 38, 12, 14),
+  hover        : shape(162, 42, 12, 14),
+  settle       : shape(157, 35, 12, 14),
+  anticipation : shape(135, 35, 12, 14),
+  notice       : shape(260, 44, 12, 16),
+};
+
+// Glup peeking on top: px kept between the screen's edge and its headphones, and in the notice its
+// height and its gap from the notice's start.
+export const PEEK_POSE = { top: 3, noticeHeight: 34, noticeInset: 12 };
+
 // Glup in each pill (see PillPose): only its head on a lying pill, its face in standing and corner ones.
 export const PILL_POSES: Record<DockKind, PillPose> = {
   horizontal : { scale: 0.633, peek: -15, lift: 0 },

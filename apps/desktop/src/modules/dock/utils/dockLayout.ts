@@ -1,4 +1,4 @@
-import { BUBBLE, DOCK_SHAPES, NOTICE_OVERSHOOT, NOTICE_POSE, OVERSHOOT, PILL_DOT, PILL_POSES, REVEAL_ZONE } from '@/modules/dock/constants/dock';
+import { BUBBLE, NOTICE_OVERSHOOT, NOTICE_POSE, OVERSHOOT, PILL_DOT, PILL_POSES, REVEAL_ZONE } from '@/modules/dock/constants/dock';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
 import type { RegionShape } from '@/modules/dock/interfaces/regionShape';
 import type { DockArea } from '@/modules/dock/types/dockArea';
@@ -36,7 +36,7 @@ const isLying = (placement: IslandPlacement): boolean => placement.kind === 'hor
 // Hidden at rest: the strip against the edge where the pill would be (as long as the pill), or a small
 // square in a corner. The cursor tracker watches it; it takes no clicks.
 export const revealZone = (placement: IslandPlacement): Rect => {
-  const pill = DOCK_SHAPES[placement.kind].collapsed;
+  const pill = dockShape({ ...placement, rest: 'pill' }, 'collapsed');
   const zone = placement.kind === 'corner' ? REVEAL_ZONE.corner : alongLength(pill);
   return edgeStrip(placement, zone, REVEAL_ZONE.depth);
 };

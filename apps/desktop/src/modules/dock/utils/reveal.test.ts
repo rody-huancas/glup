@@ -10,7 +10,7 @@ const place = (edge: DockEdge, rest: 'pill' | 'hidden' = 'hidden') => placeIslan
 
 describe('the reveal zone of a hidden Glup', () => {
   it('is a thin strip against its edge, where the pill would be', () => {
-    expect(revealZone(place('top'))).toEqual({ x: 514, y: 0, width: 172, height: 2 });
+    expect(revealZone(place('top'))).toEqual({ x: 513, y: 0, width: 174, height: 2 });
 
     const bottom = place('bottom');
     const zone   = revealZone(bottom);
@@ -41,7 +41,8 @@ describe('the reveal zone of a hidden Glup', () => {
     expect(dockShape(hidden, 'collapsed')).toEqual({ width: 0, height: 0, earRadius: 0, bottomRadius: 0, shift: 0 });
     expect(dockShape(hidden, 'hover').width).toBe(0);
     expect(dockShape(hidden, 'expanded').width).toBe(1040);
-    expect(dockShape(place('top', 'pill'), 'collapsed').width).toBe(148);
+    expect(dockShape(place('top', 'pill'), 'collapsed').width).toBe(150);
+    expect(dockShape(place('bottom', 'pill'), 'collapsed').width).toBe(148);
   });
 });
 
