@@ -105,6 +105,16 @@ fn trimming_is_in_the_menu_of_videos_and_audios() {
 }
 
 #[test]
+fn reading_a_qr_is_in_the_menu_of_images_and_pdfs() {
+    let tools = menu::catalog_tools();
+    let keys  = menu_keys(MenuKeysParams { base: "Base", exe: Path::new(r"C:\Glup.exe"), tools: &tools });
+    for extension in ["png", "jpg", "heic", "pdf"] {
+        assert!(keys.iter().any(|key| key.path.contains(&format!(r".{extension}\shell\Glup\shell\")) && key.path.ends_with("-qr-read")), "{extension}");
+    }
+    assert!(!keys.iter().any(|key| key.path.contains(r".mp4\shell\Glup\shell\") && key.path.ends_with("-qr-read")));
+}
+
+#[test]
 fn each_kind_of_file_gets_its_own_options() {
     let tools = vec![tool("convert-image", "Convertir a…", "image"), tool("iphone-to-jpg", "Pasar a JPG…", "iphone"), tool("merge-pdf", "Unir…", "pdf")];
     let exe   = Path::new(r"C:\Program Files\Glup\Glup.exe");
