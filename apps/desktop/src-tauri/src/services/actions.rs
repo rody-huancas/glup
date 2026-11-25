@@ -39,8 +39,11 @@ use crate::services::{
         watermark::{self as pdf_watermark, WatermarkOptions, EMPTY_TEXT, WATERMARK_SUFFIX},
     },
     media::{self, extract::extension as audio_extension},
+    photo_mark,
     progress::{self, Stage},
     scan,
+    social,
+    upscale,
     settings::{self as app_settings, SaveMode},
     signatures, tasks,
     video::{self, plan::VideoOptions, ReduceVideoParams, VideoResult, ALREADY_LIGHT, REDUCED_SUFFIX as VIDEO_SUFFIX, VIDEO_EXTENSION},
@@ -133,6 +136,15 @@ pub struct ActionOptions {
     // "Sacar el audio": the format and the quality.
     #[serde(default)]
     pub audio: Option<media::extract::ExtractOptions>,
+    // "Tamaño para redes": the size, how the photo fits it, and the frame of each one.
+    #[serde(default)]
+    pub social: Option<social::SocialOptions>,
+    // "Marca de agua" on photos.
+    #[serde(default)]
+    pub mark: Option<photo_mark::MarkOptions>,
+    // "Mejorar calidad": the level and x2 or x4.
+    #[serde(default)]
+    pub upscale: Option<upscale::UpscaleOptions>,
 }
 
 // "Reducir peso" for PDFs: the level and, optionally, a size the result must stay under.
@@ -518,6 +530,90 @@ fn run_remove_background(run: &Run, kind: BackgroundKind) -> Collected {
     Collected { outcomes, entries, batch: None, cancelled }
 }
 
+// "Tamaño para redes": each photo at the network's size, "<nombre> (Instagram historia).jpg".
+fn run_social(run: &Run, options: social::SocialOptions) -> Collected {
+    let format    = social::format_of(&options);
+    let (results, cancelled) = run.each_parallel(|source| {
+        let index = run.paths.iter().position(|path| path == source).unwrap_or(0);
+        let frame = options.frames.get(index).copied();
+        let bytes = social::resize_for(source, &options, frame)?;
+        run.save(SaveParams { source, kind: OutputKind::Tagged { tag: &options.tag, extension: format.extension() }, bytes: &bytes }).map(FileResult::Saved)
+    });
+    let detail              = |_: &Path, _: &Saved| social::detail(&options);
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: social::SOCIAL_ACTION, kind: IMAGE_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+// "Marca de agua" on photos: "<nombre> (marca).jpg", sized by each photo; the choices kept for next time.
+fn run_photo_mark(run: &Run, options: &photo_mark::MarkOptions) -> Collected {
+    photo_mark::save_config(run.app, options);
+    let (results, cancelled) = run.each_parallel(|source| {
+        let (bytes, extension) = photo_mark::mark(source, options)?;
+        run.save(SaveParams { source, kind: OutputKind::Tagged { tag: photo_mark::MARK_TAG, extension }, bytes: &bytes }).map(FileResult::Saved)
+    });
+    let detail              = |_: &Path, _: &Saved| photo_mark::detail(options);
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: photo_mark::MARK_ACTION, kind: IMAGE_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+// "Mejorar calidad": one photo at a time (the model already uses the card or every core), its pieces
+// counted in the progress, and where they run. Cancelar stops between two pieces.
+fn run_upscale(run: &Run, options: upscale::UpscaleOptions) -> Collected {
+    upscale::prepare(run.app, &run.task, options.level);
+    let total       = run.paths.len();
+    let mut results = Vec::new();
+    let mut sizes   = Vec::new();
+    let mut cancelled = false;
+
+    for (index, source) in run.paths.iter().enumerate() {
+        if run.cancel.load(Ordering::SeqCst) {
+            cancelled = true;
+            break;
+        }
+        let name    = file_name(source);
+        let on_tile = |done: usize, pieces: usize, device| {
+            let share  = done as f64 / pieces.max(1) as f64;
+            let pieces_text = format!("Bloque {done} de {pieces}");
+            let detail = if total > 1 { format!("Foto {} de {total} · {pieces_text}", index + 1) } else { pieces_text };
+            progress::emit(run.app, ActionProgress {
+                task_id : run.task.clone(),
+                current : ((index as f64 + share) / total as f64 * 1000.0) as usize,
+                total   : 1000,
+                name    : name.clone(),
+                active  : 1,
+                detail  : Some(detail),
+                stage   : Stage::Working,
+                via     : Some(upscale::via(device)),
+            });
+        };
+        let made = upscale::upscale(upscale::UpscaleParams { app: run.app, source, options, cancel: run.cancel, on_tile: &on_tile });
+        match made {
+            Ok(Some(enlarged)) => {
+                let tag = options.tag();
+                sizes.push((enlarged.width, enlarged.height));
+                results.push(Some(run.save(SaveParams { source, kind: OutputKind::Tagged { tag: &tag, extension: enlarged.extension }, bytes: &enlarged.bytes }).map(FileResult::Saved)));
+            }
+            Ok(None) => {
+                cancelled = true;
+                sizes.push((0, 0));
+                results.push(None);
+            }
+            Err(error) => {
+                sizes.push((0, 0));
+                results.push(Some(Err(error)));
+            }
+        }
+    }
+
+    let size_of             = |source: &Path| run.paths.iter().position(|path| path == source).and_then(|index| sizes.get(index).copied()).unwrap_or((0, 0));
+    let detail              = |source: &Path, _: &Saved| {
+        let (width, height) = size_of(source);
+        upscale::detail(options, width, height)
+    };
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: upscale::UPSCALE_ACTION, kind: IMAGE_KIND, detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
 // One PDF for all the images, in the order they were dropped (so one by one); a broken image is skipped and reported.
 // A cancel keeps the pages added so far.
 fn run_to_pdf(run: &Run) -> Collected {
@@ -687,13 +783,13 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
-        video: None, jpg: None, audio: None,
+        video: None, jpg: None, audio: None, social: None, mark: None, upscale: None,
     });
     let destination = options.destination.unwrap_or_default();
     let paths       = request.paths.iter().map(PathBuf::from).collect::<Vec<_>>();
     let total       = paths.len();
     let action      = request.action_id.as_str();
-    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "to-jpg" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers" | "extract-audio");
+    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "to-jpg" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers" | "extract-audio" | "social-size" | "photo-mark" | "upscale");
     let scratch     = if bundled { Some(scratch_folder()?) } else { None };
 
     // Bundled results are made in the scratch folder first, then zipped into the real destination.
@@ -719,6 +815,9 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         ("to-pdf", _)               => run_to_pdf(&run),
         ("extract-audio", _)        => run_extract_audio(&run, options.audio.unwrap_or_default()),
         ("remove-background", _)    => run_remove_background(&run, options.background.unwrap_or_default()),
+        ("social-size", _)          => run_social(&run, options.social.unwrap_or_default()),
+        ("photo-mark", _)           => run_photo_mark(&run, &options.mark.unwrap_or_default()),
+        ("upscale", _)              => run_upscale(&run, options.upscale.unwrap_or_default()),
         ("zip", _)                  => run_zip(&run),
         ("merge", _)                => run_merge(&run),
         ("split-pages", _)          => {
