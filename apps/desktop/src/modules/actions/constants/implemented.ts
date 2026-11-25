@@ -6,7 +6,7 @@ import { isWindows } from '@/shared/utils/platform';
 
 // Actions that really run; the rest still answer "Esto lo aprendo pronto".
 export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
-  image       : ['convert', 'to-jpg', 'compress', 'to-pdf', 'scan', 'remove-background', 'extract-text', 'id-photo', 'zip'],
+  image       : ['convert', 'to-jpg', 'compress', 'to-pdf', 'scan', 'remove-background', 'social-size', 'photo-mark', 'upscale', 'extract-text', 'id-photo', 'zip'],
   pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'zip'],
   'pdf-mixed' : ['merge', 'extract-text', 'zip'],
   'pdf-locked': ['unlock'],
@@ -16,7 +16,7 @@ export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
 };
 
 // Results that can be delivered in one zip: one per file (2 or more files)…
-export const BUNDLE_ACTIONS: ActionId[] = ['convert', 'to-jpg', 'compress', 'remove-background', 'protect', 'watermark', 'page-numbers', 'extract-audio'];
+export const BUNDLE_ACTIONS: ActionId[] = ['convert', 'to-jpg', 'compress', 'remove-background', 'protect', 'watermark', 'page-numbers', 'extract-audio', 'social-size', 'photo-mark', 'upscale'];
 
 // …or several files out of a single PDF.
 export const PAGE_BUNDLE_ACTIONS: ActionId[] = ['split-pages', 'to-images', 'extract-images'];

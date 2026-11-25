@@ -23,4 +23,7 @@ export type ActionId =
   | 'subtitles'
   | 'save-subtitles'
   | 'to-gif'
+  | 'social-size'
+  | 'photo-mark'
+  | 'upscale'
   | 'zip';

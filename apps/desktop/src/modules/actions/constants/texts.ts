@@ -90,4 +90,7 @@ export const WORKING_TEXTS: Record<ActionId, string> = {
   'subtitles'         : 'Escuchando el video…',
   'save-subtitles'    : 'Guardando los subtítulos…',
   'to-gif'            : 'Haciendo la animación…',
+  'social-size'       : 'Dejándolas a la medida…',
+  'photo-mark'        : 'Poniendo la marca…',
+  'upscale'           : 'Mejorando la calidad…',
 };
