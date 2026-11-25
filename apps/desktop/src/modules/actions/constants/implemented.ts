@@ -6,7 +6,7 @@ import { isWindows } from '@/shared/utils/platform';
 
 // Actions that really run; the rest still answer "Esto lo aprendo pronto".
 export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
-  image       : ['convert', 'to-jpg', 'compress', 'to-pdf', 'remove-background', 'extract-text', 'id-photo', 'zip'],
+  image       : ['convert', 'to-jpg', 'compress', 'to-pdf', 'scan', 'remove-background', 'extract-text', 'id-photo', 'zip'],
   pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'zip'],
   'pdf-mixed' : ['merge', 'extract-text', 'zip'],
   'pdf-locked': ['unlock'],

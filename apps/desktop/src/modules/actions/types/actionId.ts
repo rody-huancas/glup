@@ -17,4 +17,5 @@ export type ActionId =
   | 'to-jpg'
   | 'to-pdf'
   | 'remove-background'
+  | 'scan'
   | 'zip';

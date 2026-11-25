@@ -49,6 +49,9 @@ export const STAGE_TEXTS: Record<Exclude<ProgressStage, 'working'>, string> = {
   downloading : 'Descargando lo que necesito…',
   verifying   : 'Comprobando la descarga…',
   preparing   : 'Preparándome…',
+  // "Escanear documento", sheet by sheet.
+  straightening : 'Enderezando las hojas…',
+  reading       : 'Leyendo el texto…',
   saving      : 'Guardando…',
 };
 
@@ -79,4 +82,5 @@ export const WORKING_TEXTS: Record<ActionId, string> = {
   'transcribe'        : 'Pasando a texto…',
   'id-photo'          : 'Guardando tu foto…',
   'sign'              : 'Firmando…',
+  'scan'              : 'Escaneando…',
 };
