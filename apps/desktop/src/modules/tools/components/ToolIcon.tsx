@@ -19,6 +19,8 @@ import { PagesIcon } from '@/shared/icons/PagesIcon';
 import { PdfImagesIcon } from '@/shared/icons/PdfImagesIcon';
 import { PhoneIcon } from '@/shared/icons/PhoneIcon';
 import { PhotoMarkIcon } from '@/shared/icons/PhotoMarkIcon';
+import { QrCreateIcon } from '@/shared/icons/QrCreateIcon';
+import { QrReadIcon } from '@/shared/icons/QrReadIcon';
 import { RemoveBackgroundIcon } from '@/shared/icons/RemoveBackgroundIcon';
 import { ScanIcon } from '@/shared/icons/ScanIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
@@ -55,6 +57,8 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'social-size'       : SocialSizeIcon,
   'photo-mark'        : PhotoMarkIcon,
   'upscale'           : UpscaleIcon,
+  'qr-create'         : QrCreateIcon,
+  'qr-read'           : QrReadIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,
