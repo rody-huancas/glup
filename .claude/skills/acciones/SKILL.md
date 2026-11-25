@@ -83,6 +83,15 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   Windows no puede y FFmpeg no está, se pide descargarlo (`photos` en `LEARNABLES`, el mismo FFmpeg)
   y corre en la misma tarea. Siempre derechas, la principal de una ráfaga, el mosaico entero y en
   sRGB. Las miniaturas las hace Rust (`get_image_preview`): el webview no muestra HEIC.
+- **Crear y leer un QR** (`services/qr`, `modules/qr`; páginas `qr-create` y `qr-read` de Texto):
+  `content.rs` arma lo que guarda (texto, WiFi con sus caracteres escapados, WhatsApp con código de país,
+  vCard, mailto), `render.rs` lo dibuja (formas, colores, logo con corrección H) como PNG o SVG, y cada
+  vista previa se lee de vuelta con el lector (`rxing`) antes de guardar; contraste bajo o puntos más
+  claros que el fondo se avisan. Sin original, se guarda en Descargas (o su carpeta Glup, o la elegida);
+  el historial nunca guarda la contraseña de un WiFi. Leer: imágenes en Rust, cada página de un PDF
+  dibujada con pdf.js, la zona de la pantalla (`screen_text::start_for(CaptureMode::Codes)`; en el modo
+  de texto también se ofrecen los códigos de la zona) y la imagen copiada. `parse.rs` dice qué es y avisa
+  de enlaces sospechosos; nada se abre solo. «Leer QR» del clic derecho es una página con `actionId`.
 - **Descargas** (`background/download.rs`, para todos los modelos y FFmpeg): se conecta primero solo
   por IPv4 (`FAMILIES`) y después por todas las direcciones, porque donde IPv6 está configurado pero no
   sale, cada dirección IPv6 espera hasta agotar el tiempo; un corte a mitad se reanuda solo
