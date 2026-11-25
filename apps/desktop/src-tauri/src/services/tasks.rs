@@ -103,6 +103,11 @@ pub fn finish_summary(app: &AppHandle, id: &str, result: &Result<TaskSummary, St
     }
 }
 
+// A task of the person is running: Carpetas automáticas waits for it to end.
+pub fn busy(app: &AppHandle) -> bool {
+    with_tasks(app, |tasks| tasks.values().any(|task| !task.finished)).unwrap_or(false)
+}
+
 pub fn list(app: &AppHandle) -> Vec<TaskRecord> {
     with_tasks(app, |tasks| tasks.values().cloned().collect()).unwrap_or_default()
 }
