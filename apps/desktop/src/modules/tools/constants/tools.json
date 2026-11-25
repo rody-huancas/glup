@@ -7,6 +7,7 @@
   { "id": "watermark-pdf", "kind": "action", "family": "pdf", "icon": "watermark", "actionId": "watermark", "fileType": "pdf", "multiple": true, "title": "Marca de agua", "description": "Que diga COPIA o BORRADOR en cada hoja" },
   { "id": "number-pdf", "kind": "action", "family": "pdf", "icon": "page-numbers", "actionId": "page-numbers", "fileType": "pdf", "multiple": true, "title": "Numerar páginas", "description": "Agrega el número en cada hoja" },
   { "id": "pdf-images", "kind": "action", "family": "pdf", "icon": "pdf-images", "actionId": "extract-images", "fileType": "pdf", "multiple": false, "title": "Sacar imágenes", "description": "Guarda las fotos que trae el PDF" },
+  { "id": "scan-document", "kind": "action", "family": "pdf", "icon": "scan", "actionId": "scan", "fileType": "image", "multiple": true, "title": "Escanear documento", "description": "Fotos de hojas a un PDF recto y limpio" },
   { "id": "compress-pdf", "kind": "action", "family": "pdf", "icon": "compress", "actionId": "compress", "fileType": "pdf", "multiple": false, "title": "Reducir peso", "description": "Que pese menos" },
   { "id": "sign-pdf", "kind": "action", "family": "pdf", "icon": "sign", "actionId": "sign", "fileType": "pdf", "multiple": false, "title": "Firmar", "description": "Pon tu firma donde quieras" },
   { "id": "pdf-to-images", "kind": "action", "family": "pdf", "icon": "to-images", "actionId": "to-images", "fileType": "pdf", "multiple": false, "title": "A imágenes", "description": "Cada página en JPG o PNG" },

@@ -17,6 +17,7 @@ import { PagesIcon } from '@/shared/icons/PagesIcon';
 import { PdfImagesIcon } from '@/shared/icons/PdfImagesIcon';
 import { PhoneIcon } from '@/shared/icons/PhoneIcon';
 import { RemoveBackgroundIcon } from '@/shared/icons/RemoveBackgroundIcon';
+import { ScanIcon } from '@/shared/icons/ScanIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 import { SignIcon } from '@/shared/icons/SignIcon';
 import { SplitIcon } from '@/shared/icons/SplitIcon';
@@ -38,6 +39,7 @@ interface ToolIconProps {
 const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'merge'             : MergeIcon,
   'split'             : SplitIcon,
+  'scan'              : ScanIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,
