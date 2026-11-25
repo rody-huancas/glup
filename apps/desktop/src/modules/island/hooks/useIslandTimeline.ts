@@ -7,7 +7,7 @@ import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement'
 import type { DockArea } from '@/modules/dock/types/dockArea';
 import { dockRegion, regionShape } from '@/modules/dock/utils/dockLayout';
 import { dockShape } from '@/modules/dock/utils/placement';
-import { NOTICE_MOTION, REDUCED_MOTION } from '@/modules/island/constants/islandTimeline';
+import { NOTICE_MOTION, REDUCED_MOTION, RELAYOUT_FADE } from '@/modules/island/constants/islandTimeline';
 import { useIslandMascot } from '@/modules/island/hooks/useIslandMascot';
 import type { IslandElements } from '@/modules/island/interfaces/islandElements';
 import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
@@ -15,7 +15,7 @@ import type { IslandShape } from '@/modules/island/interfaces/islandShape';
 import type { IslandMotion } from '@/modules/island/interfaces/islandTimeline';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { renderIslandShape } from '@/modules/island/utils/islandShape';
-import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, setCollapsedPose, setExpandedPose } from '@/modules/island/utils/islandTimeline';
+import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, hideHoverGlow, setCollapsedPose, setExpandedPose, setHoverGlow } from '@/modules/island/utils/islandTimeline';
 import { logIsland } from '@/modules/island/utils/islandLog';
 import { planNotice } from '@/modules/island/utils/noticePlan';
 import { setIslandArea } from '@/modules/island/utils/islandWindow';
@@ -128,6 +128,7 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
     settled.current = state;
 
     if (state === 'collapsed') snapToPill();
+    else hideHoverGlow(elements);
 
     if (state === 'expanded') mascot.startIdle();
     else mascot.calm();
@@ -136,12 +137,13 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
 
     await setArea(state);
     if (!motion.current) resolveWaiters(true);
-  }, [mascot, setArea, resolveWaiters, snapToPill]);
+  }, [mascot, setArea, resolveWaiters, snapToPill, elements]);
 
   // contextSafe ties the timelines to the component, so they are reverted on unmount.
   const createTimeline = useMemo(
     () =>
       contextSafe((current: IslandMotion) => {
+        hideHoverGlow(elements);
         const timeline = buildIslandTimeline({
           elements,
           placement      : placementRef.current,
@@ -232,13 +234,17 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
   const hover = useMemo(
     () =>
       contextSafe((inflated: boolean) => {
+        // The resting pill (or bubble) glows mint while the cursor is over it, with reduced motion too.
+        const resting = !motion.current && !noticeLine.current && settled.current === 'collapsed' && placementRef.current.rest !== 'hidden';
+        setHoverGlow({ elements, on: inflated && resting, reduced: reduced.current });
+
         // Hidden at rest there is no pill to breathe in.
-        if (motion.current || noticeLine.current || settled.current !== 'collapsed' || reduced.current || placementRef.current.rest === 'hidden') return;
+        if (!resting || reduced.current) return;
 
         stopHover();
         hovered.current = buildHoverTween({ placement: placementRef.current, shape: shape.current, inflated, onRender: render });
       }),
-    [contextSafe, stopHover, render, placementRef],
+    [contextSafe, stopHover, render, placementRef, elements],
   );
 
   // Drops any running transition and lands on a clean pill: used to hide (fullscreen, tray) and for
@@ -331,6 +337,8 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
         if (settled.current === 'expanded') {
           setExpandedPose({ elements, placement: placementRef.current, shape: shape.current, onRender: render });
           void setArea('expanded');
+          // Moved open (Ajustes › Posición): it stays open and comes in softly where it lands.
+          if (!reduced.current && elements.panel.current) gsap.fromTo(elements.panel.current, { opacity: 0 }, { opacity: 1, duration: RELAYOUT_FADE.duration, ease: RELAYOUT_FADE.ease });
           return;
         }
 

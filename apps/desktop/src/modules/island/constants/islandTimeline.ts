@@ -43,3 +43,6 @@ export const REDUCED_MOTION = {
   query : '(prefers-reduced-motion: reduce)',
   fade  : { duration: 0.15, ease: 'power1.out' },
 };
+
+// The open panel moved to a new place (Ajustes › Posición): it fades in there, in seconds.
+export const RELAYOUT_FADE = { duration: 0.22, ease: 'power2.out' };
