@@ -5,10 +5,12 @@ use serde::Serialize;
 
 use crate::services::{pdf::info, video::{self, probe::VideoInfo}};
 
-const PDF_EXTENSIONS: [&str; 1]   = ["pdf"];
-const IMAGE_EXTENSIONS: [&str; 12] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif", "heic", "heif", "hif"];
-const VIDEO_EXTENSIONS: [&str; 7] = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
-const AUDIO_EXTENSIONS: [&str; 9] = ["mp3", "m4a", "wav", "ogg", "opus", "aac", "flac", "wma", "amr"];
+pub const PDF_EXTENSIONS: [&str; 1]    = ["pdf"];
+pub const IMAGE_EXTENSIONS: [&str; 12] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif", "heic", "heif", "hif"];
+pub const VIDEO_EXTENSIONS: [&str; 7]  = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
+pub const AUDIO_EXTENSIONS: [&str; 9]  = ["mp3", "m4a", "wav", "ogg", "opus", "aac", "flac", "wma", "amr"];
+// The photos of iPhone ("Fotos de iPhone a JPG").
+pub const IPHONE_EXTENSIONS: [&str; 3] = ["heic", "heif", "hif"];
 
 // Enough bytes to recognize every supported signature; the file is never decoded.
 const SNIFF_BYTES: usize = 16;
