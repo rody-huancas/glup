@@ -20,7 +20,7 @@ import { useFileDrop } from '@/shared/hooks/useFileDrop';
 
 // Steps with a list, a grid or a choice: the person is in the middle of them.
 // Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
-const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering', 'video', 'id-format', 'id-preview', 'transcribe'];
+const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering', 'video', 'extract-audio', 'id-format', 'id-preview', 'transcribe'];
 
 interface OpenWithParams {
   paths    : string[];
@@ -33,9 +33,10 @@ interface UseHomeFilesParams {
   onSign          : (path: string) => void;
   onOrganize      : (path: string) => void;
   onScan          : (paths: string[]) => void;
+  onTrim          : (path: string) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // Glup eating no longer keeps the island open, so only the setter is used.
@@ -52,7 +53,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });
@@ -189,6 +190,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
       chooseIdFormat   : actions.chooseIdFormat,
       saveIdPhoto      : actions.saveIdPhoto,
       startTranscribe  : actions.startTranscribe,
+      extractAudio     : actions.extractAudio,
       learnable        : actions.learnable,
       chained          : actions.chained,
       acceptLearning   : actions.acceptLearning,

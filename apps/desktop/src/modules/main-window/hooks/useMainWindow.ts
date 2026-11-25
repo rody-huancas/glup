@@ -8,6 +8,7 @@ import { getMascotStatus } from '@/modules/main-window/utils/mascotStatus';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
+import { useTrimMode } from '@/modules/media/hooks/useTrimMode';
 import { useOrganizeMode } from '@/modules/organize/hooks/useOrganizeMode';
 import { useScanMode } from '@/modules/scan/hooks/useScanMode';
 import { useSignMode } from '@/modules/sign/hooks/useSignMode';
@@ -24,7 +25,8 @@ export const useMainWindow = (): MainPanelState => {
   const signMode      = useSignMode();
   const organizeMode  = useOrganizeMode();
   const scanMode      = useScanMode();
-  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start });
+  const trimMode      = useTrimMode();
+  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start });
 
   useTaskMood(commandAvatar);
   useExplorerRequests({ files, onNavigate: setPage });
@@ -36,6 +38,7 @@ export const useMainWindow = (): MainPanelState => {
   const stopSigning   = signMode.stop;
   const stopOrganize  = organizeMode.stop;
   const stopScan      = scanMode.stop;
+  const stopTrim      = trimMode.stop;
 
   // Back to the home page with no pending selection, as when the island collapses.
   const reset = useCallback(() => {
@@ -44,9 +47,10 @@ export const useMainWindow = (): MainPanelState => {
     stopSigning();
     stopOrganize();
     stopScan();
-  }, [filesClose, stopSigning, stopOrganize, stopScan]);
+    stopTrim();
+  }, [filesClose, stopSigning, stopOrganize, stopScan, stopTrim]);
 
-  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null;
+  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null || trimMode.target !== null;
 
   return {
     page,
@@ -65,6 +69,8 @@ export const useMainWindow = (): MainPanelState => {
     stopOrganize,
     scanning            : scanMode.target,
     stopScan,
+    trimming            : trimMode.target,
+    stopTrim,
     fullScreen,
     welcome,
   };
