@@ -24,6 +24,9 @@ export const DockSpots = ({ dock, onChoose }: DockSpotsProps) => (
           aria-label={DOCK_SPOT_LABELS[spot.edge]}
           aria-pressed={current}
           title={DOCK_SPOT_LABELS[spot.edge]}
+          onPointerDown={(event) => event.stopPropagation()}
+          onPointerUp={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
           onClick={(event) => {
             event.stopPropagation();
             onChoose(spot.edge);

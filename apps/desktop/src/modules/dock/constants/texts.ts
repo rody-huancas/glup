@@ -2,9 +2,11 @@ import type { DockEdge } from '@/modules/dock/types/dockEdge';
 
 export const DOCK_TEXTS = {
   title         : 'Posición de Glup',
-  hint          : 'Toca el dibujo donde lo quieras, o arrástralo desde la pastilla',
-  bubbleHint    : 'Toca el dibujo donde la quieras, o arrástrala desde la burbuja',
-  drawing       : 'Dibujo de la pantalla: toca un borde para poner a Glup ahí',
+  hint          : 'Arrastra el marcador a cualquier punto de un borde o a una esquina, o arrastra la pastilla',
+  bubbleHint    : 'Arrastra el marcador donde quieras la burbuja, o arrastra la burbuja',
+  drawing       : 'Dibujo de la pantalla: arrastra o toca un borde para poner a Glup ahí; las flechas lo mueven por su borde',
+  offset        : 'Posición en el borde',
+  inCorner      : 'En la esquina',
   bubbleDrawing : 'Dibujo de la pantalla: toca donde quieras la burbuja',
   reset         : 'Volver arriba al centro',
   bubbleReset   : 'Traer la burbuja al centro',
@@ -31,6 +33,18 @@ export const LOOK_TEXTS = {
   introKeep   : 'Mejor como isla',
   introOk     : 'Entendido',
   failed      : 'No pude cambiarlo. Vuelve a intentarlo.',
+};
+
+// The edge (or corner) under the drawing while it moves ("Arriba · 35 %").
+export const DOCK_EDGE_NAMES: Record<DockEdge, string> = {
+  'top'          : 'Arriba',
+  'bottom'       : 'Abajo',
+  'left'         : 'Izquierda',
+  'right'        : 'Derecha',
+  'top-left'     : 'Arriba a la izquierda',
+  'top-right'    : 'Arriba a la derecha',
+  'bottom-left'  : 'Abajo a la izquierda',
+  'bottom-right' : 'Abajo a la derecha',
 };
 
 // The eight spots of the drawing, for those who use the keyboard.
