@@ -10,7 +10,7 @@ export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
   pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'zip'],
   'pdf-mixed' : ['merge', 'extract-text', 'zip'],
   'pdf-locked': ['unlock'],
-  video       : ['compress', 'transcribe', 'extract-audio', 'trim', 'zip'],
+  video       : ['compress', 'transcribe', 'extract-audio', 'trim', 'subtitles', 'to-gif', 'zip'],
   audio       : ['transcribe', 'trim', 'zip'],
   mixed       : ['zip'],
 };

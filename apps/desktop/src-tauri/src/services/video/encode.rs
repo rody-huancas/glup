@@ -56,9 +56,15 @@ pub fn error_for(stderr: &str) -> &'static str {
 }
 
 pub fn encode(params: EncodeParams) -> Result<Encoded, String> {
+    encode_with(params, &|_| {})
+}
+
+// The same, with the command set up first (the subtitles are drawn from a file in its own folder).
+pub fn encode_with(params: EncodeParams, setup: &dyn Fn(&mut Command)) -> Result<Encoded, String> {
     let mut command = Command::new(params.ffmpeg);
     command.args(&params.args).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
     hide_window(&mut command);
+    setup(&mut command);
 
     let mut child = command.spawn().map_err(|_| ENCODE_ERROR.to_string())?;
     let stdout    = child.stdout.take().ok_or(ENCODE_ERROR)?;

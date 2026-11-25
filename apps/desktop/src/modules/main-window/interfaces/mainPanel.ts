@@ -32,6 +32,9 @@ export interface MainPanelState {
   // The audio or video being trimmed: its screen, full width too.
   trimming            : TrimTarget | null;
   stopTrim            : () => void;
+  // The video getting its subtitles: listened to, reviewed and saved there.
+  subtitling          : TrimTarget | null;
+  stopSubtitles       : () => void;
   // Signing, organizing or scanning: no sidebar, and the island stays open.
   fullScreen          : boolean;
   // First run: the welcome covers the panel until it is answered.

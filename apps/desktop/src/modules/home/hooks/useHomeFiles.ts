@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ACTIONS_TEXTS } from '@/modules/actions/constants/texts';
 import { ACTIONS_TIMING } from '@/modules/actions/constants/timing';
 import { useActionSelection } from '@/modules/actions/hooks/useActionSelection';
@@ -14,9 +13,11 @@ import { holdWhile } from '@/modules/island/store/islandHolds';
 import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
+import type { TrimPurpose } from '@/modules/media/types/trimPurpose';
 import { useSaveLocation } from '@/modules/settings/hooks/useSaveLocation';
 import type { ActionTool } from '@/modules/tools/interfaces/actionTool';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Steps with a list, a grid or a choice: the person is in the middle of them.
 // Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
@@ -33,10 +34,11 @@ interface UseHomeFilesParams {
   onSign          : (path: string) => void;
   onOrganize      : (path: string) => void;
   onScan          : (paths: string[]) => void;
-  onTrim          : (path: string) => void;
+  onTrim          : (path: string, purpose: TrimPurpose) => void;
+  onSubtitles     : (path: string) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // Glup eating no longer keeps the island open, so only the setter is used.
@@ -53,7 +55,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });

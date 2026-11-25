@@ -1,5 +1,6 @@
 // Audio y video with the FFmpeg already learned (downloaded with permission, run as its own process):
 // "Sacar el audio" of videos and "Recortar" an audio or a video, with what the trimming screen needs.
+pub mod animation;
 pub mod extract;
 pub mod preview;
 pub mod probe;
@@ -10,6 +11,7 @@ pub mod trim;
 mod tests;
 
 use std::{
+    collections::HashMap,
     fs,
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -20,6 +22,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
 use self::{
+    animation::{animation_args, animation_detail, width_for, AnimationArgs, AnimationOptions},
     extract::{extract_args, ExtractArgs, ExtractOptions, NO_SOUND},
     preview::{playable, plays_codecs, preview_args, samples_of, strip_args, wave_args, wave_bars},
     probe::{probe_media, MediaInfo},
@@ -35,14 +38,28 @@ pub const PREVIEW_ERROR: &str = "No pude preparar la vista previa";
 pub const TRIM_ERROR: &str    = "No pude recortarlo";
 pub const EXTRACT_ERROR: &str = "No pude sacar el audio";
 pub const TRIM_ACTION: &str   = "trim";
+pub const GIF_ACTION: &str    = "to-gif";
+pub const GIF_ERROR: &str     = "No pude hacer la animación";
 
 pub fn ffmpeg(app: &AppHandle) -> Result<PathBuf, String> {
     ffmpeg_path(app).ok_or_else(|| MISSING_ERROR.to_string())
 }
 
-// The light copies made for the screen while it is open, to delete when it closes.
+// The light copies made for the screen while it is open, to delete when it closes, and the last
+// animation previewed for each choice (saved by copying it when nothing changed).
 #[derive(Default)]
-pub struct MediaSession(Mutex<Vec<PathBuf>>);
+pub struct MediaSession {
+    previews   : Mutex<Vec<PathBuf>>,
+    animations : Mutex<HashMap<String, PathBuf>>,
+}
+
+impl MediaSession {
+    fn keep(&self, path: PathBuf) {
+        if let Ok(mut previews) = self.previews.lock() {
+            previews.push(path);
+        }
+    }
+}
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -83,9 +100,7 @@ pub fn make_preview(app: &AppHandle, path: &str) -> Result<String, String> {
         let _ = fs::remove_file(&output);
         return Err(PREVIEW_ERROR.to_string());
     }
-    if let Ok(mut previews) = app.state::<MediaSession>().0.lock() {
-        previews.push(output.clone());
-    }
+    app.state::<MediaSession>().keep(output.clone());
     Ok(serve_file(app, &output))
 }
 
@@ -127,11 +142,121 @@ pub fn close(app: &AppHandle) {
     if let Ok(mut files) = app.state::<MediaFiles>().0.lock() {
         files.clear();
     }
-    if let Ok(mut previews) = app.state::<MediaSession>().0.lock() {
+    let session = app.state::<MediaSession>();
+    if let Ok(mut previews) = session.previews.lock() {
         for preview in previews.drain(..) {
             let _ = fs::remove_file(preview);
         }
     }
+    if let Ok(mut animations) = session.animations.lock() {
+        animations.clear();
+    };
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnimationRequest {
+    pub path        : String,
+    pub start       : f64,
+    pub end         : f64,
+    pub options     : AnimationOptions,
+    pub destination : Option<crate::services::destination::Destination>,
+    pub task_id     : Option<String>,
+}
+
+// The same video, stretch and options: the same animation.
+fn animation_key(request: &AnimationRequest) -> String {
+    format!("{}|{:.2}|{:.2}|{:?}", request.path, request.start, request.end, request.options)
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnimationPreview {
+    pub url    : String,
+    pub size   : u64,
+    pub width  : u32,
+    pub height : u32,
+}
+
+pub struct RenderParams<'a> {
+    pub ffmpeg      : &'a Path,
+    pub request     : &'a AnimationRequest,
+    pub output      : &'a Path,
+    pub cancel      : &'a AtomicBool,
+    pub on_progress : &'a dyn Fn(f64),
+}
+
+// The animation of the stretch into `output` (None: cancelled, the half-made file deleted); its width.
+pub fn render_animation(params: RenderParams) -> Result<Option<u32>, String> {
+    let source = Path::new(&params.request.path);
+    let info   = probe_media(params.ffmpeg, source)?;
+    let end    = params.request.end.min(info.duration);
+    let args   = animation_args(AnimationArgs { input: source, output: params.output, start: params.request.start, end, options: params.request.options, source: info.width });
+    match encode(EncodeParams { ffmpeg: params.ffmpeg, args, duration: end - params.request.start, cancel: params.cancel, on_progress: params.on_progress }) {
+        Ok(Encoded::Done) => Ok(Some(width_for(params.request.options.width, info.width))),
+        Ok(Encoded::Cancelled) => {
+            let _ = fs::remove_file(params.output);
+            Ok(None)
+        }
+        Err(_) => {
+            let _ = fs::remove_file(params.output);
+            Err(GIF_ERROR.to_string())
+        }
+    }
+}
+
+// «Ver cómo queda»: the real animation in a temporary file, shown on the screen with its weight.
+pub fn preview_animation(app: &AppHandle, request: &AnimationRequest) -> Result<AnimationPreview, String> {
+    let ffmpeg = ffmpeg(app)?;
+    let folder = std::env::temp_dir().join("glup-recorte");
+    fs::create_dir_all(&folder).map_err(|_| GIF_ERROR.to_string())?;
+    let output = folder.join(format!("{}.{}", new_token(), animation::extension(request.options.format)));
+
+    let cancel = AtomicBool::new(false);
+    render_animation(RenderParams { ffmpeg: &ffmpeg, request, output: &output, cancel: &cancel, on_progress: &|_| {} })?.ok_or(GIF_ERROR)?;
+    let size    = fs::metadata(&output).map(|data| data.len()).unwrap_or(0);
+    let (width, height) = image::image_dimensions(&output).unwrap_or((0, 0));
+    let session = app.state::<MediaSession>();
+    session.keep(output.clone());
+    if let Ok(mut animations) = session.animations.lock() {
+        animations.insert(animation_key(request), output.clone());
+    }
+    Ok(AnimationPreview { url: serve_file(app, &output), size, width, height })
+}
+
+// What «Guardar» saves: the preview already made for these same choices, or a new one.
+pub fn save_animation(app: &AppHandle, request: AnimationRequest) -> Result<crate::services::actions::ActionReport, String> {
+    use crate::services::actions::{run_single, SingleOutput, SingleParams};
+    use crate::services::naming::OutputKind;
+
+    let made = app.state::<MediaSession>().animations.lock().ok().and_then(|animations| animations.get(&animation_key(&request)).cloned()).filter(|path| path.is_file());
+    run_single(SingleParams {
+        app,
+        action      : GIF_ACTION,
+        path        : &request.path,
+        destination : request.destination.clone(),
+        task_id     : request.task_id.clone(),
+        make        : &|job| {
+            let output = job.reserve(OutputKind::Converted { extension: animation::extension(request.options.format) });
+            let width  = match &made {
+                Some(preview) => {
+                    fs::copy(preview, &output).map_err(|_| GIF_ERROR.to_string())?;
+                    image::image_dimensions(&output).map(|(width, _)| width).unwrap_or(request.options.width)
+                }
+                None => {
+                    let ffmpeg = ffmpeg(app)?;
+                    let Some(width) = render_animation(RenderParams { ffmpeg: &ffmpeg, request: &request, output: &output, cancel: job.cancel(), on_progress: &|done| job.progress(done) })? else { return Ok(None) };
+                    width
+                }
+            };
+            Ok(Some(SingleOutput {
+                size   : fs::metadata(&output).map(|data| data.len()).unwrap_or(0),
+                output,
+                kind   : "image",
+                detail : animation_detail(request.options, width, request.end - request.start),
+            }))
+        },
+    })
 }
 
 pub struct ExtractParams<'a> {

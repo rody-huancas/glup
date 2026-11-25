@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { formatTime, keyframeBefore, moveEdge, parseTime } from '@/modules/media/utils/time';
+import { formatClock, formatTime, keyframeBefore, moveEdge, parseTime } from '@/modules/media/utils/time';
 
 describe('the times of a cut', () => {
   it('are written and read as minutes, seconds and tenths', () => {
     expect(formatTime(65.34)).toBe('1:05.3');
     expect(formatTime(0)).toBe('0:00.0');
     expect(formatTime(3725.5)).toBe('1:02:05.5');
+    expect(formatClock(6.9)).toBe('0:06');
+    expect(formatClock(3725.5)).toBe('1:02:05');
     expect(parseTime('1:05.3')).toBeCloseTo(65.3);
     expect(parseTime('65,5')).toBeCloseTo(65.5);
     expect(parseTime('1:02:05')).toBe(3725);

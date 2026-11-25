@@ -259,9 +259,16 @@ fn file_name(path: &Path) -> String {
     path.file_name().map(|value| value.to_string_lossy().into_owned()).unwrap_or_default()
 }
 
-// Every file in turn: read its sound, listen to it, then put it all together. Cancelar stops Whisper
-// right away; what was finished before stays.
-pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<TranscribeReport, String> {
+// What was heard in every file, and how long they were.
+pub struct Heard {
+    pub files     : Vec<FileSegments>,
+    pub seconds   : f64,
+    pub cancelled : bool,
+}
+
+// Every file in turn: read its sound and listen to it (on the card or the processor). Cancelar stops
+// Whisper right away; what was finished before stays. "Subtítulos" uses it too.
+pub fn listen_files(app: &AppHandle, request: &TranscribeRequest) -> Result<Heard, String> {
     let ffmpeg  = video_tool::ffmpeg_path(app).ok_or_else(|| MISSING_ERROR.to_string())?;
     let model   = model_path(&models_folder(app)?, request.options.level.model());
     if !model.exists() {
@@ -300,7 +307,7 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
         clock.lap("cargar el modelo");
     }
     if control.cancelled.load(Ordering::SeqCst) {
-        return Ok(TranscribeReport { text: String::new(), subtitles: String::new(), seconds: 0, cancelled: true, entry_id: None });
+        return Ok(Heard { files, seconds, cancelled: true });
     }
 
     for (index, path) in request.paths.iter().map(PathBuf::from).enumerate() {
@@ -386,7 +393,13 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
             }
         }
     }
+    Ok(Heard { files, seconds, cancelled })
+}
 
+// "Pasar audio a texto": what was heard, as text with paragraphs and as subtitles.
+pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<TranscribeReport, String> {
+    let clock                              = StageClock::start();
+    let Heard { files, seconds, cancelled } = listen_files(app, &request)?;
     emit(app, ActionProgress::at(&request.task_id, Stage::Saving));
 
     let text      = compose(&files);

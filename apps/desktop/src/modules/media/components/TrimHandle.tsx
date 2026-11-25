@@ -40,12 +40,12 @@ export const TrimHandle = ({ label, value, duration, share, hintId, onMove, onGr
       onPointerDown={onGrab}
       onPointerMove={onDrag}
       className={cx(
-        'absolute top-0 z-10 flex h-full w-3 -translate-x-1/2 cursor-ew-resize touch-none items-center justify-center rounded-sm bg-mint outline-none',
-        'focus-visible:ring-2 focus-visible:ring-lilac focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
+        'absolute top-0 z-10 flex h-full w-3 -translate-x-1/2 cursor-ew-resize touch-none items-center justify-center rounded-sm bg-fam-media outline-none',
+        'focus-visible:ring-2 focus-visible:ring-fam-media focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
       )}
       style={{ left: `${share * 100}%` }}
     >
-      <span aria-hidden className="h-5 w-0.5 rounded-full bg-mint-ink/60" />
+      <span aria-hidden className="h-5 w-0.5 rounded-full bg-fam-media-ink/60" />
     </button>
   );
 };

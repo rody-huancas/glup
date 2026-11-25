@@ -1,10 +1,10 @@
-import { useId, useState } from 'react';
-import { LookOption } from '@/modules/dock/components/LookOption';
+import { MediaOption } from '@/modules/media/components/MediaOption';
 import { EXTRACT_TEXTS } from '@/modules/media/constants/texts';
 import type { ExtractOptions } from '@/modules/media/interfaces/extractOptions';
 import type { AudioFormat, AudioQuality } from '@/modules/media/types/audioFormat';
 import { StepHeader } from '@/modules/pdf/components/StepHeader';
 import { Button } from '@/shared/components/Button';
+import { useId, useState } from 'react';
 
 interface AudioExtractStepProps {
   onExtract : (options: ExtractOptions) => void;
@@ -27,7 +27,7 @@ export const AudioExtractStep = ({ onExtract, onBack }: AudioExtractStepProps) =
       <div className="flex flex-col gap-1.5">
         <span id={formatId} className="text-[11px] font-semibold text-muted">{EXTRACT_TEXTS.format}</span>
         <div role="radiogroup" aria-labelledby={formatId} className="grid grid-cols-3 gap-2">
-          {FORMATS.map((option) => <LookOption key={option} label={EXTRACT_TEXTS.formats[option].label} hint={EXTRACT_TEXTS.formats[option].hint} selected={format === option} onChoose={() => setFormat(option)} />)}
+          {FORMATS.map((option) => <MediaOption key={option} label={EXTRACT_TEXTS.formats[option].label} hint={EXTRACT_TEXTS.formats[option].hint} selected={format === option} onChoose={() => setFormat(option)} />)}
         </div>
       </div>
       {format === 'wav' ? (
@@ -36,12 +36,12 @@ export const AudioExtractStep = ({ onExtract, onBack }: AudioExtractStepProps) =
         <div className="flex flex-col gap-1.5">
           <span id={qualityId} className="text-[11px] font-semibold text-muted">{EXTRACT_TEXTS.quality}</span>
           <div role="radiogroup" aria-labelledby={qualityId} className="grid grid-cols-2 gap-2">
-            {QUALITIES.map((option) => <LookOption key={option} label={EXTRACT_TEXTS.qualities[option].label} hint={EXTRACT_TEXTS.qualities[option].hint} selected={quality === option} onChoose={() => setQuality(option)} />)}
+            {QUALITIES.map((option) => <MediaOption key={option} label={EXTRACT_TEXTS.qualities[option].label} hint={EXTRACT_TEXTS.qualities[option].hint} selected={quality === option} onChoose={() => setQuality(option)} />)}
           </div>
         </div>
       )}
       <p className="text-[11px] text-muted">{EXTRACT_TEXTS.copyHint}</p>
-      <Button onClick={() => onExtract({ format, quality })} className="h-10 self-start">
+      <Button variant="media" onClick={() => onExtract({ format, quality })} className="h-10 self-start">
         {EXTRACT_TEXTS.go}
       </Button>
     </div>

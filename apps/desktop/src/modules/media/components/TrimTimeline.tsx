@@ -52,7 +52,7 @@ export const TrimTimeline = ({ duration, stretch, current, strip, wave, onMove, 
         )}
         <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 rounded-l-control bg-scrim" style={{ width: `${share(stretch.start) * 100}%` }} />
         <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 rounded-r-control bg-scrim" style={{ width: `${(1 - share(stretch.end)) * 100}%` }} />
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 border-y-2 border-mint" style={{ left: `${share(stretch.start) * 100}%`, right: `${(1 - share(stretch.end)) * 100}%` }} />
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 border-y-2 border-fam-media" style={{ left: `${share(stretch.start) * 100}%`, right: `${(1 - share(stretch.end)) * 100}%` }} />
         <div aria-hidden className="pointer-events-none absolute inset-y-0 w-0.5 bg-text" style={{ left: `${share(current) * 100}%` }} />
         <TrimHandle label={TRIM_TEXTS.startHandle} value={stretch.start} duration={duration} share={share(stretch.start)} hintId={hintId} onMove={(to) => onMove('start', to)} onGrab={grab} onDrag={drag('start')} />
         <TrimHandle label={TRIM_TEXTS.endHandle} value={stretch.end} duration={duration} share={share(stretch.end)} hintId={hintId} onMove={(to) => onMove('end', to)} onGrab={grab} onDrag={drag('end')} />

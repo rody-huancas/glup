@@ -1,4 +1,3 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
 import { useExplorerRequests } from '@/modules/explorer/hooks/useExplorerRequests';
 import { useHomeFiles } from '@/modules/home/hooks/useHomeFiles';
 import { DEFAULT_PAGE } from '@/modules/main-window/constants/navigation';
@@ -12,8 +11,10 @@ import { useTrimMode } from '@/modules/media/hooks/useTrimMode';
 import { useOrganizeMode } from '@/modules/organize/hooks/useOrganizeMode';
 import { useScanMode } from '@/modules/scan/hooks/useScanMode';
 import { useSignMode } from '@/modules/sign/hooks/useSignMode';
+import { useSubtitlesMode } from '@/modules/subtitles/hooks/useSubtitlesMode';
 import { useTaskMood } from '@/modules/tasks/hooks/useTaskMood';
 import { useWelcome } from '@/modules/welcome/hooks/useWelcome';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 export const useMainWindow = (): MainPanelState => {
   const [page, setPage]               = useState<PageId>(DEFAULT_PAGE);
@@ -26,7 +27,8 @@ export const useMainWindow = (): MainPanelState => {
   const organizeMode  = useOrganizeMode();
   const scanMode      = useScanMode();
   const trimMode      = useTrimMode();
-  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start });
+  const subtitlesMode = useSubtitlesMode();
+  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start, onSubtitles: subtitlesMode.start });
 
   useTaskMood(commandAvatar);
   useExplorerRequests({ files, onNavigate: setPage });
@@ -39,6 +41,7 @@ export const useMainWindow = (): MainPanelState => {
   const stopOrganize  = organizeMode.stop;
   const stopScan      = scanMode.stop;
   const stopTrim      = trimMode.stop;
+  const stopSubtitles = subtitlesMode.stop;
 
   // Back to the home page with no pending selection, as when the island collapses.
   const reset = useCallback(() => {
@@ -48,9 +51,10 @@ export const useMainWindow = (): MainPanelState => {
     stopOrganize();
     stopScan();
     stopTrim();
-  }, [filesClose, stopSigning, stopOrganize, stopScan, stopTrim]);
+    stopSubtitles();
+  }, [filesClose, stopSigning, stopOrganize, stopScan, stopTrim, stopSubtitles]);
 
-  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null || trimMode.target !== null;
+  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null || trimMode.target !== null || subtitlesMode.target !== null;
 
   return {
     page,
@@ -71,6 +75,8 @@ export const useMainWindow = (): MainPanelState => {
     stopScan,
     trimming            : trimMode.target,
     stopTrim,
+    subtitling          : subtitlesMode.target,
+    stopSubtitles,
     fullScreen,
     welcome,
   };

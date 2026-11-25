@@ -1541,23 +1541,64 @@ fn run_extract_audio(run: &Run, options: media::extract::ExtractOptions) -> Coll
     Collected { outcomes, entries, batch: None, cancelled }
 }
 
-// "Recortar": the stretch into "<nombre> (recorte).ext", as a task with its progress and Cancelar.
-pub fn trim_media(app: &AppHandle, request: media::TrimRequest) -> Result<ActionReport, String> {
-    let control = app.state::<ActionControl>();
-    control.begin(&request.task_id);
+// What one file made: where it went, its size, and its line in the Historial.
+pub struct SingleOutput {
+    pub output : PathBuf,
+    pub size   : u64,
+    pub kind   : &'static str,
+    pub detail : String,
+}
 
-    let source = PathBuf::from(&request.path);
+// What the work of a single file has at hand: the folder chosen, a name there, progress and Cancelar.
+pub struct SingleJob<'a> {
+    run        : &'a Run<'a>,
+    pub source : PathBuf,
+    pub folder : PathBuf,
+}
+
+impl SingleJob<'_> {
+    // A name in the folder that nothing else has (« (2)» when taken).
+    pub fn reserve(&self, kind: OutputKind) -> PathBuf {
+        self.run.reserve(&OutputNameParams { folder: &self.folder, source: &self.source, kind })
+    }
+
+    // 0 to 1 of the work, as "45 %".
+    pub fn progress(&self, done: f64) {
+        video_progress(self.run, 0, done, &file_name(&self.source));
+    }
+
+    pub fn cancel(&self) -> &AtomicBool {
+        self.run.cancel
+    }
+}
+
+pub struct SingleParams<'a> {
+    pub app         : &'a AppHandle,
+    pub action      : &'a str,
+    pub path        : &'a str,
+    pub destination : Option<Destination>,
+    pub task_id     : Option<String>,
+    // The work itself; None when it was cancelled.
+    pub make        : &'a dyn Fn(&SingleJob) -> Result<Option<SingleOutput>, String>,
+}
+
+// One file in, one result out, as a task: «Guardar en», its progress, Cancelar and the Historial.
+pub fn run_single(params: SingleParams) -> Result<ActionReport, String> {
+    let control = params.app.state::<ActionControl>();
+    control.begin(&params.task_id);
+
+    let source = PathBuf::from(params.path);
     let run    = Run {
-        app,
+        app           : params.app,
         paths         : vec![source.clone()],
-        destination   : request.destination.clone().unwrap_or_default(),
+        destination   : params.destination.unwrap_or_default(),
         cancel        : &control.cancelled,
         reserved      : Mutex::new(HashSet::new()),
-        task          : request.task_id.clone(),
+        task          : params.task_id.clone(),
         keep_location : false,
     };
     let report = |outcomes: Vec<FileOutcome>, batch: Option<&Saved>, cancelled: bool| ActionReport {
-        action_id        : media::TRIM_ACTION.to_string(),
+        action_id        : params.action.to_string(),
         outcomes,
         output           : batch.map(|result| result.output.to_string_lossy().into_owned()),
         output_size      : batch.map(|result| result.size),
@@ -1569,26 +1610,42 @@ pub fn trim_media(app: &AppHandle, request: media::TrimRequest) -> Result<Action
         pages_total      : None,
     };
 
-    let made = media::ffmpeg(app).and_then(|ffmpeg| {
-        let folder    = destination::prepare(&source, &run.destination)?;
-        let extension = source.extension().map(|extension| extension.to_string_lossy().to_lowercase()).unwrap_or_default();
-        let output    = run.reserve(&OutputNameParams { folder: &folder, source: &source, kind: OutputKind::Trimmed { extension: &extension } });
-        let name      = file_name(&source);
-        let trimmed   = media::trim(media::TrimParams { ffmpeg: &ffmpeg, request: &request, output: &output, cancel: run.cancel, on_progress: &|done| video_progress(&run, 0, done, &name) })?;
-        Ok(trimmed.map(|trimmed| (Saved { output, size: trimmed.size }, trimmed.has_video, trimmed.start)))
-    });
+    let made = destination::prepare(&source, &run.destination).and_then(|folder| (params.make)(&SingleJob { run: &run, source: source.clone(), folder }));
 
     match made {
         Ok(None) => Ok(report(Vec::new(), None, true)),
-        Ok(Some((result, has_video, start))) => {
-            progress::emit(app, ActionProgress::at(&run.task, Stage::Saving));
-            let kind  = if has_video { VIDEO_KIND } else { "audio" };
-            let entry = history::new_entry(NewEntryParams { output: &result.output, kind, action: media::TRIM_ACTION, detail: media::trim_detail(&request, start) });
-            let _     = history::append(app, vec![entry]);
+        Ok(Some(made)) => {
+            progress::emit(params.app, ActionProgress::at(&run.task, Stage::Saving));
+            let entry  = history::new_entry(NewEntryParams { output: &made.output, kind: made.kind, action: params.action, detail: made.detail });
+            let _      = history::append(params.app, vec![entry]);
+            let result = Saved { output: made.output, size: made.size };
             Ok(report(vec![saved(&source, &result)], Some(&result), false))
         }
         Err(error) => Ok(report(vec![failed(&source, error)], None, false)),
     }
+}
+
+// "Recortar": the stretch into "<nombre> (recorte).ext".
+pub fn trim_media(app: &AppHandle, request: media::TrimRequest) -> Result<ActionReport, String> {
+    run_single(SingleParams {
+        app,
+        action      : media::TRIM_ACTION,
+        path        : &request.path,
+        destination : request.destination.clone(),
+        task_id     : request.task_id.clone(),
+        make        : &|job| {
+            let ffmpeg    = media::ffmpeg(app)?;
+            let extension = job.source.extension().map(|extension| extension.to_string_lossy().to_lowercase()).unwrap_or_default();
+            let output    = job.reserve(OutputKind::Tagged { tag: "recorte", extension: &extension });
+            let trimmed   = media::trim(media::TrimParams { ffmpeg: &ffmpeg, request: &request, output: &output, cancel: job.cancel(), on_progress: &|done| job.progress(done) })?;
+            Ok(trimmed.map(|trimmed| SingleOutput {
+                output,
+                size   : trimmed.size,
+                kind   : if trimmed.has_video { VIDEO_KIND } else { "audio" },
+                detail : media::trim_detail(&request, trimmed.start),
+            }))
+        },
+    })
 }
 
 #[derive(Deserialize)]

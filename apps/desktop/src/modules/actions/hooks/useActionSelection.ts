@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { LOADING_SLOW_DELAY } from '@/modules/actions/constants/loading';
 import { ACTIONS_TIMING } from '@/modules/actions/constants/timing';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
@@ -14,16 +13,18 @@ import { isImplemented, usesBundle } from '@/modules/actions/utils/formats';
 import { createPendingSelection } from '@/modules/actions/utils/pending';
 import { createSelection } from '@/modules/actions/utils/selection';
 import { getSelectionSummary } from '@/modules/actions/utils/summary';
+import { LEARNABLES } from '@/modules/background/constants/learnables';
 import { getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
 import type { LearnableId } from '@/modules/background/types/learnableId';
-import { LEARNABLES } from '@/modules/background/constants/learnables';
 import { withLearning } from '@/modules/background/utils/learnChain';
 import { nextLearnPhase } from '@/modules/background/utils/learnStep';
 import { ID_PHOTO_TEXTS } from '@/modules/id-photo/constants/idPhoto';
 import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
 import type { IdCrop } from '@/modules/id-photo/interfaces/idCrop';
 import { saveIdPhoto as saveIdPhotoFiles } from '@/modules/id-photo/services/idPhoto';
+import type { ExtractOptions } from '@/modules/media/interfaces/extractOptions';
+import type { TrimPurpose } from '@/modules/media/types/trimPurpose';
 import { PDF_TEXTS } from '@/modules/pdf/constants/pdf';
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
@@ -33,7 +34,6 @@ import { checkPdfPassword } from '@/modules/pdf/services/password';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import { getHeifSupport } from '@/modules/photos/services/photos';
 import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
-import type { ExtractOptions } from '@/modules/media/interfaces/extractOptions';
 import { needsPhotoTool } from '@/modules/photos/utils/photos';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
@@ -45,6 +45,7 @@ import { transcribeAudio } from '@/modules/transcribe/services/transcribe';
 import { toTranscribeResult } from '@/modules/transcribe/utils/transcribe';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 import { getVideoTool } from '@/modules/video/services/videoTool';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseActionSelectionParams {
   onFinished  : () => void;
@@ -56,8 +57,10 @@ interface UseActionSelectionParams {
   onOrganize  : (path: string) => void;
   // So does "Escanear documento", with every photo.
   onScan      : (paths: string[]) => void;
-  // And "Recortar", with the audio or the video.
-  onTrim      : (path: string) => void;
+  // And "Recortar" (also for "Video a GIF"), with the audio or the video.
+  onTrim      : (path: string, purpose: TrimPurpose) => void;
+  // And "Subtítulos", with the video.
+  onSubtitles : (path: string) => void;
 }
 
 interface ExecuteParams {
@@ -119,7 +122,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -136,6 +139,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const organizeRef               = useRef(onOrganize);
   const scanRef                   = useRef(onScan);
   const trimRef                   = useRef(onTrim);
+  const subtitlesRef              = useRef(onSubtitles);
   const loadId                    = useRef(0);
   // The step after learning: the background choice, or what the video is for.
   const learnDone                 = useRef<ActionsPhase>('background');
@@ -148,7 +152,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     organizeRef.current    = onOrganize;
     scanRef.current        = onScan;
     trimRef.current        = onTrim;
-  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim]);
+    subtitlesRef.current   = onSubtitles;
+  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -297,8 +302,15 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     }
 
     // And the trimming one (it asks to learn FFmpeg there if it is missing).
-    if (actionId === 'trim') {
-      trimRef.current(selection.paths[0]);
+    if (actionId === 'trim' || actionId === 'to-gif') {
+      trimRef.current(selection.paths[0], actionId === 'to-gif' ? 'gif' : 'trim');
+      finishedRef.current();
+      return;
+    }
+
+    // And "Subtítulos", which listens and lets the phrases be reviewed there.
+    if (actionId === 'subtitles') {
+      subtitlesRef.current(selection.paths[0]);
       finishedRef.current();
       return;
     }

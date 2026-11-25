@@ -251,3 +251,46 @@ fn with_ffmpeg_draws_the_strip_of_frames_and_the_shape_of_the_sound() {
     assert!(bars.iter().all(|bar| *bar > 0.8), "{bars:?}");
     let _ = fs::remove_dir_all(&place);
 }
+
+#[test]
+fn a_gif_gets_a_palette_of_its_own_and_a_webp_is_lossy() {
+    use super::animation::{animation_args, animation_detail, width_for, AnimationArgs, AnimationFormat, AnimationOptions};
+
+    let options = |format, loop_forever| AnimationOptions { format, width: 480, fps: 15, loop_forever };
+    let args    = |format, loop_forever, source| text(&animation_args(AnimationArgs { input: Path::new("v.mp4"), output: Path::new("o"), start: 2.0, end: 8.5, options: options(format, loop_forever), source }));
+
+    let gif = args(AnimationFormat::Gif, true, 1920);
+    assert!(gif.starts_with("-hide_banner -nostdin -y -ss 2.000 -t 6.500 -i v.mp4 -an -sn -filter_complex [0:v:0]fps=15,scale=480:-2:flags=lanczos,split[a][b];[a]palettegen=max_colors=256:stats_mode=diff[p];[b][p]paletteuse=dither=sierra2_4a:diff_mode=rectangle[out] -map [out] -loop 0"));
+    assert!(args(AnimationFormat::Gif, false, 1920).contains("-loop -1"));
+    let webp = args(AnimationFormat::Webp, true, 1920);
+    assert!(webp.contains("-map 0:v:0 -vf fps=15,scale=480:-2:flags=lanczos -c:v libwebp_anim -lossless 0 -q:v 70 -compression_level 4 -loop 0"));
+    assert!(args(AnimationFormat::Webp, false, 1920).contains("-loop 1"));
+
+    // A video narrower than the width asked keeps its own.
+    assert!(args(AnimationFormat::Gif, true, 400).contains("scale=400:-2"));
+    assert_eq!((width_for(640, 1280), width_for(640, 300), width_for(640, 0)), (640, 300, 640));
+    assert_eq!(animation_detail(options(AnimationFormat::Webp, true), 480, 6.24), "WEBP · 480 px · 15 cuadros/s · 6,2 s");
+}
+
+#[test]
+fn with_ffmpeg_makes_a_gif_and_a_lighter_webp() {
+    use super::{animation::{AnimationFormat, AnimationOptions}, render_animation, AnimationRequest, RenderParams};
+
+    let Some(ffmpeg) = real_ffmpeg() else { return eprintln!("sin FFmpeg: se salta") };
+    let place         = folder("gif");
+    let (video, _)    = samples(&ffmpeg, &place);
+    let cancel        = AtomicBool::new(false);
+    let mut sizes     = Vec::new();
+
+    for format in [AnimationFormat::Gif, AnimationFormat::Webp] {
+        let output  = place.join(if format == AnimationFormat::Gif { "prueba.gif" } else { "prueba.webp" });
+        let request = AnimationRequest { path: video.to_string_lossy().into_owned(), start: 1.0, end: 4.0, options: AnimationOptions { format, width: 640, fps: 10, loop_forever: true }, destination: None, task_id: None };
+        // The test video is 320 px wide: it keeps that.
+        assert_eq!(render_animation(RenderParams { ffmpeg: &ffmpeg, request: &request, output: &output, cancel: &cancel, on_progress: &|_| {} }).unwrap(), Some(320));
+        assert_eq!(image::image_dimensions(&output).unwrap(), (320, 240));
+        sizes.push(fs::metadata(&output).unwrap().len());
+    }
+    println!("gif {} KB · webp {} KB", sizes[0] / 1024, sizes[1] / 1024);
+    assert!(sizes[1] < sizes[0], "{sizes:?}");
+    let _ = fs::remove_dir_all(&place);
+}

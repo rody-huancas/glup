@@ -28,6 +28,7 @@ pub mod registry;
 pub mod scan;
 pub mod screen_text;
 pub mod settings;
+pub mod subtitles;
 pub mod shortcuts;
 pub mod signatures;
 pub mod startup;

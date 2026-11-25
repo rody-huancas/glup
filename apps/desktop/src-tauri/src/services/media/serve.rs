@@ -62,6 +62,8 @@ pub fn content_type(path: &Path) -> &'static str {
         Some("ogg")         => "audio/ogg",
         Some("opus")        => "audio/ogg",
         Some("flac")        => "audio/flac",
+        Some("gif")         => "image/gif",
+        Some("webp")        => "image/webp",
         _                   => "application/octet-stream",
     }
 }

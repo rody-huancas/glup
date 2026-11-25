@@ -24,6 +24,8 @@ pub enum Stage {
     // "Escanear documento": each sheet straightened and cleaned, then read for its text (counted in pages).
     Straightening,
     Reading,
+    // "Subtítulos": what was heard made into short phrases.
+    Phrasing,
     // Writing, the safety check, the ZIP and the history, after the counted work.
     Saving,
 }

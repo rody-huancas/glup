@@ -52,6 +52,8 @@ export const STAGE_TEXTS: Record<Exclude<ProgressStage, 'working'>, string> = {
   // "Escanear documento", sheet by sheet.
   straightening : 'Enderezando las hojas…',
   reading       : 'Leyendo el texto…',
+  // "Subtítulos": what was heard, made into short phrases.
+  phrasing      : 'Armando las frases…',
   saving      : 'Guardando…',
 };
 
@@ -85,4 +87,7 @@ export const WORKING_TEXTS: Record<ActionId, string> = {
   'scan'              : 'Escaneando…',
   'extract-audio'     : 'Sacando el audio…',
   'trim'              : 'Recortando…',
+  'subtitles'         : 'Escuchando el video…',
+  'save-subtitles'    : 'Guardando los subtítulos…',
+  'to-gif'            : 'Haciendo la animación…',
 };

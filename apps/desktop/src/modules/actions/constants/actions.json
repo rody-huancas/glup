@@ -26,6 +26,8 @@
   { "id": "transcribe", "label": "Pasar audio a texto", "fileType": "video", "fileCount": "any", "primary": false },
   { "id": "extract-audio", "label": "Sacar el audio", "fileType": "video", "fileCount": "any", "primary": false },
   { "id": "trim", "label": "Recortar", "fileType": "video", "fileCount": "single", "primary": false },
+  { "id": "subtitles", "label": "Subtítulos", "fileType": "video", "fileCount": "single", "primary": false },
+  { "id": "to-gif", "label": "Video a GIF", "fileType": "video", "fileCount": "single", "primary": false },
   { "id": "transcribe", "label": "Pasar a texto", "fileType": "audio", "fileCount": "any", "primary": true },
   { "id": "trim", "label": "Recortar", "fileType": "audio", "fileCount": "single", "primary": false },
   { "id": "zip", "label": "Juntar en ZIP", "fileType": "any", "fileCount": "multiple", "primary": false }

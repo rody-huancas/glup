@@ -1,4 +1,3 @@
-import type { ComponentType } from 'react';
 import { FAMILY_STYLES } from '@/modules/families/constants/families';
 import type { FamilyId } from '@/modules/families/types/familyId';
 import type { ToolIcon as ToolIconName } from '@/modules/tools/types/toolIcon';
@@ -6,11 +5,12 @@ import { AudioTextIcon } from '@/shared/icons/AudioTextIcon';
 import { CleanupIcon } from '@/shared/icons/CleanupIcon';
 import { ClipboardIcon } from '@/shared/icons/ClipboardIcon';
 import { CompressIcon } from '@/shared/icons/CompressIcon';
+import { ConvertIcon } from '@/shared/icons/ConvertIcon';
 import { DuplicatesIcon } from '@/shared/icons/DuplicatesIcon';
 import { ExtractAudioIcon } from '@/shared/icons/ExtractAudioIcon';
-import { ConvertIcon } from '@/shared/icons/ConvertIcon';
 import { FolderIcon } from '@/shared/icons/FolderIcon';
 import { GaugeIcon } from '@/shared/icons/GaugeIcon';
+import { GifIcon } from '@/shared/icons/GifIcon';
 import { IdPhotoIcon } from '@/shared/icons/IdPhotoIcon';
 import { LockIcon } from '@/shared/icons/LockIcon';
 import { MergeIcon } from '@/shared/icons/MergeIcon';
@@ -23,6 +23,7 @@ import { ScanIcon } from '@/shared/icons/ScanIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 import { SignIcon } from '@/shared/icons/SignIcon';
 import { SplitIcon } from '@/shared/icons/SplitIcon';
+import { SubtitlesIcon } from '@/shared/icons/SubtitlesIcon';
 import { TextIcon } from '@/shared/icons/TextIcon';
 import { ToImagesIcon } from '@/shared/icons/ToImagesIcon';
 import { ToPdfIcon } from '@/shared/icons/ToPdfIcon';
@@ -32,6 +33,7 @@ import { WatermarkIcon } from '@/shared/icons/WatermarkIcon';
 import { ZipIcon } from '@/shared/icons/ZipIcon';
 import type { IconProps } from '@/shared/interfaces/icon';
 import { cx } from '@/shared/utils/classNames';
+import type { ComponentType } from 'react';
 
 interface ToolIconProps {
   icon   : ToolIconName;
@@ -45,6 +47,8 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'scan'              : ScanIcon,
   'extract-audio'     : ExtractAudioIcon,
   'trim'              : TrimIcon,
+  'subtitles'         : SubtitlesIcon,
+  'gif'               : GifIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,
