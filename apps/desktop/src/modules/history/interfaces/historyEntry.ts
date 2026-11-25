@@ -7,7 +7,7 @@ export interface HistoryEntry {
   name   : string;
   path   : string;
   // 'video' comes from SupportedFileType.
-  type   : SupportedFileType | 'zip' | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates';
+  type   : SupportedFileType | 'zip' | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates' | 'batch-rename';
   action : ActionId | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates';
   detail : string;
   date   : string;
