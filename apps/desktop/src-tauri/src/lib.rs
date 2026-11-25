@@ -14,10 +14,17 @@ pub const ISLAND_WINDOW_LABEL: &str = "island";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let args = std::env::args().collect::<Vec<_>>();
+
     // The installer writes or removes the Explorer's entries with Glup itself, without starting it.
-    if services::explorer::installer_mode(&std::env::args().collect::<Vec<_>>()) {
+    if services::explorer::installer_mode(&args) {
         return;
     }
+    // Files from the Explorer for the Glup already open: it may come to the front.
+    if services::explorer::parse_args(&args).is_some() {
+        services::dev_build::let_glup_come_forward();
+    }
+    services::dev_build::attach_console();
 
     tauri::Builder::default()
         // First: a second Glup never opens; the one running shows its island, as "Abrir Glup".

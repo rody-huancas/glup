@@ -137,7 +137,19 @@ solo traduce cada fase en animación, región y foco.
   Se comprueban con las formas de arriba al centro: las reglas son las mismas en todos los bordes.
 - Los temporizadores (abrir, recoger) usan callbacks estables: un render no los reinicia.
 - **Vigilantes** cada 2 s (Rust y frontend) corrigen si el estado y la ventana real no coinciden, y
-  lo anotan en el log (`[glup:isla]`, `[glup:vigilante]` en modo dev).
+  lo anotan en el log (`[glup:isla]`, `[glup:vigilante]` en modo dev). Además
+  (`utils/responsiveness.ts`):
+  - «Arrastrada» sin que Rust siga ningún arrastre (`dragging` en `get_island_status`) dos revisiones
+    seguidas: se perdió la soltada, la suelta y vuelve a la pastilla. Rust siempre manda la soltada,
+    aunque deje de leer el cursor (`drag_step`).
+  - Pedirle que se abra (el cursor quieto sobre la pastilla sin estar bloqueada, o un clic en ella o en
+    la burbuja) y seguir cerrada 6 s (`UNRESPONSIVE_MS`): la reinicia a recogida y anota por qué.
+- **Abierta desde el Explorador** (un paso pendiente, `request_show` → `island-show`): como un clic
+  en la burbuja y sin fijar (`clicked`). No se cierra al salir el cursor; se cierra con un clic afuera
+  (aunque el paso esté a medias: los archivos siguen esperando en Inicio), con Esc o con el atajo.
+  Solo la retienen un diálogo (también elegir una carpeta en «Guardar en»), un archivo arrastrado
+  encima o la pantalla entera, o que la persona la fije. El proceso que llega del Explorador le
+  cede el frente (`AllowSetForegroundWindow`) para que pueda tomar el foco.
 - «Mostrar/Ocultar Glup» y «Abrir Glup» de la bandeja siempre devuelven una isla funcional.
 
 ### Comportamiento

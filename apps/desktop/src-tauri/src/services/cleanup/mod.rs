@@ -8,6 +8,9 @@ pub mod recycle_bin;
 pub mod temp;
 pub mod walk;
 
+#[cfg(test)]
+mod bench;
+
 use std::{
     collections::{HashMap, HashSet},
     fs, io,
@@ -16,7 +19,7 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Mutex,
     },
-    time::SystemTime,
+    time::{Duration, Instant, SystemTime},
 };
 
 use serde::{Deserialize, Serialize};
@@ -50,6 +53,9 @@ pub const CLEAN_ACTION_ID: &str = CLEAN_ACTION;
 
 // Windows errors for a file another program has open (sharing, lock) or locked against deletion.
 const IN_USE_ERRORS: [i32; 3] = [5, 32, 33];
+// The cleaning's progress goes to the panel at most this often (thousands of files, one event each,
+// slowed it down).
+const PROGRESS_EVERY: Duration = Duration::from_millis(100);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -409,48 +415,89 @@ pub fn still_matches(expected: &KnownFile, current: Option<&FileEntry>) -> bool 
     current.is_some_and(|file| file.size == expected.size && file.modified == expected.modified)
 }
 
+// The person's files go to the recycle bin this many at a time, in one operation of Windows: one by one
+// each took about 27 ms, in batches of 200 about 9 ms (Windows' own cost; see bench.rs).
+pub const TRASH_BATCH: usize = 200;
+
 pub struct CleanFilesParams<'a> {
     pub known: &'a HashMap<PathBuf, KnownFile>,
     pub paths: &'a [PathBuf],
     pub cancel: &'a AtomicBool,
-    pub remove: &'a dyn Fn(&Path, CleanMethod) -> Result<(), RemoveError>,
-    pub on_progress: &'a dyn Fn(usize, usize, &Path),
+    // One file deleted for good: temporales and caché (Windows and the browsers make them again).
+    pub remove: &'a dyn Fn(&Path) -> Result<(), RemoveError>,
+    // Several of the person's files to the recycle bin at once; each one is checked afterwards.
+    pub to_trash: &'a dyn Fn(&[PathBuf]),
+    // One to the recycle bin: those a batch left behind (Windows stops a batch at the first failure).
+    pub trash_one: &'a dyn Fn(&Path) -> Result<(), RemoveError>,
+    // Files done and how many in all.
+    pub on_progress: &'a dyn Fn(usize, usize),
+}
+
+fn count_result(tally: &mut CleanTally, result: Result<(), RemoveError>, size: u64, trash: bool) {
+    match result {
+        Ok(()) => {
+            tally.removed += 1;
+            if trash { tally.to_trash += size } else { tally.freed += size }
+        }
+        Err(RemoveError::InUse)  => tally.in_use += 1,
+        Err(RemoveError::Failed) => tally.failed += 1,
+    }
 }
 
 // Deletes what was asked for, and only what the last scan found: paths it did not see are ignored,
-// files that changed since are skipped, and the byte counts only include what really went away.
+// files that changed since are skipped, and the byte counts only include what really went away. The
+// files to delete for good go one by one (fast); those for the recycle bin, in batches. Cancelar stops
+// between files and between batches.
 pub fn clean_files(params: CleanFilesParams) -> CleanTally {
     let paths: Vec<PathBuf> = keep_one_copy(params.known, params.paths)
         .into_iter()
         .filter(|path| params.known.get(path).is_some_and(|file| file.category.method() != CleanMethod::EmptyRecycleBin))
         .collect();
+    let (direct, trash): (Vec<&PathBuf>, Vec<&PathBuf>) = paths.iter().partition(|path| params.known[*path].category.method() == CleanMethod::Direct);
 
+    let total     = paths.len();
+    let mut done  = 0;
     let mut tally = CleanTally::default();
+    (params.on_progress)(0, total);
 
-    for (index, path) in paths.iter().enumerate() {
+    for path in direct {
         if params.cancel.load(Ordering::SeqCst) {
             tally.cancelled = true;
-            break;
+            return tally;
         }
-
-        (params.on_progress)(index, paths.len(), path);
-
         let expected = &params.known[path];
-        if !still_matches(expected, walk::current(path).as_ref()) {
+        if still_matches(expected, walk::current(path).as_ref()) {
+            count_result(&mut tally, (params.remove)(path), expected.size, false);
+        } else {
             tally.changed += 1;
-            continue;
+        }
+        done += 1;
+        (params.on_progress)(done, total);
+    }
+
+    for batch in trash.chunks(TRASH_BATCH) {
+        if params.cancel.load(Ordering::SeqCst) {
+            tally.cancelled = true;
+            return tally;
         }
 
-        let method = expected.category.method();
+        let (ready, changed): (Vec<&PathBuf>, Vec<&PathBuf>) = batch.iter().copied().partition(|path| still_matches(&params.known[*path], walk::current(path).as_ref()));
+        tally.changed += changed.len();
 
-        match (params.remove)(path, method) {
-            Ok(()) => {
-                tally.removed += 1;
-                if method == CleanMethod::Trash { tally.to_trash += expected.size } else { tally.freed += expected.size }
-            }
-            Err(RemoveError::InUse)  => tally.in_use += 1,
-            Err(RemoveError::Failed) => tally.failed += 1,
+        let owned: Vec<PathBuf> = ready.iter().map(|path| (*path).clone()).collect();
+        if !owned.is_empty() {
+            (params.to_trash)(&owned);
         }
+
+        // What is gone went to the recycle bin; what is still there gets one try of its own.
+        for path in ready {
+            let size   = params.known[path].size;
+            let result = if fs::symlink_metadata(path).is_err() { Ok(()) } else { (params.trash_one)(path) };
+            count_result(&mut tally, result, size, true);
+        }
+
+        done += batch.len();
+        (params.on_progress)(done, total);
     }
 
     tally
@@ -464,12 +511,33 @@ fn classify(error: &io::Error) -> RemoveError {
     }
 }
 
-fn remove_for_real(path: &Path, method: CleanMethod) -> Result<(), RemoveError> {
-    match method {
-        CleanMethod::Direct          => fs::remove_file(path).map_err(|error| classify(&error)),
-        CleanMethod::Trash           => trash::delete(path).map_err(|_| RemoveError::Failed),
-        CleanMethod::EmptyRecycleBin => Err(RemoveError::Failed),
+fn remove_directly(path: &Path) -> Result<(), RemoveError> {
+    fs::remove_file(path).map_err(|error| classify(&error))
+}
+
+fn to_trash_for_real(paths: &[PathBuf]) {
+    let _ = trash::delete_all(paths);
+}
+
+// Another program has it open (it cannot be opened without sharing): it stays, told as in use.
+fn in_use(path: &Path) -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        fs::OpenOptions::new().read(true).share_mode(0).open(path).err().is_some_and(|error| error.raw_os_error().is_some_and(|code| IN_USE_ERRORS.contains(&code)))
     }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        false
+    }
+}
+
+fn trash_one_for_real(path: &Path) -> Result<(), RemoveError> {
+    if in_use(path) {
+        return Err(RemoveError::InUse);
+    }
+    trash::delete(path).map_err(|_| RemoveError::Failed)
 }
 
 fn counted(count: usize, singular: &str, plural: &str) -> String {
@@ -530,12 +598,26 @@ pub fn clean(app: &AppHandle, request: &CleanRequest) -> CleanReport {
         }
     }
 
-    let on_progress = |current: usize, total: usize, path: &Path| {
-        let name = path.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
-        emit_progress(ProgressParams { app, task, current, total, name: &name });
+    // "Borrando 1.240 de 8.300…": a few times a second at most, and always the last one.
+    let shown       = Mutex::new(None::<Instant>);
+    let on_progress = |current: usize, total: usize| {
+        let mut last = shown.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        if current < total && last.is_some_and(|at| at.elapsed() < PROGRESS_EVERY) {
+            return;
+        }
+        *last = Some(Instant::now());
+        emit_progress(ProgressParams { app, task, current, total, name: "" });
     };
 
-    let mut tally = clean_files(CleanFilesParams { known: &known, paths: &paths, cancel, remove: &remove_for_real, on_progress: &on_progress });
+    let mut tally = clean_files(CleanFilesParams {
+        known       : &known,
+        paths       : &paths,
+        cancel,
+        remove      : &remove_directly,
+        to_trash    : &to_trash_for_real,
+        trash_one   : &trash_one_for_real,
+        on_progress : &on_progress,
+    });
     tally.freed  += freed_bin;
 
     emit_progress(ProgressParams { app, task, current: paths.len(), total: paths.len(), name: "" });
@@ -634,14 +716,14 @@ pub mod tests {
         fs::remove_file(folder.join("borrado.tmp")).unwrap();
 
         let removed = RefCell::new(Vec::new());
-        let remove  = |path: &Path, _: CleanMethod| {
+        let remove  = |path: &Path| {
             removed.borrow_mut().push(path.to_path_buf());
             Ok(())
         };
         let paths: Vec<PathBuf> = known.keys().cloned().chain([folder.join("ajeno.txt")]).collect();
         let cancel              = AtomicBool::new(false);
 
-        let tally = clean_files(CleanFilesParams { known: &known, paths: &paths, cancel: &cancel, remove: &remove, on_progress: &|_, _, _| {} });
+        let tally = clean_files(CleanFilesParams { known: &known, paths: &paths, cancel: &cancel, remove: &remove, to_trash: &|_| {}, trash_one: &|_| Ok(()), on_progress: &|_, _| {} });
 
         // Called exactly once, only for the file that did not change.
         assert_eq!(*removed.borrow(), vec![folder.join("igual.tmp")]);
@@ -681,15 +763,82 @@ pub mod tests {
             file.category = CategoryId::Installers;
         }
 
-        let remove = |path: &Path, method: CleanMethod| {
-            if path.ends_with("abierto.tmp") { Err(RemoveError::InUse) } else { assert_eq!(method, CleanMethod::Trash); Ok(()) }
-        };
+        // The temporary one is in use; the installer goes to the "recycle bin" (here it just goes away).
+        let remove   = |path: &Path| if path.ends_with("abierto.tmp") { Err(RemoveError::InUse) } else { panic!("un archivo personal no se borra directo") };
+        let to_trash = |batch: &[PathBuf]| batch.iter().for_each(|path| fs::remove_file(path).unwrap());
         let paths: Vec<PathBuf> = known.keys().cloned().collect();
         let cancel              = AtomicBool::new(false);
-        let tally               = clean_files(CleanFilesParams { known: &known, paths: &paths, cancel: &cancel, remove: &remove, on_progress: &|_, _, _| {} });
+        let tally               = clean_files(CleanFilesParams { known: &known, paths: &paths, cancel: &cancel, remove: &remove, to_trash: &to_trash, trash_one: &|_| panic!("no quedó ninguno"), on_progress: &|_, _| {} });
 
         assert_eq!((tally.freed, tally.to_trash, tally.in_use), (0, 30, 1));
         assert_eq!(clean_summary(&tally).note.as_deref(), Some("1 archivo estaba en uso y quedó"));
+        let _ = fs::remove_dir_all(&folder);
+    }
+
+    #[test]
+    fn sends_the_personal_files_to_the_trash_in_batches_and_retries_only_what_stayed() {
+        let folder = temp_folder("batches");
+        let count  = TRASH_BATCH * 2 + 5;
+        for index in 0..count {
+            write_file(&folder.join(format!("foto-{index:04}.jpg")), 10);
+        }
+        let known = known_from(&folder, CategoryId::LargeFiles);
+        let mut paths: Vec<PathBuf> = known.keys().cloned().collect();
+        paths.sort();
+        let stuck = folder.join("foto-0007.jpg");
+
+        // Each batch moves everything but one file, which is then tried on its own (and is in use).
+        let batches  = RefCell::new(Vec::new());
+        let retried  = RefCell::new(Vec::new());
+        let progress = RefCell::new(Vec::new());
+        let to_trash = |batch: &[PathBuf]| {
+            batches.borrow_mut().push(batch.len());
+            batch.iter().filter(|path| **path != stuck).for_each(|path| fs::remove_file(path).unwrap());
+        };
+        let trash_one = |path: &Path| {
+            retried.borrow_mut().push(path.to_path_buf());
+            Err(RemoveError::InUse)
+        };
+        let cancel = AtomicBool::new(false);
+        let tally  = clean_files(CleanFilesParams {
+            known       : &known,
+            paths       : &paths,
+            cancel      : &cancel,
+            remove      : &|_| panic!("nada se borra directo"),
+            to_trash    : &to_trash,
+            trash_one   : &trash_one,
+            on_progress : &|done, total| progress.borrow_mut().push((done, total)),
+        });
+
+        assert_eq!(*batches.borrow(), vec![TRASH_BATCH, TRASH_BATCH, 5]);
+        assert_eq!(*retried.borrow(), vec![stuck]);
+        assert_eq!((tally.removed, tally.in_use, tally.to_trash), (count - 1, 1, (count as u64 - 1) * 10));
+        // Real progress: from 0, batch by batch, to the end.
+        assert_eq!(*progress.borrow(), vec![(0, count), (TRASH_BATCH, count), (TRASH_BATCH * 2, count), (count, count)]);
+        let _ = fs::remove_dir_all(&folder);
+    }
+
+    #[test]
+    fn cancel_stops_between_batches() {
+        let folder = temp_folder("cancel-batches");
+        for index in 0..TRASH_BATCH * 3 {
+            write_file(&folder.join(format!("doc-{index:04}.pdf")), 1);
+        }
+        let known  = known_from(&folder, CategoryId::LargeFiles);
+        let paths: Vec<PathBuf> = known.keys().cloned().collect();
+        let cancel = AtomicBool::new(false);
+        let sent   = RefCell::new(0);
+        let to_trash = |batch: &[PathBuf]| {
+            *sent.borrow_mut() += 1;
+            batch.iter().for_each(|path| fs::remove_file(path).unwrap());
+            // Cancelar pressed while the first batch was going.
+            cancel.store(true, Ordering::SeqCst);
+        };
+        let tally = clean_files(CleanFilesParams { known: &known, paths: &paths, cancel: &cancel, remove: &|_| Ok(()), to_trash: &to_trash, trash_one: &|_| Ok(()), on_progress: &|_, _| {} });
+
+        assert_eq!(*sent.borrow(), 1);
+        assert!(tally.cancelled);
+        assert_eq!(tally.removed, TRASH_BATCH);
         let _ = fs::remove_dir_all(&folder);
     }
 

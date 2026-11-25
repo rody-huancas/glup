@@ -16,7 +16,8 @@ import { createIslandElements } from '@/modules/island/utils/elements';
 import { ISLAND_TIMING } from '@/modules/island/constants/island';
 import type { HoldReason } from '@/modules/island/types/holdReason';
 import { logBubble, logPosition } from '@/modules/island/utils/islandLog';
-import { closesOnLeave, hoverEnabled, hoverOpens, toIslandState } from '@/modules/island/utils/islandMachine';
+import { closesOnLeave, closesOnOutside, hoverEnabled, hoverOpens, toIslandState } from '@/modules/island/utils/islandMachine';
+import { askedToOpen } from '@/modules/island/utils/responsiveness';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { useTaskNotices } from '@/modules/notices/hooks/useTaskNotices';
@@ -78,6 +79,7 @@ export const useIsland = () => {
 
   const expandOnHover   = useCallback(() => send({ type: 'expand', pin: false }), [send]);
   const openPinned      = useCallback(() => send({ type: 'expand', pin: true }), [send]);
+  const openByClick     = useCallback(() => send({ type: 'expand', pin: false, click: true }), [send]);
   const collapseNow     = useCallback(() => send({ type: 'collapse', farewell: true }), [send]);
   const collapseOnLeave = useCallback(() => send({ type: 'collapse', farewell: false }), [send]);
   const togglePin       = useCallback(() => send({ type: 'pin-toggled' }), [send]);
@@ -122,7 +124,7 @@ export const useIsland = () => {
   const onTrayVisibility  = useCallback((hidden: boolean) => send({ type: 'tray', hidden }), [send]);
   const onCapture         = useCallback((on: boolean) => send({ type: 'capture', on }), [send]);
 
-  const { inside, dragging } = useIslandSignals({ onFullscreenEnter, onFullscreenExit, onOpenRequest: openPinned, onTrayVisibility, onCapture });
+  const { inside, dragging } = useIslandSignals({ onFullscreenEnter, onFullscreenExit, onOpenRequest: openPinned, onShowRequest: openByClick, onTrayVisibility, onCapture });
 
   useLaunchOpen({ onOpen: openPinned });
 
@@ -146,10 +148,12 @@ export const useIsland = () => {
     if (dragging) reasons.push('drag');
     // The welcome is a step too: it does not close on its own while on screen.
     if (panel.files.busy || panel.welcome.visible) reasons.push('step');
+    // Choosing a folder ("Guardar en") takes the focus: that is not a click outside.
+    if (panel.files.saveLocation.picking) reasons.push('dialog');
     if (panel.fullScreen) reasons.push('sign');
     if (dialogs > 0) reasons.push('dialog');
     return reasons;
-  }, [dragging, panel.files.busy, panel.welcome.visible, panel.fullScreen, dialogs]);
+  }, [dragging, panel.files.busy, panel.files.saveLocation.picking, panel.welcome.visible, panel.fullScreen, dialogs]);
 
   useEffect(() => {
     send({ type: 'holds', holds });
@@ -171,7 +175,19 @@ export const useIsland = () => {
     collapse : collapseOnLeave,
   });
 
-  useIslandWatchdog({ machine, send, isMoving, placementRef });
+  // Since when an opening is asked for and not done (the watchdog's "not answering").
+  const askedAt = useRef<number | null>(null);
+  const asking  = askedToOpen(machine);
+
+  // Answered (open or hidden) or withdrawn (the cursor left): nothing asks any more. A click is noted
+  // where it happens (onMascotClick).
+  useEffect(() => {
+    const answered = machine.phase === 'expanding' || machine.phase === 'expanded' || machine.phase === 'hidden';
+    if (answered || !machine.inside) askedAt.current = null;
+    else if (asking) askedAt.current ??= Date.now();
+  }, [asking, machine.phase, machine.inside]);
+
+  useIslandWatchdog({ machine, send, isMoving, placementRef, askedAt });
 
   // While signing, organizing or scanning, Esc belongs to that screen (it asks before leaving).
   useKeyDown({ key: 'Escape', enabled: state === 'expanded' && !panel.fullScreen, handler: collapseNow });
@@ -186,16 +202,18 @@ export const useIsland = () => {
     if (state === 'expanded') takeFocus();
   }, [state, takeFocus]);
 
-  // The open bubble takes the focus (for Esc, and to hear a click outside: the window loses it then). A
-  // file being dragged keeps it where it is until dropped.
+  // The open bubble (and the panel opened from the Explorer) takes the focus, for Esc and to hear a click
+  // outside: the window loses it then. A file being dragged keeps it where it is until dropped.
+  const outsideCloses = closesOnOutside(machine);
+
   useEffect(() => {
-    if (bubble && machine.phase === 'expanded' && !dragging) takeFocus();
-  }, [bubble, machine.phase, dragging, takeFocus]);
+    if (outsideCloses && machine.phase === 'expanded' && !dragging) takeFocus();
+  }, [outsideCloses, machine.phase, dragging, takeFocus]);
 
   // An instant later, so a native dialog opened from the panel (which takes the focus too) is already
   // holding it open; and only if the focus did not come back.
   useEffect(() => {
-    if (!bubble) return;
+    if (!outsideCloses) return;
 
     let timer    = 0;
     const onBlur = () => {
@@ -211,7 +229,7 @@ export const useIsland = () => {
       window.clearTimeout(timer);
       window.removeEventListener('blur', onBlur);
     };
-  }, [bubble, send]);
+  }, [outsideCloses, send]);
 
   // Only the resting pill (or its notice) is dragged; the window follows the edge it would land on.
   // Hidden there is no pill: it is moved from Ajustes.
@@ -358,7 +376,10 @@ export const useIsland = () => {
   const onMascotClick = useCallback(() => {
     if (bubble) logBubble(`clic en la burbuja (${machine.phase}, arrastrando=${machine.moving})`);
     if (consumeClick()) return;
-    if (state === 'collapsed') openPinned();
+    if (state === 'collapsed') {
+      askedAt.current ??= Date.now();
+      openPinned();
+    }
     else if (bubble && machine.phase === 'expanded') collapseNow();
   }, [state, bubble, machine.phase, machine.moving, openPinned, collapseNow, consumeClick]);
 

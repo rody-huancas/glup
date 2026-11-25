@@ -6,6 +6,7 @@ import { ISLAND_WATCHDOG_INTERVAL } from '@/modules/island/constants/island';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
 import { logIsland } from '@/modules/island/utils/islandLog';
 import { areaKindFor, isSettledPhase } from '@/modules/island/utils/islandMachine';
+import { isStuckDrag, isUnresponsive, STUCK_DRAG_CHECKS } from '@/modules/island/utils/responsiveness';
 import { getIslandStatus, setIslandArea } from '@/modules/island/utils/islandWindow';
 
 const STALL_CHECKS = 2;
@@ -17,13 +18,16 @@ interface UseIslandWatchdogParams {
   isMoving     : () => boolean;
   // Where the island is docked: the region it should have is the one of that edge.
   placementRef : RefObject<IslandPlacement>;
+  // Since when an opening is asked for (the cursor on the pill, a click) and not done.
+  askedAt      : RefObject<number | null>;
 }
 
 // Every 2 s the machine is compared with the real window; any difference is fixed and logged.
 // Rust keeps its own watch over visibility, the frame of the dock and the applied region (island_watchdog.rs).
-export const useIslandWatchdog = ({ machine, send, isMoving, placementRef }: UseIslandWatchdogParams) => {
+export const useIslandWatchdog = ({ machine, send, isMoving, placementRef, askedAt }: UseIslandWatchdogParams) => {
   const current = useRef({ machine, send, isMoving });
   const stalled = useRef(0);
+  const stuck   = useRef(0);
 
   useEffect(() => {
     current.current = { machine, send, isMoving };
@@ -62,6 +66,25 @@ export const useIslandWatchdog = ({ machine, send, isMoving, placementRef }: Use
       if (stalled.current >= STALL_CHECKS) {
         logIsland(`vigilante: ${now.phase} sin animación, vuelvo a la pastilla`);
         stalled.current = 0;
+        emit({ type: 'reset' });
+        return;
+      }
+
+      // "Being dragged" while Rust follows no drag: the drop was lost, and nothing would open it.
+      stuck.current = isStuckDrag(now, status.dragging) ? stuck.current + 1 : 0;
+      if (stuck.current >= STUCK_DRAG_CHECKS) {
+        logIsland('vigilante: arrastrada sin arrastre en Rust (se perdió la soltada), la suelto y vuelvo a la pastilla');
+        stuck.current = 0;
+        emit({ type: 'moving', on: false });
+        emit({ type: 'reset' });
+        return;
+      }
+
+      // Asked to open (hover or click) and still closed after a while: whatever holds it, back to a clean pill.
+      if (isUnresponsive({ askedAt: askedAt.current, now: Date.now(), phase: now.phase, dragging: status.dragging })) {
+        const waited = Math.round((Date.now() - (askedAt.current ?? Date.now())) / 1000);
+        logIsland(`vigilante: no responde al hover ni al clic hace ${waited} s (${now.phase}, arrastrando=${now.moving}, bloqueada=${now.locked}, retenida=${now.holds.join(',') || 'nada'}), la reinicio a recogida`);
+        askedAt.current = null;
         emit({ type: 'reset' });
         return;
       }
