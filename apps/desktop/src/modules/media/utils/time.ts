@@ -11,6 +11,15 @@ export const formatTime = (seconds: number): string => {
   return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${secs}.${tenth}` : `${minutes}:${secs}.${tenth}`;
 };
 
+// "0:06", "1:02:05": whole seconds, for the length of a file and the player.
+export const formatClock = (seconds: number): string => {
+  const whole   = Math.floor(Math.max(0, seconds));
+  const hours   = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const secs    = String(whole % 60).padStart(2, '0');
+  return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${secs}` : `${minutes}:${secs}`;
+};
+
 // What is typed back to seconds: "1:05.3", "65.3", "1:02:05"; null when it is not a time.
 export const parseTime = (text: string): number | null => {
   const parts = text.trim().replace(',', '.').split(':');
