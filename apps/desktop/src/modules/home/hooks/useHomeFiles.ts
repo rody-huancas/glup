@@ -6,6 +6,7 @@ import type { ActionFlow } from '@/modules/actions/interfaces/actionFlow';
 import { pickFiles as openFileDialog } from '@/modules/actions/services/fileDialog';
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
+import type { DialogFileType } from '@/modules/actions/types/fileType';
 import { useChewing } from '@/modules/home/hooks/useChewing';
 import { useDropZoneGestures } from '@/modules/home/hooks/useDropZoneGestures';
 import type { HomeFiles } from '@/modules/home/interfaces/homeFiles';
@@ -100,11 +101,13 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   useFileDrop(dropHandlers);
 
-  const pickFiles = useCallback(() => {
-    void holdWhile(() => openFileDialog({ type: 'any', multiple: true })).then((paths) => {
+  const pickFilesOf = useCallback((type: DialogFileType) => {
+    void holdWhile(() => openFileDialog({ type, multiple: true })).then((paths) => {
       if (paths.length > 0) void handlePaths(paths);
     });
   }, [handlePaths]);
+
+  const pickFiles = useCallback(() => pickFilesOf('any'), [pickFilesOf]);
 
   // Tools go through the same flow (Glup eats the files) and then pick their action on their own.
   // Resolves true once files were chosen, so Herramientas can bring the person to Inicio.
@@ -188,6 +191,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     choose                  : actions.choose,
     close,
     pickFiles,
+    pickFilesOf,
     runTool,
   };
 };

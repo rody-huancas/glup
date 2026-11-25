@@ -1,7 +1,7 @@
-// The drop zone fills the free height; with files chosen (or a task) it shrinks to a one-line bar, so
-// the task and its options get the room.
+// The mint card fills the height left by the families; with files chosen (or a task) it shrinks to a
+// one-line bar, so the task and its options get the room.
 export const DROP_ZONE_SIZES = {
-  minHeight      : 200,
+  minHeight      : 190,
   compactHeight  : 60,
   mascot         : 120,
   compactMascot  : 36,
