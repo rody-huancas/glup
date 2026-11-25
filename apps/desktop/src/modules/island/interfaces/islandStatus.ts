@@ -7,4 +7,6 @@ export interface IslandStatus {
   trayHidden : boolean;
   capturing  : boolean;
   area       : Rect;
+  // Rust follows a drag of the pill right now.
+  dragging   : boolean;
 }
