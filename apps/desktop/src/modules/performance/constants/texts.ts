@@ -1,4 +1,5 @@
 import type { UsageLevel } from '@/modules/performance/types/usageLevel';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const PERFORMANCE_TEXTS = {
   title        : 'Rendimiento',
@@ -24,7 +25,7 @@ export const PERFORMANCE_TEXTS = {
   restart      : 'Hace varios días que no reinicias. Reiniciar de vez en cuando deja a Windows como nuevo.',
   topTitle     : 'Lo que más está usando',
   topHint      : 'Por app, con todos sus procesos. Se actualiza cada 2 segundos.',
-  processes    : (count: number) => (count === 1 ? '1 proceso' : `${count} procesos`),
+  processes    : (count: number) => (count === 1 ? '1 proceso' : `${formatCount(count)} procesos`),
   cpuShare     : (percent: string) => `${percent} % del procesador`,
   close        : 'Cerrar',
   closeLabel   : (name: string) => `Cerrar ${name}`,
@@ -58,7 +59,7 @@ export const LEVEL_TEXTS: Record<'cpu' | 'memory' | 'disk', Record<UsageLevel, s
 };
 
 export const UPTIME_TEXTS = {
-  minutes : (count: number) => (count === 1 ? '1 minuto' : `${count} minutos`),
-  hours   : (count: number) => (count === 1 ? '1 hora' : `${count} horas`),
-  days    : (count: number) => (count === 1 ? '1 día' : `${count} días`),
+  minutes : (count: number) => (count === 1 ? '1 minuto' : `${formatCount(count)} minutos`),
+  hours   : (count: number) => (count === 1 ? '1 hora' : `${formatCount(count)} horas`),
+  days    : (count: number) => (count === 1 ? '1 día' : `${formatCount(count)} días`),
 };
