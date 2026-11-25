@@ -34,7 +34,7 @@ export const HistoryItem = ({ entry, now, missing, expanded, selection, onOpen, 
   const cleanup  = entry.type === 'cleanup';
   const sorted   = entry.type === 'folder-sort';
   const text     = entry.type === 'screen-text' ? entry.text : undefined;
-  const icon     = entry.type === 'cleanup' || entry.type === 'folder-sort' || entry.type === 'screen-text' ? null : getSelectionIcon(entry.type);
+  const icon     = entry.type === 'cleanup' || entry.type === 'folder-sort' || entry.type === 'screen-text' || entry.type === 'duplicates' ? null : getSelectionIcon(entry.type);
   const undoId   = entry.undo;
   const title    = text ? textPreview(text) : entry.name;
   const detail   = missing ? HISTORY_TEXTS.missing : text ? HISTORY_TEXTS.textDetail(getHistoryDetail(entry, now)) : getHistoryDetail(entry, now);

@@ -1,3 +1,3 @@
 import type { FamilyPageId } from '@/modules/families/types/familyId';
 
-export type PageId = 'home' | 'tools' | 'cleanup' | 'history' | 'settings' | 'clipboard' | 'folder-sort' | 'performance' | FamilyPageId;
+export type PageId = 'home' | 'tools' | 'cleanup' | 'history' | 'settings' | 'clipboard' | 'folder-sort' | 'performance' | 'duplicates' | FamilyPageId;

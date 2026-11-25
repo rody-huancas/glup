@@ -16,6 +16,7 @@ const OWNER_FAMILIES: Partial<Record<PageId, FamilyId>> = {
   'cleanup'     : 'pc',
   'folder-sort' : 'pc',
   'performance' : 'pc',
+  'duplicates'  : 'pc',
   'clipboard'   : 'clipboard',
 };
 

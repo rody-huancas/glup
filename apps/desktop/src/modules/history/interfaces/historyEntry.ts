@@ -7,8 +7,8 @@ export interface HistoryEntry {
   name   : string;
   path   : string;
   // 'video' comes from SupportedFileType.
-  type   : SupportedFileType | 'zip' | 'cleanup' | 'screen-text' | 'folder-sort';
-  action : ActionId | 'cleanup' | 'screen-text' | 'folder-sort';
+  type   : SupportedFileType | 'zip' | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates';
+  action : ActionId | 'cleanup' | 'screen-text' | 'folder-sort' | 'duplicates';
   detail : string;
   date   : string;
   // What was copied from the screen, to see it and copy it again.

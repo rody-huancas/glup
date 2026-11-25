@@ -24,7 +24,7 @@ describe('filterTools', () => {
 
   it('matches the description too', () => {
     expect(titles('firma')).toEqual(['sign-pdf']);
-    expect(titles('espacio')).toEqual(['cleanup']);
+    expect(titles('espacio')).toEqual(['cleanup', 'duplicates']);
   });
 
   it('needs every word, in any order', () => {
