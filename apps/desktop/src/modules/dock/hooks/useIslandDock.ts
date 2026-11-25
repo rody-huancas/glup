@@ -11,6 +11,7 @@ import { dockRegion, regionShape } from '@/modules/dock/utils/dockLayout';
 import { placeIsland } from '@/modules/dock/utils/placement';
 import { revealDelay } from '@/modules/dock/utils/reveal';
 import { resolveDock, sameDock, snapDock, workSize } from '@/modules/dock/utils/snapDock';
+import { logPosition } from '@/modules/island/utils/islandLog';
 import { getSettings } from '@/modules/settings/services/settings';
 import { ISLAND_DRAG_EVENT, SETTINGS_CHANGED_EVENT } from '@/shared/constants/events';
 import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
@@ -53,6 +54,7 @@ export const useIslandDock = ({ onMoving }: UseIslandDockParams) => {
   const loadDock = useCallback(() => {
     void getSettings()
       .then((view) => {
+        logPosition(`settings cambiaron: ${view.islandDock ? `${view.islandDock.edge} ${Math.round(view.islandDock.offset * 100)} %` : 'sin dock'}`);
         setSaved(view.islandDock);
         setSavedSpot(view.islandBubble);
         setRest(view.islandRest);
@@ -89,6 +91,7 @@ export const useIslandDock = ({ onMoving }: UseIslandDockParams) => {
     if (!screen) return;
     const pill  = dockRegion(placement, 'collapsed');
     const shape = regionShape(placement, 'collapsed');
+    logPosition(`ventana: pido ${placement.frame.width}x${placement.frame.height} en ${placement.frame.x},${placement.frame.y}`);
     void setIslandFrame({ screen: screen.id, rect: placement.frame, pill, pillClickable: shape.clickable, pillRound: shape.round }).catch(() => undefined);
   }, [screen, placement]);
 

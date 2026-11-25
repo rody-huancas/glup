@@ -5,6 +5,7 @@ export const createIslandElements = (): IslandElements => ({
   panel        : createRef(),
   fill         : createRef(),
   outline      : createRef(),
+  glow         : createRef(),
   content      : createRef(),
   lift         : createRef(),
   flyer        : createRef(),

@@ -24,7 +24,7 @@ export const CleanupPage = () => {
         <PageHeader title={CLEANUP_TEXTS.title} subtitle={CLEANUP_TEXTS.subtitle} />
         <DiskUsageBar space={screen.disk.space} failed={screen.disk.failed} />
       </div>
-      <div className="scroll-thin my-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="scroll-thin my-4 min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
         {phase === 'idle' && <p className="text-[13px] text-muted">{expired ? CLEANUP_TEXTS.expired : CLEANUP_TEXTS.intro}</p>}
         {phase === 'done' && report && <CleanupResult report={report} />}
         {nothing && <p className="mb-2 text-[13px] text-muted">{CLEANUP_TEXTS.nothing}</p>}

@@ -1,7 +1,7 @@
 use tauri::AppHandle;
 
 use crate::services::{
-    folder_sort::{self, PreviewRequest, SortPreview, SortReport, SortRequest, UndoReport, UndoRequest, SORT_ACTION_ID, UNDO_ACTION_ID},
+    folder_sort::{self, LooseFiles, PreviewRequest, SortPreview, SortReport, SortRequest, UndoReport, UndoRequest, SORT_ACTION_ID, UNDO_ACTION_ID},
     tasks,
 };
 
@@ -9,6 +9,12 @@ use crate::services::{
 #[tauri::command]
 pub fn get_sort_folder() -> Option<String> {
     folder_sort::default_folder()
+}
+
+// For Inicio's suggestion: how much a sort of Descargas would tidy (None without Descargas).
+#[tauri::command]
+pub async fn get_downloads_to_sort() -> Option<LooseFiles> {
+    tauri::async_runtime::spawn_blocking(folder_sort::downloads_to_sort).await.ok().flatten()
 }
 
 // The preview: nothing moves here.

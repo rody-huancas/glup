@@ -14,7 +14,7 @@ interface SidebarProfileProps {
 
 // The avatar box only marks the spot: the island's Glup flies here when the panel opens.
 export const SidebarProfile = ({ anchorRef, status, family }: SidebarProfileProps) => (
-  <div className="mb-[18px] flex items-center gap-2.5">
+  <div className="mb-3.5 flex shrink-0 items-center gap-2.5">
     <div className={cx('flex size-14 shrink-0 items-center justify-center rounded-2xl transition-colors duration-300', family ? FAMILY_STYLES[family].deep : 'bg-raised')}>
       <div ref={anchorRef} className="w-11" style={{ aspectRatio: getBodyAspectRatio() }} />
     </div>

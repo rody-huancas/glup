@@ -16,6 +16,7 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
   <div className="relative flex h-full w-full">
     <Sidebar
       page={panel.page}
+      files={panel.files}
       avatarAnchorRef={avatarAnchorRef}
       avatarStatus={panel.avatarStatus}
       onNavigate={panel.navigate}

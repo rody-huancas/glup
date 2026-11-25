@@ -10,6 +10,11 @@ export const getSettings = (): Promise<SettingsView> => invoke<SettingsView>(GET
 export const updateSettings = (settings: AppSettings): Promise<SettingsView> =>
   invoke<SettingsView>(UPDATE_SETTINGS, { settings });
 
+// Reads the settings as they are now and writes them back with one change (favorites, the border…), so
+// two screens changing different things never undo each other.
+export const changeSettings = (change: (view: SettingsView) => AppSettings): Promise<SettingsView> =>
+  getSettings().then((view) => updateSettings(change(view)));
+
 export const pickFolder = async (current: string | null): Promise<string | null> => {
   const result = await open({ directory: true, multiple: false, title: SAVE_TEXTS.pickTitle, defaultPath: current ?? undefined });
   return typeof result === 'string' ? result : null;

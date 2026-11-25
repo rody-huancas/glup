@@ -1,16 +1,17 @@
-// The mint card fills the height left by the families; with files chosen (or a task) it shrinks to a
-// one-line bar, so the task and its options get the room.
+// The mint strip of Inicio, low so the summary fits under it; with files chosen (or a task) it shrinks to
+// a one-line bar, so the task and its options get the room.
 export const DROP_ZONE_SIZES = {
-  minHeight      : 190,
+  height         : 88,
   compactHeight  : 60,
-  mascot         : 120,
+  mascot         : 60,
   compactMascot  : 36,
-  padding        : 32,
+  padding        : 12,
   compactPadding : 10,
-  // The bar is wide and short: less room at its sides than the big zone.
+  // Room at its sides.
+  side           : 22,
   compactSide    : 16,
   // Space between Glup and the text.
-  gap            : 28,
+  gap            : 18,
   compactGap     : 12,
 };
 

@@ -5,7 +5,7 @@ import { PAGE_MOTION } from '@/modules/main-window/constants/pageMotion';
 import type { PageId } from '@/modules/main-window/types/pageId';
 
 // Each screen comes in softly (a short rise and fade) when the page changes: Inicio, a family,
-// Herramientas. The first one, and every one with reduced motion, just shows.
+// Habilidades. The first one, and every one with reduced motion, just shows.
 export const usePageTransition = (page: PageId) => {
   const box   = useRef<HTMLDivElement | null>(null);
   const first = useRef(true);

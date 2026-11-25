@@ -42,8 +42,18 @@ visible y clicable** al estado actual, para que los clics alrededor lleguen a la
   región es un rectángulo de la ventana (`set_island_area`), no un tamaño centrado.
 - Las pantallas se vuelven a leer cada 2 s: si una se desconecta o cambia la resolución, la isla se
   acomoda sola. La pantalla completa que la oculta es la de **su** pantalla.
-- Ajustes › General › «Posición de Glup» (`DockPositionSetting`): un dibujo de la pantalla para elegir
-  con un clic (o con sus ocho botones), la pantalla si hay varias y «Volver arriba al centro».
+- Ajustes › General › «Posición de Glup» (`DockPositionSetting`): un dibujo de la pantalla cuyo
+  marcador se arrastra (`useDockDrag`) a cualquier punto de cualquier borde o a una esquina, como la
+  pastilla (la burbuja, a cualquier lugar); un clic lo pone ahí y, con el foco en el dibujo, las
+  flechas lo mueven por su borde (Mayús: más). «Posición en el borde» (0–100 %) lo ajusta fino; en una
+  esquina no aplica. Mientras el marcador o el deslizador están presionados solo se mueve el
+  marcador («Arriba · 35 %» debajo): nada de settings, ventana ni región, por larga que sea la pausa.
+  La isla se mueve una sola vez al soltar (el `pointerup` se escucha en la ventana); con las flechas,
+  tras una pausa corta (`createDeferredCommit`, `useDeferredDock`). En desarrollo, `[glup:posicion]`
+  deja en la terminal cada paso del deslizador, cada guardado, `settings-changed`, `set_island_area`,
+  cada movimiento de ventana, la fase y si el cursor está dentro y, abierta, sigue abierta y aparece suave donde cae
+  (`RELAYOUT_FADE`). Los ocho botones quedan como atajos de teclado. La pantalla si hay varias y
+  «Volver arriba al centro».
 - La posición no asume «arriba al centro» en ningún lado: la burbuja es otro `DockKind` (`'bubble'`) y
   otra forma de reposo de la misma máquina.
 
@@ -148,7 +158,7 @@ solo traduce cada fase en animación, región y foco.
 | Burbuja: cursor encima | Se agranda un poco, sin abrirse |
 | Burbuja: clic (o Enter/Espacio), atajo, bandeja o un archivo arrastrado | El panel sale de la burbuja hacia donde hay más espacio |
 | Burbuja abierta: clic afuera, Esc, atajo o clic en Glup | Se recoge a la burbuja (salir con el cursor no la cierra) |
-| «Copiar texto de la pantalla» (atajo, bandeja o Herramientas) | `hidden` mientras se elige la zona; vuelve como pastilla limpia y muestra el aviso («Copié 42 palabras» con «Ver», que abre esa línea del Historial, Glup feliz; «No encontré texto ahí», confundido). Con Glup oculto (bandeja, pantalla completa), una notificación de Windows con las mismas palabras |
+| «Copiar texto de la pantalla» (atajo, bandeja o Habilidades) | `hidden` mientras se elige la zona; vuelve como pastilla limpia y muestra el aviso («Copié 42 palabras» con «Ver», que abre esa línea del Historial, Glup feliz; «No encontré texto ahí», confundido). Con Glup oculto (bandeja, pantalla completa), una notificación de Windows con las mismas palabras |
 
 - Lo que la mantiene abierta lo decide la máquina: `isHeldOpen` (fijada o algún `HoldReason`:
   `drag`, `step`, `sign` (una pantalla entera: Firmar u Organizar páginas), `dialog`), que `useIsland`
@@ -207,6 +217,17 @@ Cada tarea declara su pantalla dueña (`owner`) al encolarse, y cada pantalla mu
 - **Forma**: un path SVG de `buildDockPath(placement, shape)`, con orejas cóncavas que la unen al borde
   (o a los dos, en una esquina). El mismo path rellena y recorta; el panel cubre toda la ventana y solo
   el recorte muestra la isla. React nunca pone el path: lo dibuja GSAP (`renderIslandShape`).
+- **Borde**: el contorno (`buildDockOutline`, sin el lado pegado a la pantalla) se ve en todos los
+  estados, bordes, esquinas y la burbuja: una línea de 1 px blanca y translúcida, un poco más clara
+  arriba, como el filo de un vidrio. Su color es la variable `--island-edge`, que pone
+  `useIslandBorder` según Ajustes › Apariencia › «Borde de la isla» (`islandBorder`: Suave por
+  defecto, Marcado, Sin borde; tokens `island-edge-soft` y `-strong`).
+- **Brillo**: con el cursor sobre la pastilla (o la burbuja) recogida, un trazo menta tenue y
+  difuminado por dentro del contorno (`glow`, `setHoverGlow`). Al empezar a abrirse se apaga de golpe
+  (`hideHoverGlow`, que también corta cualquier fundido pendiente) y nunca queda sobre el panel. Con
+  movimiento reducido aparece y se va sin transición. La isla no tiene sombra.
+- **Fijar y Recoger** van sobre su propia pastilla oscura semitransparente (`chip`) con el filo claro,
+  para leerse sobre cualquier fondo (la franja menta de Inicio).
 
 ## Animaciones
 

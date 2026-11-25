@@ -54,8 +54,9 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
    bajar el peso (skill `tauri-rust`, regla 10). El mensaje explica por qué en lenguaje simple.
 7. **Resultado y textos**: el resumen en `utils/result.ts` y los textos en `constants/texts.ts`
    (`RESULT_TEXTS`). El detalle del historial («Peso reducido: de 3,8 MB a 1,6 MB», «Unido · 3
-   archivos · 24 páginas»).
-8. **Herramientas**: toda acción se agrega al catálogo `modules/tools/constants/tools.json` (familia,
+   archivos · 24 páginas»). Si la acción ahorra espacio o pasa audio a texto, la entrada lleva además
+   `saved` (bytes) o `seconds`: de ahí salen los números de «Tu semana» en Inicio, nunca del texto.
+8. **Habilidades**: toda acción se agrega al catálogo `modules/tools/constants/tools.json` (familia,
    ícono, nombre y descripción corta; `actionId` igual al de `actions.json`). `family` es la única
    fuente de la familia (Imágenes, PDF, Audio y video, Texto, Portapapeles, Tu PC): de ahí salen la
    página de la familia, los grupos del buscador y el color de su tarea. Pasa por el mismo flujo que
@@ -105,7 +106,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | Tipo | Acciones |
 | --- | --- |
 | Imagen (también HEIC/HEIF y AVIF) | Convertir (WebP, JPG, PNG, AVIF, ICO), Reducir peso (un HEIC sale en JPG), A PDF, Quitar fondo (transparente PNG o blanco JPG; la primera vez pide descargar el modelo) |
-| Solo HEIC/HEIF (1+) | A JPG («Fotos de iPhone a JPG» en Herramientas y en Inicio: calidad Normal, Alta o Liviana; red de seguridad que compara con la foto) |
+| Solo HEIC/HEIF (1+) | A JPG («Fotos de iPhone a JPG» en Habilidades y en Inicio: calidad Normal, Alta o Liviana; red de seguridad que compara con la foto) |
 | PDF (1) | Reducir peso (Normal, Al máximo, peso objetivo), Firmar, Separar páginas, Organizar páginas (girar, quitar y reordenar), A imágenes, Poner contraseña, Marca de agua, Numerar páginas, Sacar imágenes |
 | PDF con contraseña (1) | Quitar contraseña (la única; con otros archivos se rechaza: «Primero quítale la contraseña») |
 | PDF (2+) | Unir, Reducir peso, Poner contraseña, Marca de agua, Numerar páginas, Juntar en ZIP |
@@ -115,14 +116,14 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper con la tarjeta de video si hay una que sirva —`glup-voz.exe`, Vulkan— y si no con el procesador; Ajustes › «Usar la tarjeta de video»: Automático o Nunca; el progreso dice con cuál; Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
 | Cualquier mezcla (2+) | Juntar en ZIP |
-| Sin archivos (Herramientas y su atajo) | Portapapeles (solo Windows, apagado hasta que se activa: recuerda textos e imágenes copiados, cifrados en la PC, para buscarlos y copiarlos de nuevo; no es una acción sobre archivos) |
-| Sin archivos (Herramientas › Tu PC) | Rendimiento (solo lectura y cosas reversibles: uso de procesador, memoria y disco con frases, espacio de cada disco con enlace a Limpieza, batería y su salud, tiempo encendida; las 5 apps que más usan, agrupadas por app, con «Cerrar» que pide confirmación y solo después ofrece forzar, nunca Windows ni Glup; «Al encender la PC» con interruptores sobre StartupApproved, como el Administrador de tareas. Lee cada 2 s solo con el panel abierto. Nada de «liberar RAM», limpiar el registro ni «acelerar») |
-| Sin archivos (Herramientas › Tu PC) | Ordenar una carpeta (Descargas por defecto u otra elegida: sus archivos sueltos a subcarpetas por tipo — `services/folder_sort/categories.json` — o por año y mes; vista previa obligatoria, «Ordenar» como tarea con progreso y Cancelar, y «Deshacer» en el resultado, el aviso y el Historial. Ver abajo) |
-| Sin archivos (Herramientas, atajo o bandeja) | Copiar texto de la pantalla (solo Windows: se elige una zona sobre una imagen congelada y su texto va al portapapeles; no es una acción sobre archivos. El texto queda en el historial local para verlo y «Copiar de nuevo», salvo que se apague en Ajustes) |
+| Sin archivos (Habilidades y su atajo) | Portapapeles (solo Windows, apagado hasta que se activa: recuerda textos e imágenes copiados, cifrados en la PC, para buscarlos y copiarlos de nuevo; no es una acción sobre archivos) |
+| Sin archivos (Habilidades › Tu PC) | Rendimiento (solo lectura y cosas reversibles: uso de procesador, memoria y disco con frases, espacio de cada disco con enlace a Limpieza, batería y su salud, tiempo encendida; las 5 apps que más usan, agrupadas por app, con «Cerrar» que pide confirmación y solo después ofrece forzar, nunca Windows ni Glup; «Al encender la PC» con interruptores sobre StartupApproved, como el Administrador de tareas. Lee cada 2 s solo con el panel abierto. Nada de «liberar RAM», limpiar el registro ni «acelerar») |
+| Sin archivos (Habilidades › Tu PC) | Ordenar una carpeta (Descargas por defecto u otra elegida: sus archivos sueltos a subcarpetas por tipo — `services/folder_sort/categories.json` — o por año y mes; vista previa obligatoria, «Ordenar» como tarea con progreso y Cancelar, y «Deshacer» en el resultado, el aviso y el Historial. Ver abajo) |
+| Sin archivos (Habilidades, atajo o bandeja) | Copiar texto de la pantalla (solo Windows: se elige una zona sobre una imagen congelada y su texto va al portapapeles; no es una acción sobre archivos. El texto queda en el historial local para verlo y «Copiar de nuevo», salvo que se apague en Ajustes) |
 
 ## Ordenar una carpeta
 
-No es una acción sobre archivos soltados: es una pantalla de Herramientas › Tu PC (`modules/folder-sort`,
+No es una acción sobre archivos soltados: es una pantalla de Habilidades › Tu PC (`modules/folder-sort`,
 `services/folder_sort/`), con el mismo recorrido de tarea (progreso, Cancelar, aviso, historial).
 
 - **Qué se mueve**: solo los archivos sueltos de la carpeta; no entra en subcarpetas ni mueve

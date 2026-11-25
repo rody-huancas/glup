@@ -33,7 +33,7 @@ use crate::services::{
         temp::TempParams,
         walk::{FileEntry, ParallelWalkParams},
     },
-    history::{self, format_size, FilelessEntryParams},
+    history::{self, format_size, FilelessEntryParams, HistoryEntry},
     parallel::worker_count,
     tasks::TaskSummary,
 };
@@ -548,6 +548,7 @@ pub fn clean(app: &AppHandle, request: &CleanRequest) -> CleanReport {
     let summary = clean_summary(&tally);
     let detail  = summary.note.as_ref().map_or_else(|| summary.message.clone(), |note| format!("{} · {note}", summary.message));
     let entry   = history::fileless_entry(FilelessEntryParams { name: HISTORY_NAME, kind: HISTORY_KIND, action: CLEAN_ACTION, detail });
+    let entry   = HistoryEntry { saved: Some(tally.freed), ..entry };
     let _       = history::append(app, vec![entry]);
 
     CleanReport {

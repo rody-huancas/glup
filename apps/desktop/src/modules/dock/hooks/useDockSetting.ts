@@ -7,6 +7,7 @@ import { getIslandScreens, setIslandBubble, setIslandDock } from '@/modules/dock
 import type { IslandRest } from '@/modules/dock/types/islandRest';
 import { resolveBubble } from '@/modules/dock/utils/bubble';
 import { resolveDock } from '@/modules/dock/utils/snapDock';
+import { logPosition } from '@/modules/island/utils/islandLog';
 import { getSettings } from '@/modules/settings/services/settings';
 import { SETTINGS_CHANGED_EVENT } from '@/shared/constants/events';
 import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
@@ -42,6 +43,7 @@ export const useDockSetting = () => {
   const main     = screens?.find((screen) => screen.primary) ?? screens?.[0];
 
   const choose = useCallback((dock: IslandDock) => {
+    logPosition(`guardo en settings: ${dock.edge} ${Math.round(dock.offset * 100)} %`);
     setFailed(false);
     setSaved(dock);
     void setIslandDock(dock).catch(() => setFailed(true));

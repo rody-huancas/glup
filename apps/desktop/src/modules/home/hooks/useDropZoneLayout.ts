@@ -3,8 +3,8 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { DROP_ZONE_MOTION, DROP_ZONE_SIZES } from '@/modules/home/constants/dropZone';
 
-// Big drop zone that fills Home, or a one-line bar while files are chosen or a task shows: the zone gets
-// short, Glup small, and the big text gives way to the bar's line. The first layout is applied without
+// The mint strip of Inicio, or a one-line bar while files are chosen or a task shows: the strip gets
+// shorter, Glup small, and the question gives way to the bar's line. The first layout is applied without
 // animation, and so is every change with reduced motion.
 export const useDropZoneLayout = (compact: boolean) => {
   const zone   = useRef<HTMLElement | null>(null);
@@ -26,7 +26,7 @@ export const useDropZoneLayout = (compact: boolean) => {
       first.current  = false;
 
       if (compact) {
-        gsap.set(box, { flexGrow: 0, minHeight: sizes.compactHeight, height: from });
+        gsap.set(box, { minHeight: sizes.compactHeight, height: from });
         gsap.to(box, {
           height        : sizes.compactHeight,
           paddingTop    : sizes.compactPadding,
@@ -44,14 +44,13 @@ export const useDropZoneLayout = (compact: boolean) => {
         return;
       }
 
-      // Measure the height the zone would take filling the column, then animate there and hand back to flex.
+      // Measure the strip's own height, then animate there and hand back to the stylesheet.
       gsap.set(line, { display: 'none' });
       gsap.set(big, { display: 'flex', opacity: 0 });
-      gsap.set(box, { flexGrow: 1, height: 'auto', minHeight: sizes.minHeight, paddingTop: sizes.padding, paddingBottom: sizes.padding, paddingLeft: sizes.padding, paddingRight: sizes.padding, columnGap: sizes.gap });
+      gsap.set(box, { height: 'auto', minHeight: sizes.height, paddingTop: sizes.padding, paddingBottom: sizes.padding, paddingLeft: sizes.side, paddingRight: sizes.side, columnGap: sizes.gap });
       const to = box.getBoundingClientRect().height;
 
       gsap.set(box, {
-        flexGrow      : 0,
         minHeight     : sizes.compactHeight,
         height        : from,
         paddingTop    : sizes.compactPadding,
@@ -64,12 +63,12 @@ export const useDropZoneLayout = (compact: boolean) => {
         height        : to,
         paddingTop    : sizes.padding,
         paddingBottom : sizes.padding,
-        paddingLeft   : sizes.padding,
-        paddingRight  : sizes.padding,
+        paddingLeft   : sizes.side,
+        paddingRight  : sizes.side,
         columnGap     : sizes.gap,
         duration,
         ease,
-        onComplete    : () => void gsap.set(box, { flexGrow: 1, clearProps: 'height,minHeight,paddingTop,paddingBottom,paddingLeft,paddingRight,columnGap' }),
+        onComplete    : () => void gsap.set(box, { clearProps: 'height,minHeight,paddingTop,paddingBottom,paddingLeft,paddingRight,columnGap' }),
       });
       gsap.to(glup, { width: sizes.mascot, duration, ease });
       gsap.to(big, { opacity: 1, duration, delay: duration / 2, ease });

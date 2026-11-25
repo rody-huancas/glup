@@ -2,12 +2,11 @@ import type { Face } from '@/modules/mascot/interfaces/face';
 import type { MascotStateType } from '@/modules/mascot/types/mascotState';
 
 export const MAIN_WINDOW_TEXTS = {
+  backHint     : 'Volver (Esc o Alt+←)',
   name         : 'Glup',
   pin          : 'Fijar',
   unpin        : 'Soltar',
   collapse     : 'Recoger',
-  privacyTitle : 'Todo se queda en tu PC',
-  privacyText  : 'Glup no sube tus archivos a internet.',
   comingSoon   : 'Esta parte la estoy preparando.',
 };
 

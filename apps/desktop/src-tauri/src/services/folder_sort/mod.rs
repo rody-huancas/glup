@@ -255,6 +255,23 @@ pub fn preview_groups(plan: &Plan) -> Vec<PreviewGroup> {
     ordered.into_iter().map(|(_, group)| group).collect()
 }
 
+// What a sort by type of Descargas would move now, for the suggestion of Inicio: nothing moves and no
+// file is opened (the check for files in use is left to the real preview).
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LooseFiles {
+    pub folder : String,
+    pub count  : usize,
+    pub bytes  : u64,
+}
+
+pub fn downloads_to_sort() -> Option<LooseFiles> {
+    let folder = folders::user_folders().downloads?;
+    let plan   = plan::plan(PlanParams { folder: &folder, mode: SortMode::Type, table: classify::table(), now: now(), in_use: &|_| false }).ok()?;
+
+    Some(LooseFiles { folder: folder.to_string_lossy().into_owned(), count: plan.moves.len(), bytes: plan.moves.iter().map(|item| item.size).sum() })
+}
+
 pub fn preview(app: &AppHandle, request: PreviewRequest) -> Result<SortPreview, String> {
     let folder = PathBuf::from(&request.folder);
     if !folder.is_dir() {

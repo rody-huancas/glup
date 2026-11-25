@@ -8,7 +8,7 @@ interface ShortcutSummaryProps {
   onChange : (target: ShortcutTarget) => void;
 }
 
-// On the card in Herramientas: the shortcut in use ("Ctrl+Alt+Shift+T") and "Cambiar", which opens it
+// On the card in Habilidades: the shortcut in use ("Ctrl+Alt+Shift+T") and "Cambiar", which opens it
 // in Ajustes.
 export const ShortcutSummary = ({ target, onChange }: ShortcutSummaryProps) => {
   const { view } = useShortcutView(target);

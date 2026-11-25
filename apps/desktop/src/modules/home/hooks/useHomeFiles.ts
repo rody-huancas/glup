@@ -110,7 +110,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
   const pickFiles = useCallback(() => pickFilesOf('any'), [pickFilesOf]);
 
   // Tools go through the same flow (Glup eats the files) and then pick their action on their own.
-  // Resolves true once files were chosen, so Herramientas can bring the person to Inicio.
+  // Resolves true once files were chosen, so Habilidades can bring the person to Inicio.
   const runTool = useCallback(async (tool: ActionTool): Promise<boolean> => {
     const paths = await holdWhile(() => openFileDialog({ type: tool.fileType, multiple: tool.multiple }));
     if (paths.length === 0) return false;

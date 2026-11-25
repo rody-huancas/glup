@@ -7,9 +7,15 @@ import { ToolsIcon } from '@/shared/icons/ToolsIcon';
 
 export const DEFAULT_PAGE: PageId = 'home';
 
+// The top of the bar. Habilidades holds the families and every tool, so their screens light it.
 export const NAV_ITEMS: NavItemDefinition[] = [
   { id: 'home', label: 'Inicio', icon: HomeIcon },
-  { id: 'tools', label: 'Herramientas', icon: ToolsIcon },
+  { id: 'tools', label: 'Habilidades', icon: ToolsIcon },
   { id: 'history', label: 'Historial', icon: HistoryIcon },
-  { id: 'settings', label: 'Ajustes', icon: SettingsIcon },
 ];
+
+// At the foot of the bar.
+export const SETTINGS_ITEM: NavItemDefinition = { id: 'settings', label: 'Ajustes', icon: SettingsIcon };
+
+// The screens with an item of their own; any other (a family, Limpieza, Rendimiento…) is under Habilidades.
+export const OWN_ITEMS: PageId[] = ['home', 'history', 'settings'];

@@ -9,7 +9,7 @@ interface RenderShapeParams {
   placement : IslandPlacement;
 }
 
-// Called on every animation frame: redraws the silhouette, its clip and its border for the shape at
+// Called on every animation frame: redraws the silhouette, its clip, its glow and its edge for the shape at
 // the island's edge. The panel covers the whole window; only the clip shows the island.
 export const renderIslandShape = ({ elements, shape, placement }: RenderShapeParams) => {
   const panel = elements.panel.current;
@@ -17,6 +17,8 @@ export const renderIslandShape = ({ elements, shape, placement }: RenderShapePar
 
   if (panel) panel.style.clipPath = `path('${path}')`;
 
+  const outline = buildDockOutline(placement, shape);
   elements.fill.current?.setAttribute('d', path);
-  elements.outline.current?.setAttribute('d', buildDockOutline(placement, shape));
+  elements.outline.current?.setAttribute('d', outline);
+  elements.glow.current?.setAttribute('d', outline);
 };

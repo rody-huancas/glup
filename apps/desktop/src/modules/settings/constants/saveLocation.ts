@@ -41,6 +41,10 @@ export const DEFAULT_SETTINGS: SettingsView = {
   hiddenIntroSeen       : false,
   islandShortcut        : null,
   islandShortcutOff     : false,
+  islandBorder          : 'soft',
+  favoriteTools         : [],
+  historySeenAt         : null,
+  dismissedTips         : [],
   folderMissing         : false,
 };
 

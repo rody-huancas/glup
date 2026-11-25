@@ -37,6 +37,12 @@ pub struct HistoryEntry {
     // "Ordenar una carpeta": the record to undo it, while it can still be undone.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub undo: Option<String>,
+    // Bytes it saved (a reduced file, a cleaning), for "Tu semana" in Inicio.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub saved: Option<u64>,
+    // Seconds of audio passed to text, for "Tu semana" in Inicio.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seconds: Option<f64>,
 }
 
 pub struct NewEntryParams<'a> {
@@ -123,9 +129,11 @@ pub fn new_entry(params: NewEntryParams) -> HistoryEntry {
         kind   : params.kind.to_string(),
         action : params.action.to_string(),
         detail : params.detail,
-        date   : now.to_rfc3339(),
-        text   : None,
-        undo   : None,
+        date    : now.to_rfc3339(),
+        text    : None,
+        undo    : None,
+        saved   : None,
+        seconds : None,
     }
 }
 
@@ -140,9 +148,11 @@ pub fn fileless_entry(params: FilelessEntryParams) -> HistoryEntry {
         kind   : params.kind.to_string(),
         action : params.action.to_string(),
         detail : params.detail,
-        date   : now.to_rfc3339(),
-        text   : None,
-        undo   : None,
+        date    : now.to_rfc3339(),
+        text    : None,
+        undo    : None,
+        saved   : None,
+        seconds : None,
     }
 }
 
@@ -283,9 +293,11 @@ mod tests {
             kind   : "image".to_string(),
             action : "compress".to_string(),
             detail : String::new(),
-            date   : String::new(),
-            text   : None,
-            undo   : None,
+            date    : String::new(),
+            text    : None,
+            undo    : None,
+            saved   : None,
+            seconds : None,
         }
     }
 

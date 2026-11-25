@@ -23,6 +23,14 @@
   --color-danger      : #F2777A;
   --color-danger-soft : #3A1D22;
   --color-danger-ink  : #2A0E10;
+  /* The edge of the island, like the edge of a piece of glass on any wallpaper: "Suave" (default) and
+     "Marcado" in Ajustes › Apariencia. */
+  --color-island-edge-soft   : #FFFFFF26;
+  --color-island-edge-strong : #FFFFFF4D;
+
+  /* The panel's own buttons (Fijar, Recoger): a dark see-through pill that reads on the mint card too. */
+  --color-chip               : #141318B8;
+
   /* The six families of tools: their color, the dark fill of their cards, a deeper one (hover, the
      active item, Glup's box while it works) and the ink that reads on the color. Every pair used is AA
      on the panel: the color on its dark fill (5,3 to 8,2), the text on it (10,7+), the ink on the color

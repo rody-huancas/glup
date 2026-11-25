@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Size } from '@/modules/sign/interfaces/geometry';
+import type { Size } from '@/shared/interfaces/size';
 
+// The element's content box, kept up to date while it resizes.
 export const useElementSize = <T extends HTMLElement>() => {
   const ref             = useRef<T | null>(null);
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });

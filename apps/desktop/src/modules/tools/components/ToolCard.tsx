@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
 import { FAMILY_STYLES } from '@/modules/families/constants/families';
+import { FavoriteStar } from '@/modules/tools/components/FavoriteStar';
 import { ToolIcon } from '@/modules/tools/components/ToolIcon';
 import type { Tool } from '@/modules/tools/types/tool';
 import { cx } from '@/shared/utils/classNames';
@@ -13,7 +14,8 @@ interface ToolCardProps<T extends Tool> {
   footer? : ReactNode;
 }
 
-// Same card in a family's screen and in Herramientas, with the icon in the family's color. The name wraps to a second line instead of spilling out; the
+// Same card in a family's screen and in Habilidades, with the icon in the family's color and its star
+// (Favoritos of the side bar). The name and the description each take up to two lines; a longer
 // description ends with "…" and shows whole on hover (title) and to screen readers (it is all in the
 // page, only cut on screen). The name's button stretches over the whole card, so the footer can hold
 // buttons of its own without nesting them inside another button.
@@ -23,7 +25,7 @@ export const ToolCard = <T extends Tool>({ tool, title, onRun, footer }: ToolCar
   return (
     <div
       className={cx(
-        'relative flex min-h-[68px] w-full min-w-0 items-center gap-3 rounded-[14px] border border-line bg-raised px-3.5 py-3 transition-colors has-[>span>button:focus-visible]:outline-2 has-[>span>button:focus-visible]:outline-offset-2 has-[>span>button:focus-visible]:outline-lilac',
+        'group relative flex min-h-[68px] w-full min-w-0 items-center gap-3 rounded-[14px] border border-line bg-raised px-3.5 py-3 transition-colors has-[>span>button:focus-visible]:outline-2 has-[>span>button:focus-visible]:outline-offset-2 has-[>span>button:focus-visible]:outline-lilac',
         FAMILY_STYLES[tool.family].edge,
       )}
     >
@@ -37,11 +39,12 @@ export const ToolCard = <T extends Tool>({ tool, title, onRun, footer }: ToolCar
         >
           <span className="line-clamp-2 break-words">{title}</span>
         </button>
-        <span id={descriptionId} title={tool.description} className="truncate text-xs text-muted">
+        <span id={descriptionId} title={tool.description} className="line-clamp-2 text-xs break-words text-muted">
           {tool.description}
         </span>
         {footer && <span className="relative z-10 mt-1 flex min-w-0 items-center gap-2">{footer}</span>}
       </span>
+      <FavoriteStar id={tool.id} title={title} />
     </div>
   );
 };

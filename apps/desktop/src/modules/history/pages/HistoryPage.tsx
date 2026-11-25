@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { HistoryList } from '@/modules/history/components/HistoryList';
 import { HISTORY_TEXTS } from '@/modules/history/constants/history';
 import { useClearHistory } from '@/modules/history/hooks/useClearHistory';
 import { useExpandedEntry } from '@/modules/history/hooks/useExpandedEntry';
 import { useHistory } from '@/modules/history/hooks/useHistory';
 import { useOpenEntry } from '@/modules/history/hooks/useOpenEntry';
+import { markHistorySeen } from '@/modules/main-window/services/history';
 import { Button } from '@/shared/components/Button';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -22,6 +23,11 @@ export const HistoryPage = () => {
   const expanded            = useExpandedEntry({ entries, reveal: true });
   const clearing            = useClearHistory({ selected: selection.selected, onRemoved: selection.clear });
   const count               = selection.selected.length;
+
+  // Seen: the count in the side bar starts again (also for what arrives while it is open).
+  useEffect(() => {
+    void markHistorySeen().catch(() => undefined);
+  }, [entries.length]);
 
   return (
     <div className="flex flex-col gap-6">

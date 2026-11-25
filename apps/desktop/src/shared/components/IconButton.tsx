@@ -29,7 +29,7 @@ export const IconButton = ({
     disabled={disabled}
     onClick={onClick}
     className={cx(
-      'flex shrink-0 cursor-pointer items-center justify-center rounded-control transition-colors hover:bg-raised disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent',
+      'flex shrink-0 cursor-pointer items-center justify-center rounded-control transition-colors outline-none hover:bg-raised focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-lilac disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent',
       active ? 'text-mint' : 'text-muted hover:text-text',
       className,
     )}

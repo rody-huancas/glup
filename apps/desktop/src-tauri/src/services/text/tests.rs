@@ -125,9 +125,11 @@ fn the_history_line_points_at_the_saved_txt() {
         kind   : "text".to_string(),
         action : "extract-text".to_string(),
         detail : "Texto sacado · 3 páginas".to_string(),
-        date   : String::new(),
-        text   : None,
-        undo   : None,
+        date    : String::new(),
+        text    : None,
+        undo    : None,
+        saved   : None,
+        seconds : None,
     };
     let moved = point_entry(vec![entry], "1", Path::new("C:/docs/contrato.txt"));
     assert_eq!((moved[0].name.as_str(), moved[0].path.as_str()), ("contrato.txt", "C:/docs/contrato.txt"));

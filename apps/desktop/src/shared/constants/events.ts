@@ -66,6 +66,7 @@ export const GET_DISK_SPACE           = 'get_disk_space';
 export const SCAN_CLEANUP             = 'scan_cleanup';
 export const CLEAN_UP                 = 'clean_up';
 export const GET_SORT_FOLDER          = 'get_sort_folder';
+export const GET_DOWNLOADS_TO_SORT    = 'get_downloads_to_sort';
 export const PREVIEW_FOLDER_SORT      = 'preview_folder_sort';
 export const SORT_FOLDER              = 'sort_folder';
 export const UNDO_FOLDER_SORT         = 'undo_folder_sort';

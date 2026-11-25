@@ -138,3 +138,6 @@ export const DOCK_SPOTS: DockSpot[] = [
   { edge: 'bottom', x: 0.5, y: 1 },
   { edge: 'bottom-right', x: 1, y: 1 },
 ];
+
+// Ajustes › Posición: after the last arrow press or slider step, how long before the island moves (ms).
+export const DOCK_COMMIT_DELAY = 450;
