@@ -54,13 +54,13 @@ pub fn is_cloud_only(attributes: u32) -> bool {
 }
 
 #[cfg(windows)]
-fn attributes(metadata: &Metadata) -> u32 {
+pub fn attributes(metadata: &Metadata) -> u32 {
     use std::os::windows::fs::MetadataExt;
     metadata.file_attributes()
 }
 
 #[cfg(not(windows))]
-fn attributes(_: &Metadata) -> u32 {
+pub fn attributes(_: &Metadata) -> u32 {
     0
 }
 
@@ -83,7 +83,7 @@ pub fn current(path: &Path) -> Option<FileEntry> {
     fs::symlink_metadata(path).ok().and_then(|metadata| file_entry(path, &metadata))
 }
 
-fn enterable(entry: &DirEntry, personal: bool) -> bool {
+pub fn enterable(entry: &DirEntry, personal: bool) -> bool {
     if entry.depth() == 0 {
         return true;
     }
