@@ -147,6 +147,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   la persona. No se copian ni se reparten.
 - Las dibuja [ab_glyph](https://github.com/alexheretic/ab-glyph) (Apache-2.0), una dependencia de Rust.
 
+## Crear y leer un QR
+
+### qrcode (hacer el código)
+
+- **Qué es**: la biblioteca de Rust que convierte el texto (un enlace, una red WiFi, un contacto) en el
+  dibujo del QR, con su corrección de errores. Glup dibuja después los puntos, las esquinas y el logo.
+- **Código**: [kennytm/qrcode-rust](https://github.com/kennytm/qrcode-rust), versión 0.14.
+- **Licencia**: MIT o Apache-2.0, a elegir.
+
+### rxing (leer códigos)
+
+- **Qué es**: el lector de QR y de códigos de barras (EAN, UPC, Code 128, Code 39, Data Matrix), una
+  versión en Rust de ZXing. Encuentra varios códigos en la misma imagen. Glup también lo usa para probar
+  cada QR que crea antes de guardarlo. Lee en la computadora; nada sale de ella.
+- **Código**: [rxing-core/rxing](https://github.com/rxing-core/rxing), versión 0.8.
+- **Licencia**: Apache-2.0.
+
 ## Videos
 
 ### FFmpeg (el programa que reduce el peso de los videos y abre fotos HEIC y AVIF)

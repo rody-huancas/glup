@@ -38,9 +38,10 @@ interface UseHomeFilesParams {
   onTrim          : (path: string, purpose: TrimPurpose) => void;
   onSubtitles     : (path: string) => void;
   onImages        : (screen: ImageScreen, paths: string[]) => void;
+  onReadQr        : (paths: string[]) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // Glup eating no longer keeps the island open, so only the setter is used.
@@ -57,7 +58,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });

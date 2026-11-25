@@ -22,7 +22,7 @@ interface LearnModelStepProps {
   // action), instead of a download of its own here.
   onAccept?   : () => void;
   // On the screens of a family, its buttons in its colour.
-  accent?     : 'media' | 'images';
+  accent?     : 'media' | 'images' | 'text';
 }
 
 // The first "Quitar fondo" or video: Glup asks before downloading, with the size, and shows the download.

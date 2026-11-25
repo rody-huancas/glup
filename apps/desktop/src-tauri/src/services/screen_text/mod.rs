@@ -26,6 +26,7 @@ use crate::{
     services::{
         clipboard::write,
         history::{self, FilelessEntryParams},
+        qr::read::{read_codes, ReadCode},
         screen_text::region::{count_words, crop_rect, overlay_frame, MonitorFrame, ZoneRequest},
         settings,
         text::ocr,
@@ -50,17 +51,28 @@ struct Still {
     image : RgbaImage,
 }
 
+// What the zone is read for: its text (and any code in it), or only its codes (Leer un QR).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum CaptureMode {
+    #[default]
+    Text,
+    Codes,
+}
+
 #[derive(Default)]
 pub struct ScreenTextState {
     // From the shortcut until the text is copied: a second press meanwhile does nothing.
     busy   : AtomicBool,
     stills : Mutex<Option<Vec<Still>>>,
+    mode   : Mutex<CaptureMode>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Outcome {
     Copied,
+    // Leer un QR: codes found (no text copied).
+    Codes,
     Empty,
     Failed,
 }
@@ -72,11 +84,13 @@ pub struct ScreenTextDone {
     pub words    : u32,
     // The history line with the text, for "Ver" (None when the history keeps none).
     pub entry_id : Option<String>,
+    // The QR and barcodes found in the zone, to offer what they hold too.
+    pub codes    : Vec<ReadCode>,
 }
 
 impl ScreenTextDone {
     fn without_text(outcome: Outcome) -> Self {
-        Self { outcome, words: 0, entry_id: None }
+        Self { outcome, words: 0, entry_id: None, codes: Vec::new() }
     }
 }
 
@@ -106,10 +120,23 @@ pub fn ocr_scale(width: u32, height: u32) -> u32 {
     if width.max(height) <= UPSCALE_LIMIT { UPSCALE } else { 1 }
 }
 
+// What the overlays are choosing a zone for (they word their hint by it).
+pub fn mode(app: &AppHandle) -> CaptureMode {
+    app.state::<ScreenTextState>().mode.lock().map(|mode| *mode).unwrap_or_default()
+}
+
 // From the shortcut, the tray or Habilidades. Off the main thread: it waits for the island to fade out.
 pub fn start(app: &AppHandle) {
+    start_for(app, CaptureMode::Text);
+}
+
+// «Desde la pantalla» of Leer un QR: the same zone, read only for its codes.
+pub fn start_for(app: &AppHandle, mode: CaptureMode) {
     if app.state::<ScreenTextState>().busy.swap(true, Ordering::SeqCst) {
         return;
+    }
+    if let Ok(mut current) = app.state::<ScreenTextState>().mode.lock() {
+        *current = mode;
     }
 
     let app = app.clone();
@@ -271,12 +298,19 @@ pub fn read(app: &AppHandle, label: &str, request: ReadZoneRequest) {
     drop(stills);
     close(app);
 
+    let mode  = app.state::<ScreenTextState>().mode.lock().map(|mode| *mode).unwrap_or_default();
+    let codes = zone.as_ref().map(|image| read_codes(&image::DynamicImage::ImageRgba8(image.clone()))).unwrap_or_default();
+    if mode == CaptureMode::Codes {
+        let outcome = if codes.is_empty() { Outcome::Empty } else { Outcome::Codes };
+        return done(app, ScreenTextDone { codes, ..ScreenTextDone::without_text(outcome) });
+    }
+
     let result = match zone.map(read_zone) {
         None => ScreenTextDone::without_text(Outcome::Empty),
         Some(Err(_)) => ScreenTextDone::without_text(Outcome::Failed),
-        Some(Ok(text)) if count_words(&text) == 0 => ScreenTextDone::without_text(Outcome::Empty),
+        Some(Ok(text)) if count_words(&text) == 0 => ScreenTextDone { codes: codes.clone(), ..ScreenTextDone::without_text(if codes.is_empty() { Outcome::Empty } else { Outcome::Codes }) },
         Some(Ok(text)) => match write::copy_text(app, &text) {
-            Ok(()) => ScreenTextDone { outcome: Outcome::Copied, words: count_words(&text), entry_id: remember(app, text) },
+            Ok(()) => ScreenTextDone { outcome: Outcome::Copied, words: count_words(&text), entry_id: remember(app, text), codes },
             Err(_) => ScreenTextDone::without_text(Outcome::Failed),
         },
     };

@@ -12,6 +12,7 @@ interface ChoiceCardProps {
 const CHOSEN: Record<ChoiceCardProps['accent'], { card: string; label: string; ring: string }> = {
   media  : { card: 'border-fam-media', label: 'text-fam-media', ring: 'focus-visible:ring-fam-media' },
   images : { card: 'border-fam-images', label: 'text-fam-images', ring: 'focus-visible:ring-fam-images' },
+  text   : { card: 'border-fam-text', label: 'text-fam-text', ring: 'focus-visible:ring-fam-text' },
 };
 
 // One choice of a radio group on the screens of a family, chosen in the family's colour.

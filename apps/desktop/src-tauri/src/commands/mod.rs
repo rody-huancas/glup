@@ -16,6 +16,7 @@ pub mod notify;
 pub mod performance;
 pub mod photo_tools;
 pub mod photos;
+pub mod qr;
 pub mod scan;
 pub mod screen_text;
 pub mod settings;

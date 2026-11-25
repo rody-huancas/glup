@@ -4,6 +4,7 @@ import { CAPTURE_WINDOW_PREFIX } from '@/modules/screen-text/constants/screenTex
 import type { Zone } from '@/modules/screen-text/interfaces/zone';
 import {
   CANCEL_SCREEN_TEXT,
+  IS_CAPTURING_CODES,
   CAPTURE_READY,
   COPY_SCREEN_TEXT,
   GET_CAPTURE_IMAGE,
@@ -21,6 +22,9 @@ export const startScreenText = (): Promise<void> => invoke(START_SCREEN_TEXT);
 export const getCaptureImage = (): Promise<ArrayBuffer> => invoke<ArrayBuffer>(GET_CAPTURE_IMAGE);
 
 export const captureReady = (): Promise<void> => invoke(CAPTURE_READY);
+
+// Whether this zone is for a QR (Leer un QR) and not for text.
+export const isCapturingCodes = (): Promise<boolean> => invoke<boolean>(IS_CAPTURING_CODES);
 
 // The zone in pixels of the still; Rust closes the overlays, reads it and copies its text.
 export const readScreenText = (zone: Zone): Promise<void> => invoke(READ_SCREEN_TEXT, { request: { zone } });

@@ -1,40 +1,42 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { RESULT_MOODS } from '@/modules/actions/constants/resultMoods';
 import { useIslandDock } from '@/modules/dock/hooks/useIslandDock';
 import { revealHistoryEntry } from '@/modules/history/store/historyReveal';
+import { ISLAND_TIMING } from '@/modules/island/constants/island';
 import { useBubbleLog } from '@/modules/island/hooks/useBubbleLog';
 import { useIslandAutoToggle } from '@/modules/island/hooks/useIslandAutoToggle';
 import { useIslandDragGesture } from '@/modules/island/hooks/useIslandDragGesture';
 import { useIslandFocus } from '@/modules/island/hooks/useIslandFocus';
+import { useIslandHolds } from '@/modules/island/hooks/useIslandHolds';
 import { useIslandMachine } from '@/modules/island/hooks/useIslandMachine';
 import { useIslandSignals } from '@/modules/island/hooks/useIslandSignals';
-import { useLaunchOpen } from '@/modules/island/hooks/useLaunchOpen';
 import { useIslandTimeline } from '@/modules/island/hooks/useIslandTimeline';
-import { useIslandHolds } from '@/modules/island/hooks/useIslandHolds';
 import { useIslandWatchdog } from '@/modules/island/hooks/useIslandWatchdog';
-import { createIslandElements } from '@/modules/island/utils/elements';
-import { ISLAND_TIMING } from '@/modules/island/constants/island';
+import { useLaunchOpen } from '@/modules/island/hooks/useLaunchOpen';
 import type { HoldReason } from '@/modules/island/types/holdReason';
+import { createIslandElements } from '@/modules/island/utils/elements';
 import { logBubble, logPosition } from '@/modules/island/utils/islandLog';
 import { closesOnLeave, closesOnOutside, hoverEnabled, hoverOpens, toIslandState } from '@/modules/island/utils/islandMachine';
 import { askedToOpen } from '@/modules/island/utils/responsiveness';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
 import type { PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
+import type { PageId } from '@/modules/main-window/types/pageId';
 import { useTaskNotices } from '@/modules/notices/hooks/useTaskNotices';
 import { notifyTask } from '@/modules/notices/services/notify';
 import { panelOpened } from '@/modules/notices/store/toastStore';
+import { sendToQrReader } from '@/modules/qr/store/qrInbox';
 import { useScreenTextDone } from '@/modules/screen-text/hooks/useScreenTextDone';
 import type { ScreenTextDone } from '@/modules/screen-text/interfaces/screenTextDone';
 import { screenTextNotice } from '@/modules/screen-text/utils/screenTextNotice';
 import { useTaskTransitions } from '@/modules/tasks/hooks/useTaskTransitions';
 import { useTasks } from '@/modules/tasks/hooks/useTasks';
+import type { Task } from '@/modules/tasks/interfaces/task';
 import { getTasks, markForReveal, takeReveals } from '@/modules/tasks/store/taskStore';
 import { pickOpenPage } from '@/modules/tasks/utils/taskOwner';
-import type { Task } from '@/modules/tasks/interfaces/task';
 import { getRunningTask, getTaskFraction } from '@/modules/tasks/utils/taskView';
 import { ISLAND_TOGGLE_EVENT } from '@/shared/constants/events';
 import { useKeyDown } from '@/shared/hooks/useKeyDown';
 import { useTauriEvent } from '@/shared/hooks/useTauriEvent';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 // The machine decides (useIslandMachine); this hook turns its phases into animations, region, focus and
 // panel resets, and feeds it the signals (cursor, fullscreen, tray, tasks). All callbacks handed to the
@@ -274,11 +276,13 @@ export const useIsland = () => {
   const avatarRef    = panel.avatarRef;
   const onScreenText = useCallback((done: ScreenTextDone) => {
     const notice = screenTextNotice(done);
+    // The codes of the zone wait in Leer un QR until "Ver".
+    if (done.codes.length > 0) sendToQrReader({ codes: done.codes });
 
     // Hidden (a fullscreen app, the tray, or hidden at rest) there is no pill to tell it on.
     if (phaseRef.current === 'hidden' || restRef.current === 'hidden') {
       if (done.entryId) revealHistoryEntry(done.entryId);
-      void notifyTask({ body: notice.message, page: done.entryId ? 'history' : 'tools' }).catch(() => undefined);
+      void notifyTask({ body: notice.message, page: notice.page ?? (done.entryId ? 'history' : 'tools') }).catch(() => undefined);
       return;
     }
 
@@ -293,6 +297,12 @@ export const useIsland = () => {
   const onNoticeView = useCallback((entryId: string) => {
     revealHistoryEntry(entryId);
     navigateTo('history');
+    openPinned();
+  }, [navigateTo, openPinned]);
+
+  // "Ver" of the codes found: Leer un QR.
+  const onNoticePage = useCallback((page: PageId) => {
+    navigateTo(page);
     openPinned();
   }, [navigateTo, openPinned]);
 
@@ -403,5 +413,6 @@ export const useIsland = () => {
     onPanelPointerDown,
     onDragPointerDown  : drag.onPointerDown,
     onNoticeView,
+    onNoticePage,
   };
 };

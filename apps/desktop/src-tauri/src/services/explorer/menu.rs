@@ -29,6 +29,8 @@ struct CatalogTool {
     menu       : Option<String>,
     // The kinds of file of its option, when not only its file type (Recortar: audio and video).
     menu_types : Option<Vec<String>>,
+    // A screen that takes files («Leer QR») says by which action.
+    action_id  : Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -43,7 +45,7 @@ pub fn menu_tools(catalog: &str) -> Vec<MenuTool> {
     let tools: Vec<CatalogTool> = serde_json::from_str(catalog).unwrap_or_default();
     tools
         .into_iter()
-        .filter(|tool| tool.kind == "action")
+        .filter(|tool| tool.kind == "action" || (tool.kind == "page" && tool.action_id.is_some()))
         .filter_map(|tool| {
             let file_types = tool.menu_types.or_else(|| tool.file_type.map(|file_type| vec![file_type]))?;
             Some(MenuTool { label: tool.menu?, file_types, id: tool.id })

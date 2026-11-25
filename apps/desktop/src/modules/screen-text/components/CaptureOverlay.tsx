@@ -28,7 +28,7 @@ export const CaptureOverlay = () => {
       )}
       {!zone && !overlay.choosing && (
         <p role="status" className="pointer-events-none absolute left-1/2 top-8 -translate-x-1/2 rounded-full border border-line-strong bg-surface px-4 py-2 text-[13px] font-semibold text-text shadow-2xl">
-          {SCREEN_TEXT_TEXTS.hint}
+          {overlay.codes ? SCREEN_TEXT_TEXTS.qrHint : SCREEN_TEXT_TEXTS.hint}
         </p>
       )}
     </div>

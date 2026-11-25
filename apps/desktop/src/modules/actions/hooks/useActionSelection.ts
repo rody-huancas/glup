@@ -64,6 +64,8 @@ interface UseActionSelectionParams {
   onSubtitles : (path: string) => void;
   // And the screens of Imágenes, with every photo.
   onImages    : (screen: ImageScreen, paths: string[]) => void;
+  // And «Leer un QR», with its images and PDFs.
+  onReadQr    : (paths: string[]) => void;
 }
 
 interface ExecuteParams {
@@ -128,7 +130,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -147,6 +149,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const trimRef                   = useRef(onTrim);
   const subtitlesRef              = useRef(onSubtitles);
   const imagesRef                 = useRef(onImages);
+  const readQrRef                 = useRef(onReadQr);
   const loadId                    = useRef(0);
   // The step after learning: the background choice, or what the video is for.
   const learnDone                 = useRef<ActionsPhase>('background');
@@ -161,7 +164,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     trimRef.current        = onTrim;
     subtitlesRef.current   = onSubtitles;
     imagesRef.current      = onImages;
-  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages]);
+    readQrRef.current      = onReadQr;
+  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages, onReadQr]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -319,6 +323,13 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     // And "Subtítulos", which listens and lets the phrases be reviewed there.
     if (actionId === 'subtitles') {
       subtitlesRef.current(selection.paths[0]);
+      finishedRef.current();
+      return;
+    }
+
+    // «Leer QR»: the files go to that screen, which shows what each code holds.
+    if (actionId === 'read-qr') {
+      readQrRef.current(selection.paths);
       finishedRef.current();
       return;
     }

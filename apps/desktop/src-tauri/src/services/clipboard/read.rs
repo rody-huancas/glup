@@ -144,7 +144,30 @@ mod native {
             content.map(|content| ClipRead { path, content })
         }
     }
+
+    // The picture on the clipboard right now («Leer lo que copié» of Leer un QR).
+    pub fn copied_image() -> Option<image::RgbaImage> {
+        unsafe {
+            let opened = (0..OPEN_ATTEMPTS).any(|attempt| {
+                if attempt > 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(20));
+                }
+                OpenClipboard(std::ptr::null_mut()) != 0
+            });
+            if !opened {
+                return None;
+            }
+            let image = picture();
+            CloseClipboard();
+            image
+        }
+    }
 }
 
 #[cfg(windows)]
-pub use native::read;
+pub use native::{copied_image, read};
+
+#[cfg(not(windows))]
+pub fn copied_image() -> Option<RgbaImage> {
+    None
+}

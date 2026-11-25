@@ -93,4 +93,6 @@ export const WORKING_TEXTS: Record<ActionId, string> = {
   'social-size'       : 'Dejándolas a la medida…',
   'photo-mark'        : 'Poniendo la marca…',
   'upscale'           : 'Mejorando la calidad…',
+  'read-qr'           : 'Leyendo los códigos…',
+  'create-qr'         : 'Haciendo el QR…',
 };

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent, SyntheticEvent } from 'react';
 import { STILL_TYPE } from '@/modules/screen-text/constants/screenText';
 import type { Zone } from '@/modules/screen-text/interfaces/zone';
-import { cancelScreenText, captureReady, getCaptureImage, readScreenText } from '@/modules/screen-text/services/screenText';
+import { cancelScreenText, captureReady, getCaptureImage, isCapturingCodes, readScreenText } from '@/modules/screen-text/services/screenText';
 import { isZoneChosen, toStillZone, zoneBetween } from '@/modules/screen-text/utils/zone';
 import { useKeyDown } from '@/shared/hooks/useKeyDown';
 import type { Point } from '@/shared/interfaces/point';
@@ -16,8 +16,13 @@ export const useCaptureOverlay = () => {
   const [zone, setZone]         = useState<Zone | null>(null);
   const [choosing, setChoosing] = useState(false);
   const [reading, setReading]   = useState(false);
+  const [codes, setCodes]       = useState(false);
   const imageRef                = useRef<HTMLImageElement>(null);
   const start                   = useRef<Point | null>(null);
+
+  useEffect(() => {
+    void isCapturingCodes().then(setCodes).catch(() => undefined);
+  }, []);
 
   // The still lives only as a blob in this webview's memory and is let go with the overlay.
   useEffect(() => {
@@ -84,5 +89,5 @@ export const useCaptureOverlay = () => {
 
   const onContextMenu = (event: SyntheticEvent) => event.preventDefault();
 
-  return { stillUrl, imageRef, zone, choosing, onStillLoad, onPointerDown, onPointerMove, onPointerUp, onContextMenu };
+  return { stillUrl, imageRef, zone, choosing, codes, onStillLoad, onPointerDown, onPointerMove, onPointerUp, onContextMenu };
 };

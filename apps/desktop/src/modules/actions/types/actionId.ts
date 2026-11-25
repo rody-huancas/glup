@@ -26,4 +26,6 @@ export type ActionId =
   | 'social-size'
   | 'photo-mark'
   | 'upscale'
+  | 'read-qr'
+  | 'create-qr'
   | 'zip';

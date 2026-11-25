@@ -1,12 +1,14 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ExplorerRequest } from '@/modules/explorer/interfaces/explorerRequest';
 import type { ActionTool } from '@/modules/tools/interfaces/actionTool';
+import type { PageTool } from '@/modules/tools/interfaces/pageTool';
 import type { Tool } from '@/modules/tools/types/tool';
 
-// The option chosen in the right click, if it is still an action of tools.json.
-const requestTool = (request: ExplorerRequest, tools: Tool[]): ActionTool | null => {
+// The option chosen in the right click, if it is still an action of tools.json (or a screen that takes
+// files, as «Leer QR»).
+const requestTool = (request: ExplorerRequest, tools: Tool[]): ActionTool | PageTool | null => {
   const tool = request.tool === null ? null : tools.find((item) => item.id === request.tool);
-  return tool?.kind === 'action' ? tool : null;
+  return tool?.kind === 'action' || (tool?.kind === 'page' && tool.actionId) ? tool : null;
 };
 
 // Its action; null for "Enviar a" or an option that is gone (the files just load in Inicio).
