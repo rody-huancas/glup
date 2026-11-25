@@ -105,6 +105,17 @@ fn trimming_is_in_the_menu_of_videos_and_audios() {
 }
 
 #[test]
+fn renaming_in_batch_is_one_line_for_any_file() {
+    let tools = menu::catalog_tools();
+    let keys  = menu_keys(MenuKeysParams { base: "Base", exe: Path::new(r"C:\Glup.exe"), tools: &tools });
+    let root  = keys.iter().find(|key| key.path == r"Base\*\shell\Glup-batch-rename").expect("any file");
+    assert!(root.values.contains(&("MUIVerb".to_string(), "Renombrar en lote…".to_string())));
+    assert!(keys.iter().any(|key| key.path == r"Base\*\shell\Glup-batch-rename\command" && key.values[0].1.contains("--menu batch-rename")));
+    // Not again inside «Glup» of a photo.
+    assert!(!keys.iter().any(|key| key.path.contains(r".jpg\shell\Glup\shell\") && key.path.ends_with("-batch-rename")));
+}
+
+#[test]
 fn reading_a_qr_is_in_the_menu_of_images_and_pdfs() {
     let tools = menu::catalog_tools();
     let keys  = menu_keys(MenuKeysParams { base: "Base", exe: Path::new(r"C:\Glup.exe"), tools: &tools });

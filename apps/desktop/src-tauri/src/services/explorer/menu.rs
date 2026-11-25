@@ -82,6 +82,14 @@ pub fn menu_root(base: &str, extension: &str) -> String {
     format!(r"{base}\SystemFileAssociations\.{extension}\shell\{MENU_NAME}")
 }
 
+// An option for any file at all («Renombrar en lote…»): its own line, not inside «Glup» of each kind
+// (a photo would show «Glup» twice).
+pub const ANY_FILE: &str = "files";
+
+pub fn any_file_root(base: &str, id: &str) -> String {
+    format!(r"{base}\*\shell\{MENU_NAME}-{id}")
+}
+
 // One key with its text values ("" is the default value).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegKey {
@@ -123,6 +131,11 @@ pub fn menu_keys(params: MenuKeysParams) -> Vec<RegKey> {
             keys.push(RegKey { path: format!(r"{option}\command"), values: vec![value("", format!("\"{exe}\" {MENU_ARG} {} \"%1\"", tool.id))] });
         }
     }
+    for tool in params.tools.iter().filter(|tool| tool.file_types.iter().any(|file_type| file_type == ANY_FILE)) {
+        let root = any_file_root(params.base, &tool.id);
+        keys.push(RegKey { path: root.clone(), values: vec![value("MUIVerb", tool.label.as_str()), value("Icon", format!("\"{exe}\",0")), value("MultiSelectModel", MULTI_SELECT)] });
+        keys.push(RegKey { path: format!(r"{root}\command"), values: vec![value("", format!("\"{exe}\" {MENU_ARG} {} \"%1\"", tool.id))] });
+    }
     keys
 }
 
@@ -136,5 +149,7 @@ pub fn register(base: &str, exe: &Path) -> bool {
 }
 
 pub fn unregister(base: &str) -> bool {
-    all_extensions().iter().all(|extension| registry::delete_tree(Root::User, &menu_root(base, extension)))
+    let kinds = all_extensions().iter().all(|extension| registry::delete_tree(Root::User, &menu_root(base, extension)));
+    let any   = catalog_tools().iter().filter(|tool| tool.file_types.iter().any(|file_type| file_type == ANY_FILE)).all(|tool| registry::delete_tree(Root::User, &any_file_root(base, &tool.id)));
+    kinds && any
 }
