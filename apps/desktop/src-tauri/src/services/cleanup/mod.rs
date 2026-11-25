@@ -511,11 +511,11 @@ fn classify(error: &io::Error) -> RemoveError {
     }
 }
 
-fn remove_directly(path: &Path) -> Result<(), RemoveError> {
+pub fn remove_directly(path: &Path) -> Result<(), RemoveError> {
     fs::remove_file(path).map_err(|error| classify(&error))
 }
 
-fn to_trash_for_real(paths: &[PathBuf]) {
+pub fn to_trash_for_real(paths: &[PathBuf]) {
     let _ = trash::delete_all(paths);
 }
 
@@ -533,7 +533,7 @@ fn in_use(path: &Path) -> bool {
     }
 }
 
-fn trash_one_for_real(path: &Path) -> Result<(), RemoveError> {
+pub fn trash_one_for_real(path: &Path) -> Result<(), RemoveError> {
     if in_use(path) {
         return Err(RemoveError::InUse);
     }

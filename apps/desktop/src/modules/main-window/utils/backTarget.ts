@@ -6,6 +6,7 @@ const TOOL_PARENTS: Partial<Record<PageId, PageId>> = {
   'cleanup'     : familyPage('pc'),
   'folder-sort' : familyPage('pc'),
   'performance' : familyPage('pc'),
+  'duplicates'  : familyPage('pc'),
   'clipboard'   : familyPage('clipboard'),
 };
 

@@ -56,6 +56,7 @@ pub fn run() {
         .manage(services::folder_sort::FolderSortState::default())
         .manage(services::scan::ScanState::default())
         .manage(services::explorer::ExplorerInbox::default())
+        .manage(services::duplicates::DuplicatesState::default())
         .manage(services::performance::PerformanceState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
@@ -82,6 +83,10 @@ pub fn run() {
             commands::actions::sign_pdf,
             commands::actions::organize_pdf,
             commands::actions::check_pdf_password,
+            commands::duplicates::get_duplicate_defaults,
+            commands::duplicates::check_duplicate_folder,
+            commands::duplicates::scan_duplicates,
+            commands::duplicates::remove_duplicates,
             commands::explorer::take_explorer_requests,
             commands::explorer::set_explorer_menu,
             commands::explorer::set_send_to,

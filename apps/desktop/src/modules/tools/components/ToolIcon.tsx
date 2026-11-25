@@ -6,6 +6,7 @@ import { AudioTextIcon } from '@/shared/icons/AudioTextIcon';
 import { CleanupIcon } from '@/shared/icons/CleanupIcon';
 import { ClipboardIcon } from '@/shared/icons/ClipboardIcon';
 import { CompressIcon } from '@/shared/icons/CompressIcon';
+import { DuplicatesIcon } from '@/shared/icons/DuplicatesIcon';
 import { ConvertIcon } from '@/shared/icons/ConvertIcon';
 import { FolderIcon } from '@/shared/icons/FolderIcon';
 import { GaugeIcon } from '@/shared/icons/GaugeIcon';
@@ -62,6 +63,7 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'cleanup'           : CleanupIcon,
   'folder-sort'       : FolderIcon,
   'performance'       : GaugeIcon,
+  'duplicates'        : DuplicatesIcon,
 };
 
 // A tool's own stroke icon in the family's color, on its dark fill.

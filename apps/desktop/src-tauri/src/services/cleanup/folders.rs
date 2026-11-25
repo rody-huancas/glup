@@ -40,6 +40,19 @@ fn known_folder(id: &windows_sys::core::GUID) -> Option<PathBuf> {
     }
 }
 
+// "Archivos repetidos" looks by default in Descargas, Documentos, Imágenes, Escritorio and Videos.
+#[cfg(windows)]
+pub fn duplicate_folders() -> Vec<PathBuf> {
+    use windows_sys::Win32::UI::Shell::{FOLDERID_Desktop, FOLDERID_Documents, FOLDERID_Downloads, FOLDERID_Pictures, FOLDERID_Videos};
+
+    [&FOLDERID_Downloads, &FOLDERID_Documents, &FOLDERID_Pictures, &FOLDERID_Desktop, &FOLDERID_Videos].into_iter().filter_map(known_folder).collect()
+}
+
+#[cfg(not(windows))]
+pub fn duplicate_folders() -> Vec<PathBuf> {
+    Vec::new()
+}
+
 // Known folders follow the user's choices (moved Documents, OneDrive redirection).
 #[cfg(windows)]
 pub fn user_folders() -> UserFolders {

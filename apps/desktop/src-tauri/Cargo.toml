@@ -118,6 +118,17 @@ opt-level = 3
 [profile.dev.package.jpeg-encoder]
 opt-level = 3
 
+# "Archivos repetidos": the hash of every candidate and the photos read for "fotos parecidas".
+# Unoptimized, a WebP took half a second to read.
+[profile.dev.package.blake3]
+opt-level = 3
+
+[profile.dev.package.jpeg-decoder]
+opt-level = 3
+
+[profile.dev.package.image-webp]
+opt-level = 3
+
 # whisper.cpp (built by CMake): unoptimized it is far too slow to listen to anything.
 [profile.dev.package.whisper-rs-sys]
 opt-level = 3
