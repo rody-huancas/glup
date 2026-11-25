@@ -7,7 +7,7 @@ use serde::Serialize;
 use tauri::{menu::CheckMenuItem, AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::services::island_window;
+use crate::services::{explorer, island_window};
 
 // Passed by Windows when Glup starts with the computer: it then stays as the quiet pill.
 pub const AUTOSTART_ARG: &str           = "--autostart";
@@ -42,6 +42,7 @@ impl LaunchOpen {
 }
 
 pub struct LaunchOpenParams {
+    // Started by Windows at startup, or by the Explorer with files (the panel decides whether to open).
     pub autostart: bool,
     // A development build (debug_assertions).
     pub debug: bool,
@@ -56,7 +57,7 @@ pub fn opens_on_launch(params: LaunchOpenParams) -> bool {
 
 pub fn launch_open_pending() -> bool {
     opens_on_launch(LaunchOpenParams {
-        autostart : launch_info().autostart,
+        autostart : launch_info().autostart || explorer::parse_args(&std::env::args().collect::<Vec<_>>()).is_some(),
         debug     : cfg!(debug_assertions),
         forced    : std::env::var(LAUNCH_OPEN_VAR).is_ok_and(|value| value == "1"),
     })
@@ -71,8 +72,11 @@ pub fn launch_info() -> LaunchInfo {
 }
 
 // Someone tried to open a second Glup: the running one shows its island. A second launch by Windows at
-// startup is not someone asking for it.
+// startup is not someone asking for it; one from the Explorer brings files (gathered, see explorer).
 pub fn second_launch(app: &AppHandle, args: Vec<String>) {
+    if explorer::receive(app, &args) {
+        return;
+    }
     if launched_by_autostart(args) {
         return;
     }

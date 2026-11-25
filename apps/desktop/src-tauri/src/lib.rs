@@ -14,6 +14,11 @@ pub const ISLAND_WINDOW_LABEL: &str = "island";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // The installer writes or removes the Explorer's entries with Glup itself, without starting it.
+    if services::explorer::installer_mode(&std::env::args().collect::<Vec<_>>()) {
+        return;
+    }
+
     tauri::Builder::default()
         // First: a second Glup never opens; the one running shows its island, as "Abrir Glup".
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| services::startup::second_launch(app, args)))
@@ -43,6 +48,7 @@ pub fn run() {
         .manage(CleanupState::default())
         .manage(services::folder_sort::FolderSortState::default())
         .manage(services::scan::ScanState::default())
+        .manage(services::explorer::ExplorerInbox::default())
         .manage(services::performance::PerformanceState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
@@ -69,6 +75,10 @@ pub fn run() {
             commands::actions::sign_pdf,
             commands::actions::organize_pdf,
             commands::actions::check_pdf_password,
+            commands::explorer::take_explorer_requests,
+            commands::explorer::set_explorer_menu,
+            commands::explorer::set_send_to,
+            commands::explorer::open_island,
             commands::scan::open_scan_photo,
             commands::scan::get_scan_photo,
             commands::scan::get_scan_preview,
@@ -178,6 +188,9 @@ pub fn run() {
             services::shortcuts::apply_saved(app.handle());
             services::clipboard::spawn(app.handle().clone());
             services::folder_sort::spawn_recovery(app.handle().clone());
+            // The right click and "Enviar a" point at this Glup; the files this launch brings, gathered.
+            services::explorer::sync(app.handle());
+            services::explorer::receive(app.handle(), &std::env::args().collect::<Vec<_>>());
             if let Ok(folder) = services::video::tool::tools_folder(app.handle()) {
                 services::image::heif::remember_tools(folder);
             }
