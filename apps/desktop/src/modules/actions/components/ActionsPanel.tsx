@@ -1,9 +1,9 @@
 import { ActionsGrid } from '@/modules/actions/components/ActionsGrid';
 import { CloseButton } from '@/modules/actions/components/CloseButton';
 import { FormatPicker } from '@/modules/actions/components/FormatPicker';
-import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ActionFlow } from '@/modules/actions/interfaces/actionFlow';
 import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
+import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import { getSelectionIcon } from '@/modules/actions/utils/fileIcon';
 import { canBundle } from '@/modules/actions/utils/formats';
 import { getPhaseMessage } from '@/modules/actions/utils/phase';
@@ -13,16 +13,17 @@ import { LearnModelStep } from '@/modules/background/components/LearnModelStep';
 import { LEARNABLES } from '@/modules/background/constants/learnables';
 import { IdFormatStep } from '@/modules/id-photo/components/IdFormatStep';
 import { IdPreviewStep } from '@/modules/id-photo/components/IdPreviewStep';
+import { AudioExtractStep } from '@/modules/media/components/AudioExtractStep';
 import { MergeOrderStep } from '@/modules/pdf/components/MergeOrderStep';
 import { NumberingStep } from '@/modules/pdf/components/NumberingStep';
 import { PageImageStep } from '@/modules/pdf/components/PageImageStep';
 import { PageSelectionStep } from '@/modules/pdf/components/PageSelectionStep';
-import { JpgQualityStep } from '@/modules/photos/components/JpgQualityStep';
 import { ProtectStep } from '@/modules/pdf/components/ProtectStep';
 import { ReduceStep } from '@/modules/pdf/components/ReduceStep';
 import { SplitStep } from '@/modules/pdf/components/SplitStep';
 import { UnlockStep } from '@/modules/pdf/components/UnlockStep';
 import { WatermarkStep } from '@/modules/pdf/components/WatermarkStep';
+import { JpgQualityStep } from '@/modules/photos/components/JpgQualityStep';
 import { BundleZipToggle } from '@/modules/settings/components/BundleZipToggle';
 import { RemoveLocationToggle } from '@/modules/settings/components/RemoveLocationToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
@@ -103,6 +104,10 @@ const ActionsStep = ({ selection, flow }: ActionsPanelProps) => {
 
   if (flow.phase === 'background') {
     return <BackgroundStep onChoose={flow.chooseBackground} onBack={flow.back} />;
+  }
+
+  if (flow.phase === 'extract-audio') {
+    return <AudioExtractStep onExtract={flow.extractAudio} onBack={flow.back} />;
   }
 
   if (flow.phase === 'transcribe') {

@@ -1,6 +1,7 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ImageFormat } from '@/modules/actions/types/imageFormat';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
+import type { ExtractOptions } from '@/modules/media/interfaces/extractOptions';
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { SplitOptions } from '@/modules/pdf/interfaces/splitOptions';
@@ -22,6 +23,7 @@ export interface RunActionOptions {
   numbering?   : NumberingOptions;
   video?       : VideoOptions;
   jpg?         : JpgQuality;
+  audio?       : ExtractOptions;
 }
 
 export interface RunActionParams {

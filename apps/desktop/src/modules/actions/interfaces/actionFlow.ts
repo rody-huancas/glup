@@ -1,10 +1,11 @@
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
 import type { ImageFormat } from '@/modules/actions/types/imageFormat';
-import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
-import type { IdCrop } from '@/modules/id-photo/interfaces/idCrop';
 import type { BackgroundKind } from '@/modules/background/types/backgroundKind';
 import type { LearnableId } from '@/modules/background/types/learnableId';
+import type { IdChoice } from '@/modules/id-photo/interfaces/idChoice';
+import type { IdCrop } from '@/modules/id-photo/interfaces/idCrop';
+import type { ExtractOptions } from '@/modules/media/interfaces/extractOptions';
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
@@ -40,6 +41,7 @@ export interface ActionFlow {
   chooseIdFormat   : (choice: IdChoice) => void;
   saveIdPhoto      : (session: number, crop: IdCrop) => void;
   startTranscribe  : (options: TranscribeOptions) => void;
+  extractAudio     : (options: ExtractOptions) => void;
   // What the learning step downloads now.
   learnable        : LearnableId;
   // The learning step was opened by an action that runs right after the download (one task).
