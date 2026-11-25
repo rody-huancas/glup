@@ -22,6 +22,11 @@ import { useFileDrop } from '@/shared/hooks/useFileDrop';
 // Not while downloading what "Quitar fondo" needs: that runs as a task and the island may collapse.
 const STEP_PHASES: ActionsPhase[] = ['formats', 'order', 'split', 'pages', 'image-format', 'reduce', 'learn-model', 'background', 'protect', 'unlock', 'watermark', 'numbering', 'video', 'id-format', 'id-preview', 'transcribe'];
 
+interface OpenWithParams {
+  paths    : string[];
+  actionId : ActionId | null;
+}
+
 interface UseHomeFilesParams {
   commandAvatar   : (state: MascotState) => void;
   onFilesIncoming : () => void;
@@ -62,7 +67,8 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     discardRef.current = close;
   }, [close]);
 
-  const handlePaths = useCallback(async (paths: string[]) => {
+  // Resolves true once the files are in (the actions show), false when Glup refused them.
+  const handlePaths = useCallback(async (paths: string[]): Promise<boolean> => {
     console.log('Received paths:', paths);
 
     window.clearTimeout(noticeTimer.current);
@@ -75,13 +81,14 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     // The actions show right away; Glup keeps eating in parallel.
     if (selection) {
       dropMascotRef.current?.setState({ type: 'eating', kind: ['pdf', 'pdf-mixed', 'pdf-locked'].includes(selection.type) ? 'pdf' : 'image' });
-      return;
+      return true;
     }
 
     pendingAction.current = null;
     dropMascotRef.current?.setState({ type: 'confused' });
     setNotice(refusal ?? ACTIONS_TEXTS.rejected);
     noticeTimer.current = window.setTimeout(() => setNotice(null), ACTIONS_TIMING.rejectedTime);
+    return false;
   }, [actions]);
 
   const dropHandlers = useMemo(
@@ -121,8 +128,16 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     return true;
   }, [handlePaths]);
 
-  const choose  = actions.choose;
-  const visible = actions.selection;
+  const choose      = actions.choose;
+  const visible     = actions.selection;
+  // Files from the Explorer: told whether their action ran (true) or they are left to choose (false).
+  const outsideDone = useRef<((chosen: boolean) => void) | null>(null);
+
+  const settleOutside = useCallback((chosen: boolean) => {
+    const done          = outsideDone.current;
+    outsideDone.current = null;
+    done?.(chosen);
+  }, []);
 
   useEffect(() => {
     const pending = pendingAction.current;
@@ -130,8 +145,21 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
     pendingAction.current = null;
     // Files that do not fit the tool (one PDF for "Unir") just show what can be done with them, like a drop.
-    if (visible.actions.some((action) => action.id === pending)) choose(pending);
-  }, [visible, choose]);
+    const fits = visible.actions.some((action) => action.id === pending);
+    if (fits) choose(pending);
+    settleOutside(fits);
+  }, [visible, choose, settleOutside]);
+
+  // From the Explorer: the files as if dropped, and the option chosen in its menu (none: "Enviar a").
+  // Resolves true when that action was chosen; false when the files were refused, do not fit it or
+  // came with none (they wait in Inicio for a choice).
+  const openWith = useCallback(({ paths, actionId }: OpenWithParams): Promise<boolean> => new Promise((resolve) => {
+    outsideDone.current   = resolve;
+    pendingAction.current = actionId;
+    void handlePaths(paths).then((loaded) => {
+      if (!loaded || actionId === null) settleOutside(false);
+    });
+  }), [handlePaths, settleOutside]);
 
   // Real runs set Glup's mood from the task store (useTaskMood); here only the "learning" answer.
   useEffect(() => {
@@ -194,5 +222,6 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
     pickFiles,
     pickFilesOf,
     runTool,
+    openWith,
   };
 };
