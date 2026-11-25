@@ -19,6 +19,8 @@ pub enum OutputKind<'a> {
     Suffixed { suffix: &'a str, extension: &'a str },
     // contrato.pdf → contrato-paginas-1-3-5.pdf (the whole name comes ready)
     Named { name: &'a str, extension: &'a str },
+    // cancion.mp3 → cancion (recorte).mp3
+    Trimmed { extension: &'a str },
     // contrato.pdf → contrato-paginas/ (a folder, no extension)
     Folder { suffix: &'a str },
     // foto.jpg → foto.jpg in another folder, as it was (Ordenar una carpeta moves it there)
@@ -51,6 +53,7 @@ fn base_name(params: &OutputNameParams) -> (String, String) {
         OutputKind::Archive { prefix, stamp }      => (format!("{prefix}-{stamp}"), ZIP_EXTENSION.to_string()),
         OutputKind::Suffixed { suffix, extension } => (format!("{stem}-{suffix}"), extension.to_string()),
         OutputKind::Named { name, extension }      => (name.to_string(), extension.to_string()),
+        OutputKind::Trimmed { extension }          => (format!("{stem} (recorte)"), extension.to_string()),
         OutputKind::Folder { suffix }              => (format!("{stem}-{suffix}"), String::new()),
         OutputKind::Same                           => (stem, extension_of(params.source)),
     }
@@ -137,6 +140,8 @@ mod tests {
     fn pdf_outputs_use_suffixes_names_and_folders() {
         assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Suffixed { suffix: "unido", extension: "pdf" }, &[]), PathBuf::from("C:/docs/contrato-unido.pdf"));
         assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Named { name: "contrato-paginas-1-3", extension: "pdf" }, &[]), PathBuf::from("C:/docs/contrato-paginas-1-3.pdf"));
+        assert_eq!(name_for("C:/musica/cancion.mp3", OutputKind::Trimmed { extension: "mp3" }, &[]), PathBuf::from("C:/musica/cancion (recorte).mp3"));
+        assert_eq!(name_for("C:/v/viaje.mkv", OutputKind::Trimmed { extension: "mkv" }, &["C:/v/viaje (recorte).mkv"]), PathBuf::from("C:/v/viaje (recorte) (2).mkv"));
         assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Folder { suffix: "paginas" }, &["C:/docs/contrato-paginas"]), PathBuf::from("C:/docs/contrato-paginas (2)"));
     }
 
