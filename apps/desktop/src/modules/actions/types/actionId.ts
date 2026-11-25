@@ -20,4 +20,7 @@ export type ActionId =
   | 'scan'
   | 'extract-audio'
   | 'trim'
+  | 'subtitles'
+  | 'save-subtitles'
+  | 'to-gif'
   | 'zip';
