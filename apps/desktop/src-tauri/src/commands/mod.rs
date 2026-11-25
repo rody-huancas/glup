@@ -11,6 +11,7 @@ pub mod history;
 pub mod id_photo;
 pub mod island;
 pub mod links;
+pub mod media;
 pub mod notify;
 pub mod performance;
 pub mod photos;
