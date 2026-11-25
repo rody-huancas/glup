@@ -1,6 +1,7 @@
 import { CLEANUP_TEXTS } from '@/modules/cleanup/constants/texts';
 import type { SelectionTotals } from '@/modules/cleanup/interfaces/selectionTotals';
 import type { CleanupPhase } from '@/modules/cleanup/types/cleanupPhase';
+import { cleaningLabel } from '@/modules/cleanup/utils/progressText';
 import { formatFileSize } from '@/modules/actions/utils/fileSize';
 import { Button } from '@/shared/components/Button';
 import { ProgressBar } from '@/shared/components/ProgressBar';
@@ -10,6 +11,7 @@ interface CleanupFooterProps {
   totals     : SelectionTotals;
   progress   : number | null;
   name       : string;
+  count      : { current: number; total: number };
   waiting    : boolean;
   cancelling : boolean;
   onScan     : () => void;
@@ -21,9 +23,9 @@ const disabledLook = 'disabled:cursor-not-allowed disabled:opacity-45 disabled:h
 
 // Always at the bottom: while working, the progress and Cancelar; with a result, what is marked and
 // "Liberar X"; otherwise "Revisar mi PC".
-export const CleanupFooter = ({ phase, totals, progress, name, waiting, cancelling, onScan, onCancel, onFree }: CleanupFooterProps) => {
+export const CleanupFooter = ({ phase, totals, progress, name, count, waiting, cancelling, onScan, onCancel, onFree }: CleanupFooterProps) => {
   if (phase === 'scanning' || phase === 'cleaning') {
-    const label = waiting ? CLEANUP_TEXTS.waiting : phase === 'cleaning' ? CLEANUP_TEXTS.cleaning : CLEANUP_TEXTS.scanning(name);
+    const label = waiting ? CLEANUP_TEXTS.waiting : phase === 'cleaning' ? cleaningLabel({ ...count, name }) : CLEANUP_TEXTS.scanning(name);
 
     return (
       <footer className="flex shrink-0 items-center gap-3 border-t border-line pt-3">

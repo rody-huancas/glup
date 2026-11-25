@@ -24,6 +24,7 @@ export const CLEANUP_TEXTS = {
   cleanTask   : 'Liberar espacio',
   free        : (size: string) => `Liberar ${size}`,
   cleaning    : 'Liberando espacio…',
+  deleting    : (current: string, total: string) => `Borrando ${current} de ${total}…`,
   nothing     : 'No encontré nada que valga la pena borrar. Tu PC está ordenada.',
   nothingHere : 'Nada por aquí',
   intro       : 'Reviso los temporales, las cachés de los navegadores, la papelera, Descargas y tus carpetas personales. No borro nada sin que lo marques.',

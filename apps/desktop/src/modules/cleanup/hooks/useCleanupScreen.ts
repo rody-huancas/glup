@@ -67,6 +67,8 @@ export const useCleanupScreen = () => {
     working        : cleanup.phase === 'scanning' || cleanup.phase === 'cleaning',
     progress       : task ? getTaskFraction(task) : null,
     progressName   : task?.progress?.name ?? '',
+    // Files done and in all, for "Borrando 1.240 de 8.300…".
+    progressCount  : { current: task?.progress?.current ?? 0, total: task?.progress?.total ?? 0 },
     waiting        : task?.status === 'queued',
     cancelling     : task?.cancelling ?? false,
     confirming,

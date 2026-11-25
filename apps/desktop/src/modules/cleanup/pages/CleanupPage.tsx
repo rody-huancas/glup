@@ -46,6 +46,7 @@ export const CleanupPage = () => {
         totals={screen.totals}
         progress={screen.progress}
         name={screen.progressName}
+        count={screen.progressCount}
         waiting={screen.waiting}
         cancelling={screen.cancelling}
         onScan={screen.scan}
