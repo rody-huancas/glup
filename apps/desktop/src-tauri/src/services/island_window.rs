@@ -9,6 +9,8 @@ use crate::{services::visibility, ISLAND_WINDOW_LABEL};
 
 pub const ISLAND_OPEN_EVENT: &str   = "island-open";
 pub const ISLAND_TOGGLE_EVENT: &str = "island-toggle";
+// Opened from the Explorer: like a click (not pinned; a click outside, Esc or its shortcut close it).
+pub const ISLAND_SHOW_EVENT: &str   = "island-show";
 
 // Visible area at startup, on top in the middle (the pill with its ears and hover room); must match
 // dockRegion(placeIsland(DEFAULT_DOCK), 'collapsed') in the webview.
@@ -342,6 +344,8 @@ pub struct IslandStatus {
     pub tray_hidden: bool,
     pub capturing: bool,
     pub area: IslandRect,
+    // Rust follows a drag of the pill now (the webview's "moving" must match it).
+    pub dragging: bool,
 }
 
 pub fn status(window: &WebviewWindow) -> IslandStatus {
@@ -353,6 +357,7 @@ pub fn status(window: &WebviewWindow) -> IslandStatus {
         tray_hidden : flags.user_hidden,
         capturing   : flags.capturing,
         area        : stored_area(window).unwrap_or(INITIAL_AREA),
+        dragging    : crate::services::island_drag::is_dragging(window.app_handle()),
     }
 }
 
@@ -360,6 +365,12 @@ pub fn status(window: &WebviewWindow) -> IslandStatus {
 pub fn request_open(app: &AppHandle) {
     visibility::show_for_user(app);
     let _ = app.emit_to(ISLAND_WINDOW_LABEL, ISLAND_OPEN_EVENT, ());
+}
+
+// Files from the Explorer need a step: the panel opens on it as with a click, not pinned.
+pub fn request_show(app: &AppHandle) {
+    visibility::show_for_user(app);
+    let _ = app.emit_to(ISLAND_WINDOW_LABEL, ISLAND_SHOW_EVENT, ());
 }
 
 // Its shortcut: opens the panel when closed (hidden or not), closes it when open.

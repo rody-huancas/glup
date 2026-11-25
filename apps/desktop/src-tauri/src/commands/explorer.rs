@@ -23,8 +23,9 @@ pub async fn set_send_to(app: AppHandle, enabled: bool) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || explorer::change(&app, ExplorerChange { menu: None, send_to: Some(enabled) })).await.map_err(|error| error.to_string())?
 }
 
-// Files from the Explorer that need a step: the island opens on it (shown even if hidden in the tray).
+// Files from the Explorer that need a step: the island opens on it like a click (shown even if hidden
+// in the tray), not pinned.
 #[tauri::command]
 pub fn open_island(app: AppHandle) {
-    island_window::request_open(&app);
+    island_window::request_show(&app);
 }
