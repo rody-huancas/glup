@@ -7,9 +7,10 @@ import type { TranscribeLanguage } from '@/modules/transcribe/types/transcribeLa
 import type { TranscribeLevel } from '@/modules/transcribe/types/transcribeLevel';
 import { estimateText, totalSeconds } from '@/modules/transcribe/utils/transcribe';
 
-// The choices of the step: the language, and the level (remembered in settings.json for next time).
-export const useTranscribeStep = (files: FileInfo[]) => {
-  const [language, setLanguage] = useState<TranscribeLanguage>('auto');
+// The choices of the step: the language (detected unless another is given), and the level (remembered
+// in settings.json for next time).
+export const useTranscribeStep = (files: FileInfo[], initial: TranscribeLanguage = 'auto') => {
+  const [language, setLanguage] = useState<TranscribeLanguage>(initial);
   const [other, setOther]       = useState<TranscribeLanguage>('fr');
   const [level, setLevelState]  = useState<TranscribeLevel>('fast');
   const [settings, setSettings] = useState<SettingsView | null>(null);
