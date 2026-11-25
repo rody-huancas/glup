@@ -10,7 +10,9 @@ import type { PageId } from '@/modules/main-window/types/pageId';
 import { PerformancePage } from '@/modules/performance/pages/PerformancePage';
 import { QrCreatePage } from '@/modules/qr/pages/QrCreatePage';
 import { QrReadPage } from '@/modules/qr/pages/QrReadPage';
+import { RenamePage } from '@/modules/rename/pages/RenamePage';
 import { SettingsPage } from '@/modules/settings/pages/SettingsPage';
+import { SpacePage } from '@/modules/space/pages/SpacePage';
 import { ToolsPage } from '@/modules/tools/pages/ToolsPage';
 import type { ComponentType } from 'react';
 
@@ -30,6 +32,8 @@ export const PAGES: Record<PageId, ComponentType<PageProps>> = {
   'performance'      : PerformancePage,
   'qr-create'        : QrCreatePage,
   'qr-read'          : QrReadPage,
+  'space'            : SpacePage,
+  'batch-rename'     : RenamePage,
   'family-images'    : FamilyPage,
   'family-pdf'       : FamilyPage,
   'family-media'     : FamilyPage,
