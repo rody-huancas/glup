@@ -71,7 +71,7 @@ windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphic
 # "Sacar texto": the OCR that comes with Windows (Windows.Media.Ocr). Same version Tauri already uses.
 # Windows notifications with a click handler (the notification plugin has none on desktop).
 tauri-winrt-notification = "0.8"
-windows     = { version = "0.62", features = ["Foundation", "Foundation_Collections", "Globalization", "Graphics_Imaging", "Devices_Power", "Media_FaceAnalysis", "Media_Ocr", "Storage_Streams", "System_Power", "System_UserProfile", "Win32_System_WinRT"] }
+windows     = { version = "0.62", features = ["Foundation", "Foundation_Collections", "Globalization", "Graphics_Imaging", "Devices_Power", "Media_FaceAnalysis", "Media_Ocr", "Storage_Streams", "System_Power", "System_UserProfile", "Win32_System_Com", "Win32_System_WinRT", "Win32_UI_Shell"] }
 
 # Errors still show file and line, but the debug info weighs far less (target grew to tens of GB).
 [profile.dev]

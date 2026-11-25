@@ -28,4 +28,6 @@ export interface HomeFiles {
   // «Elegir archivos» of a family: only its kinds in the dialog.
   pickFilesOf             : (type: DialogFileType) => void;
   runTool                 : (tool: ActionTool) => Promise<boolean>;
+  // Files from the Explorer, with the option chosen there (or none); true when that action was chosen.
+  openWith                : (params: { paths: string[]; actionId: ActionId | null }) => Promise<boolean>;
 }

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useExplorerRequests } from '@/modules/explorer/hooks/useExplorerRequests';
 import { useHomeFiles } from '@/modules/home/hooks/useHomeFiles';
 import { DEFAULT_PAGE } from '@/modules/main-window/constants/navigation';
 import type { MainPanelState } from '@/modules/main-window/interfaces/mainPanel';
@@ -26,6 +27,7 @@ export const useMainWindow = (): MainPanelState => {
   const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start });
 
   useTaskMood(commandAvatar);
+  useExplorerRequests({ files, onNavigate: setPage });
 
   const welcome = useWelcome({ onDone: showHome });
 

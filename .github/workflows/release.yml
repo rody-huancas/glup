@@ -1,5 +1,6 @@
 # Builds Glup for Windows when a v*.*.* tag is pushed and leaves a draft Release with the NSIS
-# installer, the .msi and the signed latest.json for the updater. The draft is published by hand.
+# installer (the only one: it writes and removes the Explorer's entries) and the signed latest.json for
+# the updater. The draft is published by hand.
 name: Release
 
 on:
@@ -78,12 +79,10 @@ jobs:
           projectPath: apps/desktop
           tauriScript: pnpm tauri
           # Only here: updater artifacts need the private key, which local builds do not have.
-          args: --config src-tauri/tauri.release.conf.json
+          args: --config src-tauri/tauri.release.conf.json --bundles nsis
           tagName: ${{ github.ref_name }}
           releaseName: Glup ${{ github.ref_name }}
           releaseBody: ${{ steps.tag.outputs.notes }}
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
-          # People install with the NSIS installer; updates use it too.
-          updaterJsonPreferNsis: true

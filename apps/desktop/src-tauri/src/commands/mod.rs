@@ -3,6 +3,7 @@ pub mod background;
 pub mod cleanup;
 pub mod clipboard;
 pub mod cursor;
+pub mod explorer;
 pub mod files;
 pub mod folder_sort;
 pub mod history;

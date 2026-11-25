@@ -53,6 +53,9 @@ export interface AppSettings {
   historySeenAt         : number | null;
   // The suggestions of Inicio that were closed (by key; a changed one shows again).
   dismissedTips         : string[];
+  // "Mostrar Glup en el clic derecho" and "En Enviar a" (Ajustes › General), on unless turned off.
+  explorerMenuOff       : boolean;
+  sendToOff             : boolean;
 }
 
 export interface SettingsView extends AppSettings {

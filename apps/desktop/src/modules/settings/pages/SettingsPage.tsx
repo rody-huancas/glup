@@ -2,6 +2,7 @@ import { LearnedSection } from '@/modules/background/components/LearnedSection';
 import { ClipboardSettings } from '@/modules/clipboard/components/ClipboardSettings';
 import { DockPositionSetting } from '@/modules/dock/components/DockPositionSetting';
 import { IslandLook } from '@/modules/dock/components/IslandLook';
+import { ExplorerSettings } from '@/modules/explorer/components/ExplorerSettings';
 import { IslandBorderSetting } from '@/modules/island/components/IslandBorderSetting';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { ScreenTextHistoryToggle } from '@/modules/screen-text/components/ScreenTextHistoryToggle';
@@ -19,7 +20,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { SectionLabel } from '@/shared/components/SectionLabel';
 
 // A newer version first (if any), then General (starting with the computer, the notifications, the
-// shortcut of "Copiar texto de la pantalla" and whether its texts stay in the history, the version),
+// right click and «Enviar a» of the Explorer, the shortcut of "Copiar texto de la pantalla" and whether its texts stay in the history, the version),
 // the Portapapeles, where results are saved, "Pasar audio a texto" (graphics card or processor) and
 // what Glup downloaded.
 export const SettingsPage = ({ files }: PageProps) => (
@@ -32,6 +33,8 @@ export const SettingsPage = ({ files }: PageProps) => (
         <AutostartToggle />
         <div className="border-t border-line" />
         <NotificationsToggle />
+        <div className="border-t border-line" />
+        <ExplorerSettings />
         <div className="border-t border-line" />
         <DockPositionSetting />
         <IslandLook />
