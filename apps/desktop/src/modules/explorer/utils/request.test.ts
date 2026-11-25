@@ -14,10 +14,12 @@ describe('a request from the Explorer', () => {
     expect(requestAction({ tool: 'nothing', paths: ['a.pdf'] }, TOOLS)).toBeNull();
   });
 
-  it('every option of the menu is an action of tools.json and says whether it asks something', () => {
+  it('every option of the menu is an action of tools.json (or a screen that takes files) and says whether it asks something', () => {
     const menu = TOOLS.filter((tool) => tool.menu);
     expect(menu.length).toBeGreaterThan(5);
-    expect(menu.every((tool) => tool.kind === 'action' && typeof tool.menuNeedsStep === 'boolean')).toBe(true);
+    expect(menu.every((tool) => (tool.kind === 'action' || (tool.kind === 'page' && tool.actionId)) && typeof tool.menuNeedsStep === 'boolean')).toBe(true);
+    // «Leer QR» opens its screen with the files.
+    expect(requestAction({ tool: 'qr-read', paths: ['codigo.png'] }, TOOLS)).toBe('read-qr');
   });
 
   it('opens the island only when something is left to do there', () => {
