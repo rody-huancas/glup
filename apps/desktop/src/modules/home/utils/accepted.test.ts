@@ -5,7 +5,7 @@ import { TOOLS } from '@/modules/tools/constants/tools';
 import type { Tool } from '@/modules/tools/types/tool';
 
 const tool = (fileType: 'pdf' | 'image' | 'audio' | 'video' | 'any' | 'files'): Tool => ({
-  id: fileType, kind: 'action', section: 'pdf', icon: 'text', actionId: 'zip', fileType, multiple: true, title: '', description: '',
+  id: fileType, kind: 'action', family: 'pdf', icon: 'text', actionId: 'zip', fileType, multiple: true, title: '', description: '',
 });
 
 describe('what the drop zone accepts', () => {
