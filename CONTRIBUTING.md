@@ -55,6 +55,38 @@ pnpm voz:build                            # target/debug/glup-voz.exe, junto al 
 - Para usar Vulkan hace falta el cargador `vulkan-1.dll`, que instalan los drivers de NVIDIA, AMD e
   Intel. Si no está, `glup-voz.exe` no arranca y Glup usa el procesador.
 
+### El clic derecho del Explorador
+
+Glup aparece en el clic derecho de las fotos, los PDF, el audio y el video, y en «Enviar a». Todo es
+por usuario y no pide administrador.
+
+- **Cómo se arma:**
+  - El menú se escribe en `HKCU\Software\Classes\SystemFileAssociations\.<ext>\shell\Glup`, con
+    subcomandos en cascada que salen de `tools.json` (el campo `menu`).
+  - Explorer abre un `glup.exe --menu <herramienta> "<archivo>"` por cada archivo elegido. La
+    instancia única los junta en una sola tarea, con todo lo que llega en 500 ms.
+  - `menuNeedsStep` en `tools.json` dice si esa opción pregunta algo (la isla se abre en el paso) o
+    corre directo con las opciones de siempre (solo avisa al terminar).
+- **Quién escribe y quita las entradas:** Glup mismo (`services/explorer`).
+  - Las vuelve a escribir al arrancar, por si una actualización cambió la ruta.
+  - El instalador (solo NSIS; no hay `.msi`) lo llama con `--install-shell` al instalar y con
+    `--uninstall-shell` al desinstalar (`src-tauri/windows/installer-hooks.nsh`).
+- **En desarrollo:** `pnpm dev` también las escribe, apuntando a `target\debug\glup.exe`. Apágalas
+  en Ajustes › General o con `glup.exe --uninstall-shell`.
+- **Windows 11:** hoy Glup aparece en «Mostrar más opciones». Para el menú moderno haría falta:
+  - **Un controlador `IExplorerCommand`:** un servidor COM, en una DLL o en un `.exe` registrado como
+    servidor fuera de proceso, que dé el título, el ícono, el estado según la selección y los
+    subcomandos (`IEnumExplorerCommand`), y que reciba la selección entera en `Invoke`, con lo que
+    no haría falta juntar procesos.
+  - **Identidad de paquete:** un paquete MSIX completo, o uno «sparse» (*packaging with external
+    location*) junto al instalador actual. Su `AppxManifest.xml` declara `desktop4:FileExplorerContextMenus`
+    con un `desktop5:ItemType` por tipo de archivo y el `com:SurrogateServer` (o `com:ExeServer`) con
+    el CLSID del controlador.
+  - **Firma:** el paquete tiene que ir firmado con un certificado de confianza (de código, o de la
+    Microsoft Store). Sin firma, Windows no lo registra.
+  - **Instalación:** registrar el paquete al instalar (`Add-AppxPackage -ExternalLocation`, o la API
+    `PackageManager`) y quitarlo al desinstalar.
+
 ## Lo que no se negocia
 
 - **Los archivos originales nunca se modifican ni se borran.**
@@ -93,7 +125,7 @@ Solo Windows por ahora. La versión vive en `apps/desktop/src-tauri/Cargo.toml` 
    ```
 
 4. **Push del tag**: `git push origin v0.2.0`. El workflow `Release` compila y deja un **borrador**
-   con el instalador `.exe`, el `.msi` y `latest.json`. Falla si el tag no coincide con `Cargo.toml`.
+   con el instalador `.exe` (NSIS, el único) y `latest.json`. Falla si el tag no coincide con `Cargo.toml`.
 5. **Revisar el borrador** en GitHub › Releases: que estén los archivos (también los `.sig`), instalar
    el `.exe` y probarlo.
 6. **Publicarlo** («Publish release»). Desde ese momento las copias instaladas lo ven como versión
