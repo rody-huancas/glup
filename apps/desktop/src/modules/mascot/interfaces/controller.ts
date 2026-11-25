@@ -24,4 +24,6 @@ export interface MascotOptions {
   reactToDrops?  : boolean;
   // False hides nothing but stops animating arms and feet (where they cannot be seen).
   limbs?         : boolean;
+  // Also has the peeking Glup (the island's), shown as --peek goes to 1.
+  peek?          : boolean;
 }

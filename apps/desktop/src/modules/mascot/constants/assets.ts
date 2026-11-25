@@ -15,9 +15,14 @@ import mouthO from '@/modules/mascot/assets/mouth-o.png';
 import mouthOpen from '@/modules/mascot/assets/mouth-open.png';
 import mouthSmile from '@/modules/mascot/assets/mouth-smile.png';
 import mouthWavy from '@/modules/mascot/assets/mouth-wavy.png';
+import peekLarge from '@/modules/mascot/assets/glup-peek-320.webp';
+import peekSmall from '@/modules/mascot/assets/glup-peek-160.webp';
 import type { PieceName } from '@/modules/mascot/types/pieceName';
 
 export const BODY_ASSET = body;
+
+// Glup peeking (without its face): 160 px wide for normal scaling, 320 for high.
+export const PEEK_ASSETS = { small: peekSmall, large: peekLarge };
 
 export const PIECE_ASSETS: Record<PieceName, string> = {
   'eye-left'        : eyeLeft,
