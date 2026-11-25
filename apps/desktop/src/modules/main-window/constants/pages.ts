@@ -1,3 +1,4 @@
+import { AutoFoldersPage } from '@/modules/auto-folders/pages/AutoFoldersPage';
 import { CleanupPage } from '@/modules/cleanup/pages/CleanupPage';
 import { ClipboardPage } from '@/modules/clipboard/pages/ClipboardPage';
 import { DuplicatesPage } from '@/modules/duplicates/pages/DuplicatesPage';
@@ -34,6 +35,7 @@ export const PAGES: Record<PageId, ComponentType<PageProps>> = {
   'qr-read'          : QrReadPage,
   'space'            : SpacePage,
   'batch-rename'     : RenamePage,
+  'auto-folders'     : AutoFoldersPage,
   'family-images'    : FamilyPage,
   'family-pdf'       : FamilyPage,
   'family-media'     : FamilyPage,

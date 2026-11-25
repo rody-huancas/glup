@@ -9,6 +9,7 @@ const TOOL_PARENTS: Partial<Record<PageId, PageId>> = {
   'duplicates'  : familyPage('pc'),
   'space'       : familyPage('pc'),
   'batch-rename': familyPage('pc'),
+  'auto-folders': familyPage('pc'),
   'clipboard'   : familyPage('clipboard'),
   'qr-create'   : familyPage('text'),
   'qr-read'     : familyPage('text'),
