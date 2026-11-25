@@ -83,6 +83,11 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   Windows no puede y FFmpeg no está, se pide descargarlo (`photos` en `LEARNABLES`, el mismo FFmpeg)
   y corre en la misma tarea. Siempre derechas, la principal de una ráfaga, el mosaico entero y en
   sRGB. Las miniaturas las hace Rust (`get_image_preview`): el webview no muestra HEIC.
+- **Descargas** (`background/download.rs`, para todos los modelos y FFmpeg): se conecta primero solo
+  por IPv4 (`FAMILIES`) y después por todas las direcciones, porque donde IPv6 está configurado pero no
+  sale, cada dirección IPv6 espera hasta agotar el tiempo; un corte a mitad se reanuda solo
+  (`ATTEMPTS`) y un servidor que responde 200 al reanudar empieza de cero. En desarrollo deja en la
+  consola `[glup:descarga]` las redirecciones, el estado, el rango y dónde se cortó.
 - **Fecha y ubicación**: Convertir, Reducir peso y A JPG guardan en la salida la fecha de la foto, la
   cámara y, solo si «Quitar ubicación» está apagado (encendido por defecto, en `settings.json` como
   `keepLocation`), el GPS. Solo JPG, PNG y WebP; AVIF, ICO y PDF no llevan EXIF.
@@ -90,6 +95,24 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   `libx264`. Todo lo que decide (tamaño de imagen, tasas de bits, argumentos) es puro en
   `services/video/plan.rs`; el proceso se lanza en `encode.rs`, con progreso leído de `-progress` y
   Cancelar que lo detiene y borra el archivo a medias. Uno a la vez.
+- **Tamaño para redes** (`services/social`, `modules/social`): las medidas viven en
+  `modules/social/constants/sizes.json` (las pruebas de Rust lo leen también). El encuadre se calcula en
+  la pantalla (`utils/frame.ts`: centro y zoom, nunca fuera de la foto, empieza en la cara que encuentra
+  el detector de Windows) y viaja a Rust como un `Frame` de 0 a 1 por foto; «Que entre completa»
+  rellena con un color o con la misma foto desenfocada. Salida `<nombre> (Instagram historia).jpg`.
+- **Marca de agua en fotos** (`services/photo_mark`, `modules/photo-mark`; la de PDF es otra): texto con
+  las fuentes de Windows dibujadas con `ab_glyph`, o un logo PNG; 9 lugares con margen o «En mosaico»
+  (repetida y girada 30°). Tamaño y margen por el lado corto de cada foto, con las mismas reglas en
+  `layout.rs` y `utils/layout.ts` (la vista previa en vivo es lo que se guarda). La última configuración
+  (y el logo) queda en `marca.json`. Salida `<nombre> (marca).jpg`.
+- **Mejorar calidad** (`services/upscale`, `modules/upscale`): Real-ESRGAN (BSD-3) en dos niveles,
+  «Rápido» (`realesr-general-x4v3`, 4,9 MB) y «Más detalle» (`realesrgan-x4plus`, 67 MB), descargados con
+  permiso y en Lo que aprendí. Corre con la misma sesión de ONNX Runtime que Quitar fondo
+  (`BackgroundSession::run_shaped`, DirectML con caída a procesador), por bloques de un solo tamaño con
+  solapamiento (`tiles.rs`: el tamaño fijo evita que DirectML prepare el modelo otra vez por cada
+  bloque); «Mismo tamaño» (x1, por defecto) es el x4 vuelto a su tamaño con Lanczos, más nítido y con menos ruido, y sale como `<nombre> (mejorada).jpg`; x2 es el x4 promediado de a 2 × 2. Límite de 40 MP de salida. Red de seguridad
+  (`looks_broken`): si el resultado reducido no se parece a la foto, no se guarda. «Antes / Después» con
+  cortina sobre un pedazo de la foto antes de procesar todo.
 - **Subtítulos** (`services/subtitles`, `modules/subtitles`): escucha con `transcribe::listen_files`
   (el mismo Whisper, tarjeta o procesador, y la misma descarga con permiso), y `cues::build` arma frases
   de 2 líneas de 42 caracteres y hasta 6 s, que la pantalla deja corregir (`utils/cues.ts`). Al guardar:
@@ -170,6 +193,7 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | Video (1) | Subtítulos (pantalla propia: idioma —español por defecto— y nivel de «Pasar audio a texto», escucha como tarea, frases para corregir, unir, partir y ajustar sobre el reproductor; se guardan como .srt aparte, como pista dentro del video o pegados en la imagen con «Fondo») |
 | Video (1) | Video a GIF (la pantalla de Recortar con `purpose: 'gif'`: tramo sugerido de 15 s, ancho, cuadros por segundo, «Repetir siempre», GIF o WebP animado, peso estimado y vista previa real) |
 | Audio o video (1) | Recortar (pantalla propia con línea de tiempo; si falta FFmpeg lo pide ahí; `fileType: "media"` abre «Elegir archivos» en «Videos y audios» y `menuTypes` lo pone en el clic derecho de ambos) |
+| Imágenes (1+) | Tamaño para redes, Marca de agua y Mejorar calidad: cada una abre su pantalla completa de Imágenes (`modules/photo-tools`: foto a la izquierda con «Foto N de M», opciones a la derecha, «Guardar en», ZIP con 2+ y botón lila) y guarda con `run_action` como cualquier acción |
 | Imagen (1) | Foto tamaño carnet (pasaporte 3,5 × 4,5, cuadrada 5 × 5 o a medida; foto y hoja 10 × 15 a 300 ppp; usa el modelo de Quitar fondo y el detector de rostros de Windows) |
 | Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper con la tarjeta de video si hay una que sirva —`glup-voz.exe`, Vulkan— y si no con el procesador; Ajustes › «Usar la tarjeta de video»: Automático o Nunca; el progreso dice con cuál; Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |
