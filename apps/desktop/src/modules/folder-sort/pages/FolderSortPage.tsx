@@ -22,7 +22,7 @@ export const FolderSortPage = () => {
         <SortFolderPicker folder={folder} disabled={screen.working} onPick={screen.pick} />
         <SortModeChooser mode={mode} disabled={screen.working} onChoose={screen.chooseMode} />
       </div>
-      <div className="scroll-thin my-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="scroll-thin my-4 min-h-0 flex-1 overflow-y-auto pr-1 pb-4">
         {phase === 'idle' && <p className="text-[13px] leading-relaxed text-muted">{FOLDER_SORT_TEXTS.intro}</p>}
         {phase === 'idle' && error && <p role="alert" className="mt-2 text-[13px] text-lilac-soft">{error}</p>}
         {phase === 'previewing' && <SortPreviewSkeleton />}

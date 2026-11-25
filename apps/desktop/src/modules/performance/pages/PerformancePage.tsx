@@ -25,7 +25,7 @@ export const PerformancePage = ({ onNavigate }: PageProps) => {
       <div className="shrink-0">
         <PageHeader title={PERFORMANCE_TEXTS.title} subtitle={PERFORMANCE_TEXTS.subtitle} />
       </div>
-      <div className="scroll-thin my-4 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
+      <div className="scroll-thin my-4 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1 pb-4">
         {failed && !overview && <p role="alert" className="text-[13px] text-lilac-soft">{PERFORMANCE_TEXTS.loadError}</p>}
         {!overview && !failed && <PerformanceSkeleton />}
         {overview && (

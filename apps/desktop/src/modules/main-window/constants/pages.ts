@@ -11,6 +11,10 @@ import { PerformancePage } from '@/modules/performance/pages/PerformancePage';
 import { SettingsPage } from '@/modules/settings/pages/SettingsPage';
 import { ToolsPage } from '@/modules/tools/pages/ToolsPage';
 
+// Screens with their own list that scrolls (their header stays); every other one scrolls whole, with
+// room at its end.
+export const SELF_SCROLLING: PageId[] = ['tools', 'cleanup', 'folder-sort', 'performance'];
+
 export const PAGES: Record<PageId, ComponentType<PageProps>> = {
   'home'             : HomePage,
   'tools'            : ToolsPage,
