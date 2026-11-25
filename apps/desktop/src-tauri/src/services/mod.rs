@@ -5,6 +5,7 @@ pub mod cleanup;
 pub mod clipboard;
 pub mod cursor_tracker;
 pub mod destination;
+pub mod dev_build;
 pub mod explorer;
 pub mod file_info;
 pub mod folder_sort;

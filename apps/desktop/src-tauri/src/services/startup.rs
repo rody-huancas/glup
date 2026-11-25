@@ -7,7 +7,7 @@ use serde::Serialize;
 use tauri::{menu::CheckMenuItem, AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::services::{explorer, island_window};
+use crate::services::{dev_build, explorer, island_window};
 
 // Passed by Windows when Glup starts with the computer: it then stays as the quiet pill.
 pub const AUTOSTART_ARG: &str           = "--autostart";
@@ -99,9 +99,15 @@ fn sync(app: &AppHandle, enabled: bool) {
     let _ = app.emit(AUTOSTART_CHANGED_EVENT, enabled);
 }
 
-// Turns it on or off and tells the tray and the panel the real state afterwards.
+// Turns it on or off and tells the tray and the panel the real state afterwards. A development build
+// never turns it on (Windows would start target\debug at every login): it stays off unless asked.
 pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<bool, String> {
     let manager = app.autolaunch();
+    if enabled && !dev_build::shell_allowed() {
+        let now = is_enabled(app);
+        sync(app, now);
+        return Ok(now);
+    }
     let result  = if enabled { manager.enable() } else { manager.disable() };
     let now     = is_enabled(app);
 

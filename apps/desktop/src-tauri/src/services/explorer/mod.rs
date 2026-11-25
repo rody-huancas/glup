@@ -18,7 +18,10 @@ use std::{
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::services::settings::{self, Settings};
+use crate::services::{
+    dev_build,
+    settings::{self, Settings},
+};
 
 pub const REQUEST_EVENT: &str = "explorer-request";
 // Asked by the installer: write the entries (with the settings there are) or take them out, and quit.
@@ -134,8 +137,13 @@ fn current_exe() -> Option<PathBuf> {
     std::env::current_exe().ok()
 }
 
-// At every start: an update may have moved Glup, so the entries point at this one.
+// At every start: an update may have moved Glup, so the entries point at this one. A development build
+// writes none (see dev_build) and takes out what an earlier one left.
 pub fn sync(app: &AppHandle) {
+    if !dev_build::shell_allowed() {
+        thread::spawn(dev_build::clean_on_start);
+        return;
+    }
     let settings = settings::read(app).settings;
     thread::spawn(move || {
         if let Some(exe) = current_exe() {
@@ -158,7 +166,7 @@ pub fn change(app: &AppHandle, change: ExplorerChange) -> Result<(), String> {
         ..saved
     };
     settings::update(app, next.clone())?;
-    if let Some(exe) = current_exe() {
+    if let Some(exe) = current_exe().filter(|_| dev_build::shell_allowed()) {
         apply(&next, &exe);
     }
     Ok(())
@@ -185,7 +193,8 @@ pub fn installer_mode(args: &[String]) -> bool {
         return true;
     }
     if args.iter().any(|arg| arg == INSTALL_ARG) {
-        if let Some(exe) = current_exe() {
+        // Only an installed Glup is put in the Explorer (a development build writes nothing outside).
+        if let Some(exe) = current_exe().filter(|_| dev_build::shell_allowed()) {
             apply(&saved_settings(), &exe);
         }
         return true;
