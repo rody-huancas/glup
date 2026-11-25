@@ -1,5 +1,6 @@
 // The few registry calls Glup needs: list the values and the subkeys of a key, write one binary value
-// ("Al encender la PC"). Nothing is ever deleted (only the tests remove their own key).
+// ("Al encender la PC") or a text one, and remove a key with everything under it. Only Glup's own keys
+// are ever removed (the entries of the Explorer's right click, and the tests' keys).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Root {
     // HKEY_CURRENT_USER: this person's.
@@ -116,16 +117,17 @@ mod engine {
         create(root, path).is_some()
     }
 
-    #[cfg(test)]
-    pub fn delete_tree(root: Root, path: &str) {
-        unsafe { windows_sys::Win32::System::Registry::RegDeleteTreeW(hkey(root), wide(path).as_ptr()) };
+    // The key and everything under it; a key that is not there counts as removed.
+    pub fn delete_tree(root: Root, path: &str) -> bool {
+        let status = unsafe { windows_sys::Win32::System::Registry::RegDeleteTreeW(hkey(root), wide(path).as_ptr()) };
+        status == ERROR_SUCCESS || status == windows_sys::Win32::Foundation::ERROR_FILE_NOT_FOUND
     }
 
-    #[cfg(test)]
-    pub fn set_text(root: Root, path: &str, name: &str, text: &str) {
-        let key  = create(root, path).unwrap();
-        let data = wide(text);
-        unsafe { RegSetValueExW(key.0, wide(name).as_ptr(), 0, REG_SZ, data.as_ptr().cast(), (data.len() * 2) as u32) };
+    // A text value (an empty name is the key's default value); the key is created if needed.
+    pub fn set_text(root: Root, path: &str, name: &str, text: &str) -> bool {
+        let Some(key) = create(root, path) else { return false };
+        let data      = wide(text);
+        unsafe { RegSetValueExW(key.0, wide(name).as_ptr(), 0, REG_SZ, data.as_ptr().cast(), (data.len() * 2) as u32) == ERROR_SUCCESS }
     }
 }
 
@@ -149,5 +151,15 @@ pub fn set_binary(_: Root, _: &str, _: &str, _: &[u8]) -> bool {
 
 #[cfg(not(windows))]
 pub fn can_write(_: Root, _: &str) -> bool {
+    false
+}
+
+#[cfg(not(windows))]
+pub fn delete_tree(_: Root, _: &str) -> bool {
+    true
+}
+
+#[cfg(not(windows))]
+pub fn set_text(_: Root, _: &str, _: &str, _: &str) -> bool {
     false
 }
