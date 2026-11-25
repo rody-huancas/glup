@@ -17,6 +17,7 @@ const ON: Record<Accent, { track: string; ring: string }> = {
   mint   : { track: 'bg-mint', ring: 'group-focus-visible:outline-mint' },
   media  : { track: 'bg-fam-media', ring: 'group-focus-visible:outline-fam-media' },
   images : { track: 'bg-fam-images', ring: 'group-focus-visible:outline-fam-images' },
+  text   : { track: 'bg-fam-text', ring: 'group-focus-visible:outline-fam-text' },
 };
 
 // The whole row (track and texts) is one real switch button: Space and Enter toggle it natively.
