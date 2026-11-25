@@ -15,6 +15,7 @@ const ACTIVE: Record<Accent, string> = {
   media  : 'border-fam-media/40 bg-fam-media-dark text-fam-media',
   images : 'border-fam-images/40 bg-fam-images-dark text-fam-images',
   text   : 'border-fam-text/40 bg-fam-text-dark text-fam-text',
+  pc     : 'border-fam-pc/40 bg-fam-pc-dark text-fam-pc',
 };
 
 export const SaveOptionButton = ({ label, title, active, disabled, onClick, accent = 'mint' }: SaveOptionButtonProps) => (
