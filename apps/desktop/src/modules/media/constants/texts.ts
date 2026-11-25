@@ -1,4 +1,5 @@
 import type { AudioFormat, AudioQuality } from '@/modules/media/types/audioFormat';
+import type { AnimationFormat } from '@/modules/media/types/animationFormat';
 import type { TrimMode } from '@/modules/media/types/trimMode';
 
 export const EXTRACT_TEXTS = {
@@ -52,6 +53,37 @@ export const TRIM_TEXTS = {
   exitBody    : 'Se pierde el tramo que elegiste.',
   exitConfirm : 'Salir',
   exitCancel  : 'Seguir',
+};
+
+export const PLAYER_TEXTS = {
+  play     : 'Reproducir',
+  pause    : 'Pausar',
+  position : 'Posición',
+};
+
+export const ANIMATION_TEXTS = {
+  title       : 'Video a GIF',
+  taskTitle   : (name: string) => `Video a GIF · ${name}`,
+  format      : 'Formato',
+  formats     : {
+    gif  : { label: 'GIF', hint: 'Se ve en todos lados' },
+    webp : { label: 'WebP animado', hint: 'Pesa mucho menos; sirve en WhatsApp y la web' },
+  } satisfies Record<AnimationFormat, { label: string; hint: string }>,
+  width       : 'Ancho',
+  fixedWidths : [320, 480, 640],
+  original    : (width: number) => `Original (${width} px)`,
+  fps         : 'Cuadros por segundo',
+  loop        : 'Repetir siempre',
+  willWeigh   : (size: string) => `Pesará unos ${size}`,
+  weighs      : (size: string) => `Pesa ${size}`,
+  heavy       : 'Pasa de 8 MB: prueba con menos ancho o menos cuadros por segundo, o con WebP.',
+  long        : (seconds: number) => `El tramo pasa de ${seconds} s: el GIF va a pesar mucho. Acórtalo si puedes.`,
+  preview     : 'Ver cómo queda',
+  previewing  : 'Haciendo la vista previa…',
+  previewAlt  : 'Vista previa de la animación',
+  backToVideo : 'Volver al video',
+  failed      : 'No pude hacer la vista previa',
+  save        : 'Guardar animación',
 };
 
 // How far the arrows move a handle (seconds): a tenth, a second with Shift.
