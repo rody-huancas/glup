@@ -2,6 +2,7 @@ import { LearnedSection } from '@/modules/background/components/LearnedSection';
 import { ClipboardSettings } from '@/modules/clipboard/components/ClipboardSettings';
 import { DockPositionSetting } from '@/modules/dock/components/DockPositionSetting';
 import { IslandLook } from '@/modules/dock/components/IslandLook';
+import { IslandBorderSetting } from '@/modules/island/components/IslandBorderSetting';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import { ScreenTextHistoryToggle } from '@/modules/screen-text/components/ScreenTextHistoryToggle';
 import { AutostartToggle } from '@/modules/settings/components/AutostartToggle';
@@ -41,6 +42,7 @@ export const SettingsPage = ({ files }: PageProps) => (
         <VersionRow />
       </Card>
     </section>
+    <IslandBorderSetting />
     <ClipboardSettings />
     <section className="flex flex-col gap-2.5">
       <SectionLabel>{SAVE_TEXTS.defaultTitle}</SectionLabel>
