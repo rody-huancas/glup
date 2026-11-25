@@ -57,6 +57,16 @@ pub fn run() {
         .manage(services::scan::ScanState::default())
         .manage(services::explorer::ExplorerInbox::default())
         .manage(services::duplicates::DuplicatesState::default())
+        .manage(services::media::serve::MediaFiles::default())
+        .manage(services::media::MediaSession::default())
+        // The file of the trimming screen, to its player, in pieces (services/media/serve.rs).
+        .register_asynchronous_uri_scheme_protocol(services::media::serve::SCHEME, |context, request, responder| {
+            let app = context.app_handle().clone();
+            std::thread::spawn(move || {
+                let files = app.state::<services::media::serve::MediaFiles>();
+                responder.respond(services::media::serve::respond(&files, &request));
+            });
+        })
         .manage(services::performance::PerformanceState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
@@ -83,6 +93,13 @@ pub fn run() {
             commands::actions::sign_pdf,
             commands::actions::organize_pdf,
             commands::actions::check_pdf_password,
+            commands::media::open_media,
+            commands::media::make_media_preview,
+            commands::media::get_media_keyframes,
+            commands::media::get_media_strip,
+            commands::media::get_media_wave,
+            commands::media::close_media,
+            commands::media::trim_media,
             commands::duplicates::get_duplicate_defaults,
             commands::duplicates::check_duplicate_folder,
             commands::duplicates::scan_duplicates,
