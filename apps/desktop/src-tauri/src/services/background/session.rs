@@ -54,7 +54,8 @@ struct Inner {
     watching: AtomicBool,
 }
 
-// Shared state (lib.rs .manage): the model session, one image at a time.
+// Shared state (lib.rs .manage): the session of one model at a time (Quitar fondo's or Mejorar
+// calidad's: asking for the other one swaps it), one image at a time.
 #[derive(Clone, Default)]
 pub struct BackgroundSession(Arc<Inner>);
 
@@ -107,9 +108,9 @@ fn build(environment: &Environment, path: &Path, device: Device) -> Result<Sessi
     builder.commit_from_file(path).map_err(|error| fail(error.to_string()))
 }
 
-pub fn infer(session: &mut Session, input: &[f32]) -> Result<Vec<f32>, String> {
-    let side   = MODEL_SIDE as usize;
-    let tensor = Tensor::from_array(([1usize, 3, side, side], input.to_vec())).map_err(|_| RUN_ERROR.to_string())?;
+// One input of that shape (batch, channels, height, width) through the model; its first output.
+pub fn infer(session: &mut Session, input: &[f32], shape: [usize; 4]) -> Result<Vec<f32>, String> {
+    let tensor = Tensor::from_array((shape, input.to_vec())).map_err(|_| RUN_ERROR.to_string())?;
     let output = session.run(ort::inputs![tensor]).map_err(|error| {
         log(&format!("falló la inferencia: {error}"));
         RUN_ERROR.to_string()
@@ -159,9 +160,15 @@ impl BackgroundSession {
         Ok(())
     }
 
-    // The 1024x1024 logits for one preprocessed image. If the graphics card fails while running
-    // (not enough memory, a driver), the same image is tried again on the CPU.
+    // The 1024x1024 logits for one preprocessed image.
     pub fn run(&self, path: &Path, input: &[f32]) -> Result<Vec<f32>, String> {
+        let side = MODEL_SIDE as usize;
+        self.run_shaped(path, input, [1, 3, side, side]).map(|(values, _)| values)
+    }
+
+    // Any input of the model at `path`, and where it ran. If the graphics card fails while running
+    // (not enough memory, a driver), the same input is tried again on the CPU.
+    pub fn run_shaped(&self, path: &Path, input: &[f32], shape: [usize; 4]) -> Result<(Vec<f32>, Device), String> {
         let mut slot = self.0.loaded.lock().map_err(|_| RUN_ERROR.to_string())?;
 
         if slot.as_ref().is_some_and(|loaded| loaded.path != path) {
@@ -180,9 +187,10 @@ impl BackgroundSession {
 
         loaded.last_used = Instant::now();
 
-        let result = infer(&mut loaded.session, input);
-        if result.is_ok() || loaded.device == Device::Cpu {
-            return result;
+        let device = loaded.device;
+        let result = infer(&mut loaded.session, input, shape);
+        if result.is_ok() || device == Device::Cpu {
+            return result.map(|values| (values, device));
         }
 
         log("la tarjeta gráfica falló; sigo con el procesador");
@@ -192,7 +200,7 @@ impl BackgroundSession {
         let session     = build(&environment, path, Device::Cpu)?;
         let loaded      = slot.insert(Loaded { session, device: Device::Cpu, path: path.to_path_buf(), last_used: Instant::now() });
 
-        infer(&mut loaded.session, input)
+        infer(&mut loaded.session, input, shape).map(|values| (values, Device::Cpu))
     }
 
     // Lets go of the session now (the model was deleted, or it was idle too long).
