@@ -78,6 +78,24 @@ pub struct Settings {
     // The shortcut that opens and closes the panel, as the other ones.
     pub island_shortcut: Option<String>,
     pub island_shortcut_off: bool,
+    // "Borde de la isla" (Ajustes › Apariencia): soft, strong or none.
+    pub island_border: IslandBorder,
+    // Tools marked with a star, in the order of the side bar (ids of tools.json).
+    pub favorite_tools: Vec<String>,
+    // When the Historial was last opened (ms since 1970): the side bar counts what came after.
+    pub history_seen_at: Option<i64>,
+    // The suggestions of Inicio that were closed, by key (the key changes with what one says, so a
+    // changed one shows again). Only the last few are kept.
+    pub dismissed_tips: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum IslandBorder {
+    #[default]
+    Soft,
+    Strong,
+    None,
 }
 
 // The edge ("top", "left", "bottom-right"…), how far along it (0 to 1) and the screen.
@@ -179,6 +197,8 @@ pub fn update(app: &AppHandle, settings: Settings) -> Result<SettingsView, Strin
         write_file(&path, &settings)?;
     }
 
+    #[cfg(debug_assertions)]
+    eprintln!("[glup:posicion] settings guardados, aviso {SETTINGS_CHANGED_EVENT}");
     let _ = app.emit(SETTINGS_CHANGED_EVENT, ());
     Ok(read(app))
 }

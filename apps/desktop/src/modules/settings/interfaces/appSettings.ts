@@ -1,6 +1,7 @@
 import type { BubbleSpot } from '@/modules/dock/interfaces/bubbleSpot';
 import type { IslandDock } from '@/modules/dock/interfaces/islandDock';
 import type { IslandRest } from '@/modules/dock/types/islandRest';
+import type { IslandBorder } from '@/modules/island/types/islandBorder';
 import type { ReduceLevel } from '@/modules/pdf/types/reduceLevel';
 import type { SaveMode } from '@/modules/settings/types/saveMode';
 import type { GpuMode } from '@/modules/transcribe/types/gpuMode';
@@ -44,6 +45,14 @@ export interface AppSettings {
   hiddenIntroSeen       : boolean;
   islandShortcut        : string | null;
   islandShortcutOff     : boolean;
+  // "Borde de la isla" (Ajustes › Apariencia).
+  islandBorder          : IslandBorder;
+  // Tools marked with a star, in the side bar's order (ids of tools.json).
+  favoriteTools         : string[];
+  // When the Historial was last opened (ms): the side bar counts what came after.
+  historySeenAt         : number | null;
+  // The suggestions of Inicio that were closed (by key; a changed one shows again).
+  dismissedTips         : string[];
 }
 
 export interface SettingsView extends AppSettings {
