@@ -18,10 +18,12 @@ import { PageNumbersIcon } from '@/shared/icons/PageNumbersIcon';
 import { PagesIcon } from '@/shared/icons/PagesIcon';
 import { PdfImagesIcon } from '@/shared/icons/PdfImagesIcon';
 import { PhoneIcon } from '@/shared/icons/PhoneIcon';
+import { PhotoMarkIcon } from '@/shared/icons/PhotoMarkIcon';
 import { RemoveBackgroundIcon } from '@/shared/icons/RemoveBackgroundIcon';
 import { ScanIcon } from '@/shared/icons/ScanIcon';
 import { ScreenTextIcon } from '@/shared/icons/ScreenTextIcon';
 import { SignIcon } from '@/shared/icons/SignIcon';
+import { SocialSizeIcon } from '@/shared/icons/SocialSizeIcon';
 import { SplitIcon } from '@/shared/icons/SplitIcon';
 import { SubtitlesIcon } from '@/shared/icons/SubtitlesIcon';
 import { TextIcon } from '@/shared/icons/TextIcon';
@@ -29,6 +31,7 @@ import { ToImagesIcon } from '@/shared/icons/ToImagesIcon';
 import { ToPdfIcon } from '@/shared/icons/ToPdfIcon';
 import { TrimIcon } from '@/shared/icons/TrimIcon';
 import { UnlockIcon } from '@/shared/icons/UnlockIcon';
+import { UpscaleIcon } from '@/shared/icons/UpscaleIcon';
 import { WatermarkIcon } from '@/shared/icons/WatermarkIcon';
 import { ZipIcon } from '@/shared/icons/ZipIcon';
 import type { IconProps } from '@/shared/interfaces/icon';
@@ -49,6 +52,9 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'trim'              : TrimIcon,
   'subtitles'         : SubtitlesIcon,
   'gif'               : GifIcon,
+  'social-size'       : SocialSizeIcon,
+  'photo-mark'        : PhotoMarkIcon,
+  'upscale'           : UpscaleIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,
