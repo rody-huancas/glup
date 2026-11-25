@@ -90,6 +90,19 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   `libx264`. Todo lo que decide (tamaño de imagen, tasas de bits, argumentos) es puro en
   `services/video/plan.rs`; el proceso se lanza en `encode.rs`, con progreso leído de `-progress` y
   Cancelar que lo detiene y borra el archivo a medias. Uno a la vez.
+- **Subtítulos** (`services/subtitles`, `modules/subtitles`): escucha con `transcribe::listen_files`
+  (el mismo Whisper, tarjeta o procesador, y la misma descarga con permiso), y `cues::build` arma frases
+  de 2 líneas de 42 caracteres y hasta 6 s, que la pantalla deja corregir (`utils/cues.ts`). Al guardar:
+  .srt aparte (`<nombre>.srt`), pista sin recodificar (`burn::embed_args`: mov_text en MP4/MOV, srt en
+  MKV, webvtt en WebM; otros formatos no la ofrecen) o pegados en la imagen con libass (en el FFmpeg
+  LGPL): un `.ass` con el estilo de Glup y un `fonts.conf` con las fuentes de Windows en una carpeta
+  temporal donde corre FFmpeg (así el filtro no lleva rutas que escapar), y la imagen con `h264_mf`.
+  Etapas: preparando, escuchando, armando frases (`Stage::Phrasing`) y guardando.
+- **Video a GIF** (`services/media/animation.rs`): GIF con paleta propia del tramo (`palettegen`
+  `stats_mode=diff` + `paletteuse` `sierra2_4a`) o WebP animado (`libwebp_anim`). El peso se estima al
+  instante (`utils/animation.ts`) y cada vista previa real corrige la estimación de ese video; «Guardar»
+  copia la vista previa si nada cambió. Recortar, Subtítulos y Video a GIF guardan con
+  `actions::run_single` (un archivo, un resultado, como tarea).
 - **Sacar el audio y Recortar** (`services/media`, `modules/media`): el mismo FFmpeg, con argumentos
   puros (`extract.rs`, `trim.rs`, `preview.rs`) y probados contra tonos y videos que FFmpeg genera en
   una carpeta temporal. Sacar el audio: MP3 con `libmp3lame` (LGPL, viene en el build), M4A con `aac`
@@ -154,6 +167,8 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
 | Video (1+) | Reducir peso (Para WhatsApp, Para correo, Lo más liviano o un peso máximo; la primera vez pide descargar FFmpeg) |
 | Video (1+) | Sacar el audio (MP3 por defecto, M4A o WAV; Normal o Alta; ZIP con 2+) |
+| Video (1) | Subtítulos (pantalla propia: idioma —español por defecto— y nivel de «Pasar audio a texto», escucha como tarea, frases para corregir, unir, partir y ajustar sobre el reproductor; se guardan como .srt aparte, como pista dentro del video o pegados en la imagen con «Fondo») |
+| Video (1) | Video a GIF (la pantalla de Recortar con `purpose: 'gif'`: tramo sugerido de 15 s, ancho, cuadros por segundo, «Repetir siempre», GIF o WebP animado, peso estimado y vista previa real) |
 | Audio o video (1) | Recortar (pantalla propia con línea de tiempo; si falta FFmpeg lo pide ahí; `fileType: "media"` abre «Elegir archivos» en «Videos y audios» y `menuTypes` lo pone en el clic derecho de ambos) |
 | Imagen (1) | Foto tamaño carnet (pasaporte 3,5 × 4,5, cuadrada 5 × 5 o a medida; foto y hoja 10 × 15 a 300 ppp; usa el modelo de Quitar fondo y el detector de rostros de Windows) |
 | Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper con la tarjeta de video si hay una que sirva —`glup-voz.exe`, Vulkan— y si no con el procesador; Ajustes › «Usar la tarjeta de video»: Automático o Nunca; el progreso dice con cuál; Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |

@@ -45,7 +45,7 @@ dibujado con el set de trazo de `shared/icons`. Inicio: la franja menta, «Lo
 que hicimos» —4 cifras y un gráfico de cápsulas apiladas por familia en SVG propio, sin librerías,
 con tabla oculta para lectores de pantalla y barras de ejemplo rayadas sin datos— y una fila con
 Accesos rápidos, Lo último y Tu PC; todo del historial local), `home`, `actions`, `tasks`, `pdf`, `sign`, `organize`, `cleanup`,
-`history`, `settings`, `text`, `screen-text`, `shortcuts`, `clipboard`, `tools`, `updates`, `video`, `notices`, `id-photo`, `transcribe`, `folder-sort`, `photos`, `performance`, `families`, `media`. Se crean **solo las subcarpetas que se usan**.
+`history`, `settings`, `text`, `screen-text`, `shortcuts`, `clipboard`, `tools`, `updates`, `video`, `notices`, `id-photo`, `transcribe`, `folder-sort`, `photos`, `performance`, `families`, `media`, `subtitles`. Se crean **solo las subcarpetas que se usan**.
 
 ## Reglas obligatorias
 
