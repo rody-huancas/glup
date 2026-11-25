@@ -1,0 +1,16 @@
+[
+  { "extensions": ["vhdx", "vhd", "avhdx"], "keep": true, "note": "Disco virtual de Docker o de Linux (WSL, Hyper-V). No lo borres: se achica desde el propio programa." },
+  { "names": ["system.img", "userdata.img", "userdata-qemu.img", "cache.img", "snapshots.img"], "keep": true, "note": "Disco de un emulador de Android. Bórralo desde el Administrador de dispositivos de Android Studio." },
+  { "folderExtensions": ["avd"], "keep": true, "note": "Un celular virtual de Android Studio. Se borra desde su Administrador de dispositivos." },
+  { "names": ["pagefile.sys"], "keep": true, "note": "La memoria de reserva de Windows. No se borra: Windows la maneja solo." },
+  { "names": ["hiberfil.sys"], "keep": true, "note": "Lo que Windows guarda para hibernar y arrancar rápido. Se quita apagando la hibernación, no borrándolo." },
+  { "names": ["swapfile.sys"], "keep": true, "note": "Memoria de reserva de las apps de Windows. Windows la maneja solo." },
+  { "folderNames": ["steamapps"], "keep": true, "note": "Juegos de Steam. Desinstálalos desde Steam para que no queden a medias." },
+  { "pathContains": ["\\epic games\\"], "keep": true, "note": "Juegos de Epic Games. Desinstálalos desde Epic Games Launcher." },
+  { "pathContains": ["\\apple\\mobilesync\\backup", "\\apple computer\\mobilesync\\backup"], "keep": true, "note": "Copias de seguridad de tu iPhone. Si ya no las necesitas, bórralas desde Dispositivos de Apple o iTunes." },
+  { "folderNames": ["windows.old"], "keep": true, "note": "Tu Windows anterior, guardado al actualizar. Se quita con «Liberar espacio» de Windows." },
+  { "extensions": ["ost", "pst"], "keep": true, "note": "Correo de Outlook. No lo borres desde aquí: se maneja desde Outlook." },
+  { "folderNames": ["cache", "code cache", "cache2", "gpucache"], "pathContains": ["\\google\\chrome\\", "\\microsoft\\edge\\", "\\mozilla\\firefox\\", "\\bravesoftware\\"], "keep": false, "note": "Caché del navegador: se vuelve a llenar sola. Vacíala con Limpieza." },
+  { "folderNames": ["node_modules"], "keep": true, "note": "Lo que un proyecto descargó para funcionar. Se borra desde el proyecto." },
+  { "folderNames": [".gradle", ".m2", ".nuget"], "keep": false, "note": "Lo que guardan las herramientas de programación para no descargarlo otra vez. Se puede vaciar, pero lo vuelven a bajar." }
+]
