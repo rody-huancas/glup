@@ -27,11 +27,15 @@ export interface IslandMachine {
   resets     : number;
   // What keeps it open besides the pin; a running task never does (the pill shows its progress).
   holds      : HoldReason[];
+  // Opened like a click on the bubble, from outside (files from the Explorer with a step): it does not
+  // close when the cursor leaves (it never was there), it closes with a click outside, Esc or its
+  // shortcut. Not pinned unless the person pins it.
+  clicked    : boolean;
 }
 
 export type IslandEvent =
   | { type: 'pointer'; inside: boolean }
-  | { type: 'expand'; pin: boolean }
+  | { type: 'expand'; pin: boolean; click?: boolean }
   | { type: 'collapse'; farewell: boolean }
   | { type: 'settled'; phase: 'expanded' | 'collapsed' }
   | { type: 'pin-toggled' }

@@ -19,6 +19,7 @@ export const INITIAL_MACHINE: IslandMachine = {
   notice     : null,
   resets     : 0,
   holds      : [],
+  clicked    : false,
 };
 
 const OPEN_PHASES: IslandPhase[]   = ['expanding', 'expanded'];
@@ -42,7 +43,7 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
     case 'expand':
       if (phase === 'hidden' || machine.moving) return machine;
       if (OPEN_PHASES.includes(phase)) return { ...machine, pinned: machine.pinned || event.pin };
-      return { ...machine, phase: 'expanding', pinned: event.pin, notice: null };
+      return { ...machine, phase: 'expanding', pinned: event.pin, clicked: event.click === true, notice: null };
 
     case 'collapse':
       if (!OPEN_PHASES.includes(phase)) return { ...machine, pinned: false };
@@ -79,9 +80,15 @@ const step = (machine: IslandMachine, event: IslandEvent): IslandMachine => {
 
     // A click outside the window (it lost the focus): the open bubble closes, as it was opened with a
     // click. Not while the person is in the middle of something (a native dialog takes the focus too).
-    case 'outside':
-      if (machine.rest !== 'bubble' || !OPEN_PHASES.includes(phase) || machine.holds.length > 0) return machine;
+    // Opened from the Explorer it closes too, unless pinned; a step half done does not keep it (its
+    // files wait in Inicio), a dialog, a file dragged over it or a full screen do.
+    case 'outside': {
+      if (!OPEN_PHASES.includes(phase)) return machine;
+      const bubble  = machine.rest === 'bubble' && machine.holds.length === 0;
+      const clicked = machine.clicked && !machine.pinned && machine.holds.every((hold) => hold === 'step');
+      if (!bubble && !clicked) return machine;
       return { ...machine, phase: 'collapsing', pinned: false, farewell: false, locked: machine.inside };
+    }
 
     case 'notice-ended':
       return phase === 'notice' ? { ...machine, phase: 'collapsed', notice: null } : machine;
@@ -121,8 +128,9 @@ const normalize = (machine: IslandMachine): IslandMachine => {
 
   return {
     ...machine,
-    notice : machine.phase === 'notice' ? machine.notice : null,
-    pinned : OPEN_PHASES.includes(machine.phase) && machine.pinned,
+    notice  : machine.phase === 'notice' ? machine.notice : null,
+    pinned  : OPEN_PHASES.includes(machine.phase) && machine.pinned,
+    clicked : OPEN_PHASES.includes(machine.phase) && machine.clicked,
   };
 };
 
@@ -156,9 +164,12 @@ export const hoverOpens = (machine: IslandMachine): boolean => hoverEnabled(mach
 // Glup eating or working no longer counts: tasks go on in the background with the pill's progress.
 export const isHeldOpen = (machine: IslandMachine): boolean => machine.pinned || machine.holds.length > 0;
 
-// The cursor leaving the panel closes it, except held open and on the bubble (opened with a click, it
-// closes with a click outside, Esc, its shortcut or a click on Glup).
-export const closesOnLeave = (machine: IslandMachine): boolean => !isHeldOpen(machine) && machine.rest !== 'bubble';
+// The cursor leaving the panel closes it, except held open, on the bubble and opened from the Explorer
+// (opened with a click, they close with a click outside, Esc, its shortcut or a click on Glup).
+export const closesOnLeave = (machine: IslandMachine): boolean => !isHeldOpen(machine) && machine.rest !== 'bubble' && !machine.clicked;
+
+// It listens for a click outside (the window losing the focus): the bubble, and opened from the Explorer.
+export const closesOnOutside = (machine: IslandMachine): boolean => machine.rest === 'bubble' || machine.clicked;
 
 // Every broken rule, empty when all hold (checked in tests and logged in dev).
 export const checkInvariants = (machine: IslandMachine): string[] => {
@@ -180,7 +191,7 @@ const REST_NAMES: Record<IslandRest, string> = { pill: 'pastilla', hidden: 'ocul
 
 export const describeEvent = (event: IslandEvent): string => {
   if (event.type === 'pointer') return `pointer(${event.inside ? 'dentro' : 'fuera'})`;
-  if (event.type === 'expand') return `expand(${event.pin ? 'fijada' : 'hover'})`;
+  if (event.type === 'expand') return `expand(${event.pin ? 'fijada' : event.click ? 'clic desde afuera' : 'hover'})`;
   if (event.type === 'collapse') return `collapse(${event.farewell ? 'adiós' : 'salida'})`;
   if (event.type === 'settled') return `settled(${event.phase})`;
   if (event.type === 'fullscreen') return `fullscreen(${event.on})`;
