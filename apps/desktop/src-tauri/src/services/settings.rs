@@ -87,6 +87,9 @@ pub struct Settings {
     // The suggestions of Inicio that were closed, by key (the key changes with what one says, so a
     // changed one shows again). Only the last few are kept.
     pub dismissed_tips: Vec<String>,
+    // "Mostrar Glup en el clic derecho" and "En Enviar a" (Ajustes › General), on unless turned off.
+    pub explorer_menu_off: bool,
+    pub send_to_off: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -157,7 +160,8 @@ fn file_path(app: &AppHandle) -> Option<PathBuf> {
     app.path().app_data_dir().ok().map(|folder| folder.join(SETTINGS_FILE))
 }
 
-fn read_file(path: &Path) -> Settings {
+// Without the app running (the installer asks Glup to register its entries): straight from the file.
+pub fn read_file(path: &Path) -> Settings {
     fs::read(path).ok().and_then(|data| serde_json::from_slice(&data).ok()).unwrap_or_default()
 }
 

@@ -45,6 +45,8 @@ export const DEFAULT_SETTINGS: SettingsView = {
   favoriteTools         : [],
   historySeenAt         : null,
   dismissedTips         : [],
+  explorerMenuOff       : false,
+  sendToOff             : false,
   folderMissing         : false,
 };
 
