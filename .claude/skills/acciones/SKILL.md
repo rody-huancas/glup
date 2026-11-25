@@ -103,6 +103,23 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   `.json` + `.log`), así a↔b funciona y «Deshacer» (aviso e Historial) sirve aunque Glup se cierre a la
   mitad (`spawn_recovery`). Su opción del clic derecho es una línea propia en `*\shell` (`ANY_FILE`),
   no dentro de «Glup».
+- **Carpetas automáticas** (`services/auto_folders`, `modules/auto-folders`, página `auto-folders` de Tu
+  PC): reglas «Cuando llegue [tipo] a [carpeta], [acción] y [el original]», solo con los archivos sueltos
+  de la carpeta y solo mientras Glup está abierto. Las acciones posibles son las de `tools.json` con
+  `"auto": true` (las mismas que `AUTO_TOOLS` en `rules.rs`; una prueba lo comprueba) y guardan sus
+  opciones como las manda el paso del panel. Windows avisa los cambios (`watcher.rs`,
+  `ReadDirectoryChangesW`, sin revisar cada tanto); solo cuenta un nombre nuevo (`Known`), nunca una
+  descarga en curso, y se espera a que el tamaño quede quieto 3 s y nadie lo tenga abierto
+  (`settle.rs`). La cola tiene límite y va de a 4 por regla (`queue.rs`) en un hilo de prioridad baja
+  que espera mientras corre una tarea de la persona; las acciones usan `actions::run_with` con su propio
+  Cancelar y 2 hilos. Lo que Glup produce se recuerda y nunca se vuelve a tomar; lo que termina de llegar
+  durante una tanda espera a que sus resultados queden anotados. Al abrir, lo que llegó con Glup cerrado
+  (por su fecha de creación) se hace si son hasta 10; si son más, se pregunta. Si falta una descarga
+  (`runner::missing`), la regla se pausa con sus archivos y la pantalla pide permiso con
+  `LearnModelStep`. El original va a la papelera solo si el resultado está en el disco y no vacío
+  (`trash_done`), con «Deshacer» en el Historial (`auto-trash`); Ordenar usa el registro de Ordenar una
+  carpeta. Un solo aviso para todo lo hecho (`summary_line`), en la isla o con notificación si Glup está
+  oculto; cada línea del Historial dice qué regla la hizo (`rule`).
 - **Crear y leer un QR** (`services/qr`, `modules/qr`; páginas `qr-create` y `qr-read` de Texto):
   `content.rs` arma lo que guarda (texto, WiFi con sus caracteres escapados, WhatsApp con código de país,
   vCard, mailto), `render.rs` lo dibuja (formas, colores, logo con corrección H) como PNG o SVG, y cada
