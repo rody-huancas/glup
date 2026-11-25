@@ -15,4 +15,6 @@ export interface ToolBase {
   // That option asks something before it runs (a format, a level, a screen): the island opens on it.
   // Without one it runs with the usual options and only tells the end.
   menuNeedsStep? : boolean;
+  // The kinds of file of that option when not only its file type (Recortar: audio and video).
+  menuTypes?     : string[];
 }
