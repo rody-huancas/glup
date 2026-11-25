@@ -1,0 +1,14 @@
+{
+  "folders": [
+    "node_modules", "target", "dist", "build", "out", "bin", "obj", "vendor", "venv", ".venv",
+    "__pycache__", ".gradle", "Pods", "DerivedData"
+  ],
+  "projectFiles": [
+    "package.json", "Cargo.toml", "pom.xml", "build.gradle", "build.gradle.kts", "requirements.txt",
+    "go.mod", "composer.json", "pyproject.toml", "Gemfile", "CMakeLists.txt", "Makefile"
+  ],
+  "projectFolders": [".git", ".svn", ".hg"],
+  "projectExtensions": ["sln", "csproj", "vcxproj", "fsproj", "xcodeproj"],
+  "programExtensions": ["exe"],
+  "libraryExtensions": ["dll"]
+}
