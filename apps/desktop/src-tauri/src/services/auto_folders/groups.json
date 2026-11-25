@@ -1,0 +1,7 @@
+{
+  "photos" : ["jpg", "jpeg", "png", "webp", "gif", "bmp", "tif", "tiff", "heic", "heif", "avif"],
+  "iphone" : ["heic", "heif"],
+  "pdf"    : ["pdf"],
+  "videos" : ["mp4", "mov", "m4v", "mkv", "webm", "avi", "wmv", "3gp"],
+  "audios" : ["mp3", "wav", "m4a", "aac", "ogg", "opus", "flac", "wma"]
+}
