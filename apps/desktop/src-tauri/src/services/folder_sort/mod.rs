@@ -10,8 +10,9 @@ pub mod plan;
 
 use std::{
     collections::BTreeMap,
+    fs,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{atomic::AtomicBool, Mutex},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -25,8 +26,8 @@ use crate::services::{
     folder_sort::{
         filters::SkipReason,
         journal::{Journal, UndoParams, UndoTally},
-        mover::{RunParams, RunTally},
-        plan::{Plan, PlanParams, SkippedFile, SortMode},
+        mover::{MoveRecord, RunParams, RunTally},
+        plan::{millis, Plan, PlanParams, PlannedMove, SkippedFile, SortMode},
     },
     history::{self, FilelessEntryParams, HistoryEntry},
     progress::{self, Stage},
@@ -451,6 +452,68 @@ pub fn sort(app: &AppHandle, task: &Option<String>) -> Result<SortReport, String
         summary   : sort_summary(SortSummaryParams { moved: tally.moved.len(), folders, skipped: &reasons, failed: tally.failed.len(), cancelled: tally.cancelled }),
         skipped,
     })
+}
+
+pub struct SortFilesParams<'a> {
+    pub app    : &'a AppHandle,
+    pub folder : &'a Path,
+    pub mode   : SortMode,
+    // Loose files of that folder that already finished arriving.
+    pub paths  : &'a [PathBuf],
+    pub cancel : &'a AtomicBool,
+    // The rule of Carpetas automáticas that sorts them, for the Historial.
+    pub rule   : &'a str,
+}
+
+// Carpetas automáticas: a few files that just arrived, with the same record and Historial line as
+// «Ordenar» (so «Deshacer» works the same). They already waited to be complete, so they are not
+// «recent» here.
+pub fn sort_files(params: SortFilesParams) -> Vec<MoveRecord> {
+    let SortFilesParams { app, folder, mode, paths, cancel, rule } = params;
+    let moves = paths
+        .iter()
+        .filter_map(|source| {
+            let metadata = fs::symlink_metadata(source).ok().filter(fs::Metadata::is_file)?;
+            let name     = source.file_name()?.to_string_lossy().into_owned();
+            let modified = millis(&metadata);
+            Some(PlannedMove { source: source.clone(), size: metadata.len(), modified, folders: plan::destination(classify::table(), mode, &name, modified) })
+        })
+        .collect();
+    let plan     = Plan { folder: folder.to_path_buf(), mode, moves, skipped: Vec::new() };
+    let records  = records_folder(app);
+    let id       = format!("{}", Local::now().timestamp_millis());
+    let header   = journal_of(&id, &plan);
+    let in_use   = |path: &Path| filters::in_use(path);
+    let recorder = records.as_ref().and_then(|records| journal::Recorder::start(records, &header).ok());
+
+    let tally = mover::run(RunParams {
+        plan       : &plan,
+        now        : i64::MAX,
+        cancel,
+        in_use     : &in_use,
+        progress   : &mut |_, _| {},
+        checkpoint : &mut |step| {
+            if let Some(recorder) = &recorder {
+                let _ = recorder.record(&step);
+            }
+        },
+    });
+
+    if tally.moved.is_empty() {
+        journal::remove_empty(&tally.created);
+        if let Some(records) = &records {
+            let _ = journal::remove(records, &id);
+        }
+        return tally.moved;
+    }
+
+    let done   = Journal { created: tally.created.clone(), moves: tally.moved.clone(), ..header };
+    let saved  = records.as_ref().is_some_and(|records| journal::finish(records, &done).is_ok());
+    let name   = display_name(folder, folders::user_folders().downloads.as_deref());
+    let detail = format!("{} en {}", counted(tally.moved.len(), "archivo", "archivos"), counted(distinct_folders(&tally), "carpeta", "carpetas"));
+    let entry  = HistoryEntry { rule: Some(rule.to_string()), ..sort_entry(SortEntryParams { id: &id, name: &name, detail, undo: saved }) };
+    let _      = history::update(app, |entries| history::upserted(entries, entry));
+    tally.moved
 }
 
 // "Deshacer" (from the result, the notice or the Historial).
