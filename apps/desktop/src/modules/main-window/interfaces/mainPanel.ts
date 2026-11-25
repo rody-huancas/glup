@@ -4,6 +4,7 @@ import type { PageId } from '@/modules/main-window/types/pageId';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import type { OrganizeTarget } from '@/modules/organize/interfaces/organizeTarget';
+import type { ScanTarget } from '@/modules/scan/interfaces/scanTarget';
 import type { SignTarget } from '@/modules/sign/interfaces/signTarget';
 import type { WelcomeState } from '@/modules/welcome/interfaces/welcomeState';
 
@@ -24,7 +25,10 @@ export interface MainPanelState {
   // The PDF whose pages are being organized: its screen, full width too.
   organizing          : OrganizeTarget | null;
   stopOrganize        : () => void;
-  // Signing or organizing: no sidebar, and the island stays open.
+  // The photos of sheets being scanned: their screen, full width too.
+  scanning            : ScanTarget | null;
+  stopScan            : () => void;
+  // Signing, organizing or scanning: no sidebar, and the island stays open.
   fullScreen          : boolean;
   // First run: the welcome covers the panel until it is answered.
   welcome             : WelcomeState;

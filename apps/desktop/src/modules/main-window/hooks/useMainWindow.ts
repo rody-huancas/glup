@@ -8,6 +8,7 @@ import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { useOrganizeMode } from '@/modules/organize/hooks/useOrganizeMode';
+import { useScanMode } from '@/modules/scan/hooks/useScanMode';
 import { useSignMode } from '@/modules/sign/hooks/useSignMode';
 import { useTaskMood } from '@/modules/tasks/hooks/useTaskMood';
 import { useWelcome } from '@/modules/welcome/hooks/useWelcome';
@@ -21,7 +22,8 @@ export const useMainWindow = (): MainPanelState => {
   const showHome      = useCallback(() => setPage(DEFAULT_PAGE), []);
   const signMode      = useSignMode();
   const organizeMode  = useOrganizeMode();
-  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start });
+  const scanMode      = useScanMode();
+  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start });
 
   useTaskMood(commandAvatar);
 
@@ -31,6 +33,7 @@ export const useMainWindow = (): MainPanelState => {
   const filesClose    = files.close;
   const stopSigning   = signMode.stop;
   const stopOrganize  = organizeMode.stop;
+  const stopScan      = scanMode.stop;
 
   // Back to the home page with no pending selection, as when the island collapses.
   const reset = useCallback(() => {
@@ -38,15 +41,18 @@ export const useMainWindow = (): MainPanelState => {
     filesClose();
     stopSigning();
     stopOrganize();
-  }, [filesClose, stopSigning, stopOrganize]);
+    stopScan();
+  }, [filesClose, stopSigning, stopOrganize, stopScan]);
+
+  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null;
 
   return {
     page,
     files,
     avatarRef,
     avatarStatus,
-    // Signing and organizing keep the island open until saved or cancelled.
-    busy                : files.busy || signMode.target !== null || organizeMode.target !== null,
+    // Signing, organizing and scanning keep the island open until saved or cancelled.
+    busy                : files.busy || fullScreen,
     navigate            : setPage,
     onAvatarStateChange : setAvatarState,
     reset,
@@ -55,7 +61,9 @@ export const useMainWindow = (): MainPanelState => {
     stopSigning,
     organizing          : organizeMode.target,
     stopOrganize,
-    fullScreen          : signMode.target !== null || organizeMode.target !== null,
+    scanning            : scanMode.target,
+    stopScan,
+    fullScreen,
     welcome,
   };
 };
