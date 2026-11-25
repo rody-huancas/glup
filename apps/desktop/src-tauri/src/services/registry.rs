@@ -123,6 +123,13 @@ mod engine {
         status == ERROR_SUCCESS || status == windows_sys::Win32::Foundation::ERROR_FILE_NOT_FOUND
     }
 
+    // One value of a key; one that is not there counts as removed.
+    pub fn delete_value(root: Root, path: &str, name: &str) -> bool {
+        let Some(key) = open(root, path, KEY_SET_VALUE) else { return true };
+        let status    = unsafe { windows_sys::Win32::System::Registry::RegDeleteValueW(key.0, wide(name).as_ptr()) };
+        status == ERROR_SUCCESS || status == windows_sys::Win32::Foundation::ERROR_FILE_NOT_FOUND
+    }
+
     // A text value (an empty name is the key's default value); the key is created if needed.
     pub fn set_text(root: Root, path: &str, name: &str, text: &str) -> bool {
         let Some(key) = create(root, path) else { return false };
@@ -162,4 +169,9 @@ pub fn delete_tree(_: Root, _: &str) -> bool {
 #[cfg(not(windows))]
 pub fn set_text(_: Root, _: &str, _: &str, _: &str) -> bool {
     false
+}
+
+#[cfg(not(windows))]
+pub fn delete_value(_: Root, _: &str, _: &str) -> bool {
+    true
 }
