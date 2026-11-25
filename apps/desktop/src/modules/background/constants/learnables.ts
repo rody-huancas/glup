@@ -1,10 +1,12 @@
 import { BACKGROUND_TEXTS, LEARNED_TEXTS } from '@/modules/background/constants/texts';
 import type { Learnable } from '@/modules/background/interfaces/learnable';
+import { deleteBackgroundModel, downloadBackgroundModel, getBackgroundModel } from '@/modules/background/services/backgroundModel';
 import type { LearnableId } from '@/modules/background/types/learnableId';
+import { PHOTO_TEXTS } from '@/modules/photos/constants/photos';
 import { TRANSCRIBE_TEXTS } from '@/modules/transcribe/constants/transcribe';
 import { deleteTranscribeModel, downloadTranscribeModel, getTranscribeModel } from '@/modules/transcribe/services/transcribe';
-import { deleteBackgroundModel, downloadBackgroundModel, getBackgroundModel } from '@/modules/background/services/backgroundModel';
-import { PHOTO_TEXTS } from '@/modules/photos/constants/photos';
+import { UPSCALE_TEXTS } from '@/modules/upscale/constants/texts';
+import { deleteUpscaleModel, downloadUpscaleModel, getUpscaleModel } from '@/modules/upscale/services/upscale';
 import { VIDEO_TOOL_TEXTS } from '@/modules/video/constants/texts';
 import { deleteVideoTool, downloadVideoTool, getVideoTool } from '@/modules/video/services/videoTool';
 
@@ -74,7 +76,33 @@ export const LEARNABLES: Record<LearnableId, Learnable> = {
     download  : (taskId) => downloadTranscribeModel('precise', taskId),
     remove    : () => deleteTranscribeModel('precise'),
   },
+  'upscale-fast'       : {
+    id        : 'upscale-fast',
+    texts     : {
+      body       : UPSCALE_TEXTS.learnBody,
+      learning   : UPSCALE_TEXTS.learning,
+      taskTitle  : UPSCALE_TEXTS.learnTask,
+      learned    : UPSCALE_TEXTS.learnedFast,
+      deleteBody : UPSCALE_TEXTS.deleteBody,
+    },
+    getStatus : () => getUpscaleModel('fast'),
+    download  : (taskId) => downloadUpscaleModel('fast', taskId),
+    remove    : () => deleteUpscaleModel('fast'),
+  },
+  'upscale-detail'     : {
+    id        : 'upscale-detail',
+    texts     : {
+      body       : UPSCALE_TEXTS.learnBody,
+      learning   : UPSCALE_TEXTS.learning,
+      taskTitle  : UPSCALE_TEXTS.learnTask,
+      learned    : UPSCALE_TEXTS.learnedBest,
+      deleteBody : UPSCALE_TEXTS.deleteBody,
+    },
+    getStatus : () => getUpscaleModel('detail'),
+    download  : (taskId) => downloadUpscaleModel('detail', taskId),
+    remove    : () => deleteUpscaleModel('detail'),
+  },
 };
 
 // In Ajustes, in this order.
-export const LEARNABLE_ORDER: LearnableId[] = ['background', 'video', 'transcribe-fast', 'transcribe-precise'];
+export const LEARNABLE_ORDER: LearnableId[] = ['background', 'video', 'transcribe-fast', 'transcribe-precise', 'upscale-fast', 'upscale-detail'];
