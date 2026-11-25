@@ -9,6 +9,7 @@ import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { useTrimMode } from '@/modules/media/hooks/useTrimMode';
 import { useOrganizeMode } from '@/modules/organize/hooks/useOrganizeMode';
+import { useImageScreen } from '@/modules/photo-tools/hooks/useImageScreen';
 import { useScanMode } from '@/modules/scan/hooks/useScanMode';
 import { useSignMode } from '@/modules/sign/hooks/useSignMode';
 import { useSubtitlesMode } from '@/modules/subtitles/hooks/useSubtitlesMode';
@@ -28,7 +29,8 @@ export const useMainWindow = (): MainPanelState => {
   const scanMode      = useScanMode();
   const trimMode      = useTrimMode();
   const subtitlesMode = useSubtitlesMode();
-  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start, onSubtitles: subtitlesMode.start });
+  const imageScreen   = useImageScreen();
+  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start, onSubtitles: subtitlesMode.start, onImages: imageScreen.start });
 
   useTaskMood(commandAvatar);
   useExplorerRequests({ files, onNavigate: setPage });
@@ -42,6 +44,7 @@ export const useMainWindow = (): MainPanelState => {
   const stopScan      = scanMode.stop;
   const stopTrim      = trimMode.stop;
   const stopSubtitles = subtitlesMode.stop;
+  const stopImages    = imageScreen.stop;
 
   // Back to the home page with no pending selection, as when the island collapses.
   const reset = useCallback(() => {
@@ -52,9 +55,10 @@ export const useMainWindow = (): MainPanelState => {
     stopScan();
     stopTrim();
     stopSubtitles();
-  }, [filesClose, stopSigning, stopOrganize, stopScan, stopTrim, stopSubtitles]);
+    stopImages();
+  }, [filesClose, stopSigning, stopOrganize, stopScan, stopTrim, stopSubtitles, stopImages]);
 
-  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null || trimMode.target !== null || subtitlesMode.target !== null;
+  const fullScreen = signMode.target !== null || organizeMode.target !== null || scanMode.target !== null || trimMode.target !== null || subtitlesMode.target !== null || imageScreen.target !== null;
 
   return {
     page,
@@ -77,6 +81,8 @@ export const useMainWindow = (): MainPanelState => {
     stopTrim,
     subtitling          : subtitlesMode.target,
     stopSubtitles,
+    imaging             : imageScreen.target,
+    stopImages,
     fullScreen,
     welcome,
   };

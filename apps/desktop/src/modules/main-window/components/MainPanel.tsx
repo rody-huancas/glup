@@ -3,9 +3,12 @@ import { Sidebar } from '@/modules/main-window/components/Sidebar';
 import type { MainPanelState, PanelControlsProps } from '@/modules/main-window/interfaces/mainPanel';
 import { TrimPage } from '@/modules/media/pages/TrimPage';
 import { OrganizePage } from '@/modules/organize/pages/OrganizePage';
+import { PhotoMarkPage } from '@/modules/photo-mark/pages/PhotoMarkPage';
 import { ScanPage } from '@/modules/scan/pages/ScanPage';
 import { SignPage } from '@/modules/sign/pages/SignPage';
+import { SocialPage } from '@/modules/social/pages/SocialPage';
 import { SubtitlesPage } from '@/modules/subtitles/pages/SubtitlesPage';
+import { UpscalePage } from '@/modules/upscale/pages/UpscalePage';
 import { WelcomeScreen } from '@/modules/welcome/components/WelcomeScreen';
 import type { RefObject } from 'react';
 
@@ -30,6 +33,9 @@ export const MainPanel = ({ panel, controls, avatarAnchorRef }: MainPanelProps) 
     {panel.scanning && <ScanPage target={panel.scanning} location={panel.files.saveLocation} onExit={panel.stopScan} />}
     {panel.trimming && <TrimPage target={panel.trimming} location={panel.files.saveLocation} onExit={panel.stopTrim} />}
     {panel.subtitling && <SubtitlesPage target={panel.subtitling} location={panel.files.saveLocation} onExit={panel.stopSubtitles} />}
+    {panel.imaging?.screen === 'social' && <SocialPage paths={panel.imaging.paths} location={panel.files.saveLocation} onExit={panel.stopImages} />}
+    {panel.imaging?.screen === 'mark' && <PhotoMarkPage paths={panel.imaging.paths} location={panel.files.saveLocation} onExit={panel.stopImages} />}
+    {panel.imaging?.screen === 'upscale' && <UpscalePage paths={panel.imaging.paths} location={panel.files.saveLocation} onExit={panel.stopImages} />}
     {!panel.fullScreen && <PageContent page={panel.page} files={panel.files} onNavigate={panel.navigate} controls={controls} />}
     {panel.welcome.visible && <WelcomeScreen onAnswer={panel.welcome.answer} />}
   </div>
