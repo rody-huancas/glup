@@ -1,10 +1,11 @@
 import type { ScanMode } from '@/modules/scan/types/scanMode';
 import type { ScanPaper } from '@/modules/scan/types/scanPaper';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const SCAN_TEXTS = {
   title        : 'Escanear documento',
-  count        : (count: number) => (count === 1 ? '1 hoja' : `${count} hojas`),
-  taskTitle    : (count: number) => (count === 1 ? 'Escanear 1 hoja' : `Escanear ${count} hojas`),
+  count        : (count: number) => (count === 1 ? '1 hoja' : `${formatCount(count)} hojas`),
+  taskTitle    : (count: number) => (count === 1 ? 'Escanear 1 hoja' : `Escanear ${formatCount(count)} hojas`),
   finding      : 'Buscando la hoja…',
   notFound     : 'No encontré una hoja clara en esta foto: te propongo la foto entera. Lleva las esquinas a los bordes de la hoja.',
   crossed      : 'Las esquinas se cruzan: acomódalas para que formen la hoja.',
@@ -41,7 +42,7 @@ export const SCAN_TEXTS = {
   searchHint   : 'Leo cada hoja y dejo su texto invisible encima, para buscarlo y seleccionarlo',
   noReader     : 'Tu Windows no tiene el lector de texto en español: agrégalo en Configuración › Hora e idioma › Idioma',
   noSheets     : 'No queda ninguna hoja',
-  ready        : (count: number) => (count === 1 ? 'Listo para guardar 1 hoja en un PDF' : `Listo para guardar ${count} hojas en un PDF`),
+  ready        : (count: number) => (count === 1 ? 'Listo para guardar 1 hoja en un PDF' : `Listo para guardar ${formatCount(count)} hojas en un PDF`),
   waiting      : 'Abriendo las fotos…',
   cancel       : 'Cancelar',
   save         : 'Guardar PDF',

@@ -1,5 +1,6 @@
 import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions';
 import type { NumberFormat, NumberPosition } from '@/modules/pdf/types/numbering';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const NUMBERING_TEXTS = {
   title       : 'Numerar páginas',
@@ -10,7 +11,7 @@ export const NUMBERING_TEXTS = {
   startHint   : 'Para saltar la carátula, empieza en la 2.',
   preview     : (page: number) => `Así se verá la página ${page}`,
   button      : 'Numerar páginas',
-  badStart    : (total: number) => `Elige una página entre 1 y ${total}`,
+  badStart    : (total: number) => `Elige una página entre 1 y ${formatCount(total)}`,
   badNumber   : 'El número tiene que ser 1 o más',
   page        : (number: number) => `Página ${number}`,
   ofTotal     : (number: number, last: number) => `${number} de ${last}`,
