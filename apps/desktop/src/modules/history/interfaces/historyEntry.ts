@@ -14,5 +14,8 @@ export interface HistoryEntry {
   // What was copied from the screen, to see it and copy it again.
   text?  : string;
   // A sorted folder: the record to undo it, while it can still be undone.
-  undo?  : string;
+  undo?    : string;
+  // Bytes it saved (a reduced file, a cleaning) and seconds of audio passed to text: "Tu semana".
+  saved?   : number;
+  seconds? : number;
 }

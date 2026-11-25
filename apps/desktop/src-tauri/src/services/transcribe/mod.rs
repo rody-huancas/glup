@@ -33,7 +33,7 @@ use crate::services::{
         model::{delete_in, model_path, models_folder, status_in, ModelStatus},
     },
     destination::{self, Destination},
-    history::{self, NewEntryParams},
+    history::{self, HistoryEntry, NewEntryParams},
     naming::{output_path, OutputKind, OutputNameParams},
     progress::{self, DownloadSpan, Stage},
     settings,
@@ -393,6 +393,7 @@ pub fn transcribe(app: &AppHandle, request: TranscribeRequest) -> Result<Transcr
     let subtitles = srt(&files);
     let entry_id  = request.paths.first().filter(|_| !text.is_empty()).map(|first| {
         let entry = history::new_entry(NewEntryParams { output: Path::new(first), kind: "audio", action: TRANSCRIBE_ACTION, detail: history_detail(seconds) });
+        let entry = HistoryEntry { seconds: Some(seconds), ..entry };
         let id    = entry.id.clone();
         let _     = history::append(app, vec![entry]);
         id

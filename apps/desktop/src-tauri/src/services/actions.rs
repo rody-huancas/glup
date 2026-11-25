@@ -464,7 +464,8 @@ fn collect_results(params: CollectParams) -> (Vec<FileOutcome>, Vec<HistoryEntry
             Some(Ok(FileResult::Reduced { saved: result, maximum, note })) => {
                 let before = file_size(source);
                 let detail = if maximum { history::reduced_max_detail(before, result.size) } else { history::reduced_detail(before, result.size) };
-                entries.push(history::new_entry(NewEntryParams { output: &result.output, kind: params.kind, action: params.action, detail }));
+                let entry  = history::new_entry(NewEntryParams { output: &result.output, kind: params.kind, action: params.action, detail });
+                entries.push(HistoryEntry { saved: Some(before.saturating_sub(result.size)), ..entry });
                 outcomes.push(FileOutcome { note, ..saved(source, &result) });
             }
             Some(Ok(FileResult::Unchanged(reason))) => outcomes.push(unchanged(source, &reason)),
