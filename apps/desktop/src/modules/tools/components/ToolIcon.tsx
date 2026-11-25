@@ -2,6 +2,7 @@ import { FAMILY_STYLES } from '@/modules/families/constants/families';
 import type { FamilyId } from '@/modules/families/types/familyId';
 import type { ToolIcon as ToolIconName } from '@/modules/tools/types/toolIcon';
 import { AudioTextIcon } from '@/shared/icons/AudioTextIcon';
+import { AutoFoldersIcon } from '@/shared/icons/AutoFoldersIcon';
 import { CleanupIcon } from '@/shared/icons/CleanupIcon';
 import { ClipboardIcon } from '@/shared/icons/ClipboardIcon';
 import { CompressIcon } from '@/shared/icons/CompressIcon';
@@ -63,6 +64,7 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'qr-read'           : QrReadIcon,
   'space'             : SpaceIcon,
   'rename'            : RenameIcon,
+  'auto-folders'      : AutoFoldersIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,
