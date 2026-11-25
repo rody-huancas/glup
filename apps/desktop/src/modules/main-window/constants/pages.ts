@@ -1,16 +1,18 @@
-import type { ComponentType } from 'react';
 import { CleanupPage } from '@/modules/cleanup/pages/CleanupPage';
 import { ClipboardPage } from '@/modules/clipboard/pages/ClipboardPage';
-import { FamilyPage } from '@/modules/families/pages/FamilyPage';
 import { DuplicatesPage } from '@/modules/duplicates/pages/DuplicatesPage';
+import { FamilyPage } from '@/modules/families/pages/FamilyPage';
 import { FolderSortPage } from '@/modules/folder-sort/pages/FolderSortPage';
 import { HistoryPage } from '@/modules/history/pages/HistoryPage';
 import { HomePage } from '@/modules/home/pages/HomePage';
 import type { PageProps } from '@/modules/main-window/interfaces/pageProps';
 import type { PageId } from '@/modules/main-window/types/pageId';
 import { PerformancePage } from '@/modules/performance/pages/PerformancePage';
+import { QrCreatePage } from '@/modules/qr/pages/QrCreatePage';
+import { QrReadPage } from '@/modules/qr/pages/QrReadPage';
 import { SettingsPage } from '@/modules/settings/pages/SettingsPage';
 import { ToolsPage } from '@/modules/tools/pages/ToolsPage';
+import type { ComponentType } from 'react';
 
 // Screens with their own list that scrolls (their header stays); every other one scrolls whole, with
 // room at its end.
@@ -26,6 +28,8 @@ export const PAGES: Record<PageId, ComponentType<PageProps>> = {
   'folder-sort'      : FolderSortPage,
   'duplicates'       : DuplicatesPage,
   'performance'      : PerformancePage,
+  'qr-create'        : QrCreatePage,
+  'qr-read'          : QrReadPage,
   'family-images'    : FamilyPage,
   'family-pdf'       : FamilyPage,
   'family-media'     : FamilyPage,

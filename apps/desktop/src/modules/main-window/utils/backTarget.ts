@@ -8,6 +8,8 @@ const TOOL_PARENTS: Partial<Record<PageId, PageId>> = {
   'performance' : familyPage('pc'),
   'duplicates'  : familyPage('pc'),
   'clipboard'   : familyPage('clipboard'),
+  'qr-create'   : familyPage('text'),
+  'qr-read'     : familyPage('text'),
 };
 
 // Where "←" goes from a screen: a family to Habilidades, a tool's screen to its family; the screens of
