@@ -71,7 +71,10 @@ lado. Si dos reglas parecen chocar, se pregunta.
       carpetas de caché de los navegadores se borran directo, porque Windows y los navegadores los
       vuelven a crear; la papelera se vacía con la API de Windows. Siempre después de que la persona
       los vea, los marque y confirme, y solo si siguen iguales que al revisarlos. Todo lo demás que
-      encuentre Limpieza (instaladores, comprimidos, repetidos, archivos grandes) va a la papelera.
+      encuentre Limpieza (instaladores, comprimidos, repetidos, archivos grandes) va a la papelera,
+      en lotes de 200 por operación de Windows (`TRASH_BATCH`). Después de cada lote se comprueba
+      cuáles se fueron, y los que quedaron se intentan de a uno para contarlos bien. Cancelar se
+      atiende entre archivos y entre lotes, y el progreso dice «Borrando 1.240 de 8.300…».
     - **Ordenar una carpeta** (`services/folder_sort/`). **Mueve** los archivos sueltos de la carpeta
       elegida a subcarpetas, nunca los cambia ni los borra: siempre después de una vista previa y de
       «Ordenar», solo lo que la vista previa mostró y si sigue igual, sin sobrescribir nunca (« (2)»).
