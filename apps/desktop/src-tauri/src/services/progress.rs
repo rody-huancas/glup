@@ -21,6 +21,9 @@ pub enum Stage {
     // The action itself, counted in files, pages or percent.
     #[default]
     Working,
+    // "Escanear documento": each sheet straightened and cleaned, then read for its text (counted in pages).
+    Straightening,
+    Reading,
     // Writing, the safety check, the ZIP and the history, after the counted work.
     Saving,
 }
