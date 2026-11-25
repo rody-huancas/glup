@@ -2,7 +2,7 @@ import type { PlacementActions } from '@/modules/sign/components/PlacementItem';
 import { PlacementLayer } from '@/modules/sign/components/PlacementLayer';
 import { ViewerToolbar } from '@/modules/sign/components/ViewerToolbar';
 import { SIGN_TEXTS } from '@/modules/sign/constants/sign';
-import { useElementSize } from '@/modules/sign/hooks/useElementSize';
+import { useElementSize } from '@/shared/hooks/useElementSize';
 import { usePageCanvas } from '@/modules/sign/hooks/usePageCanvas';
 import { useViewerZoom } from '@/modules/sign/hooks/useViewerZoom';
 import type { Size } from '@/modules/sign/interfaces/geometry';
