@@ -10,7 +10,7 @@ describe('families', () => {
   });
 
   it('puts the PC tools and the clipboard where they belong', () => {
-    expect(toolsOf(TOOLS, 'pc').map((tool) => tool.id)).toEqual(['zip-files', 'cleanup', 'folder-sort', 'duplicates', 'performance']);
+    expect(toolsOf(TOOLS, 'pc').map((tool) => tool.id)).toEqual(['zip-files', 'cleanup', 'folder-sort', 'space', 'batch-rename', 'duplicates', 'performance']);
     expect(toolsOf(TOOLS, 'clipboard').map((tool) => tool.id)).toEqual(['clipboard']);
     expect(toolsOf(TOOLS, 'text').map((tool) => tool.id)).toContain('extract-text');
   });
