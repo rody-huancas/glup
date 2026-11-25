@@ -17,6 +17,7 @@ pub mod image;
 pub mod island_drag;
 pub mod island_watchdog;
 pub mod island_window;
+pub mod media;
 pub mod naming;
 pub mod notify;
 pub mod parallel;
