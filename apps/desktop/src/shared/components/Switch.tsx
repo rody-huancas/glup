@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import type { Accent } from '@/shared/types/accent';
 import { cx } from '@/shared/utils/classNames';
 
 interface SwitchProps {
@@ -7,11 +8,19 @@ interface SwitchProps {
   // A second, softer line under the label.
   hint?     : string;
   disabled? : boolean;
+  // The colour when it is on: Glup's mint, or the family of the screen.
+  accent?   : Accent;
   onChange  : (checked: boolean) => void;
 }
 
+const ON: Record<Accent, { track: string; ring: string }> = {
+  mint   : { track: 'bg-mint', ring: 'group-focus-visible:outline-mint' },
+  media  : { track: 'bg-fam-media', ring: 'group-focus-visible:outline-fam-media' },
+  images : { track: 'bg-fam-images', ring: 'group-focus-visible:outline-fam-images' },
+};
+
 // The whole row (track and texts) is one real switch button: Space and Enter toggle it natively.
-export const Switch = ({ label, checked, hint, disabled = false, onChange }: SwitchProps) => {
+export const Switch = ({ label, checked, hint, disabled = false, accent = 'mint', onChange }: SwitchProps) => {
   const id = useId();
 
   return (
@@ -33,8 +42,9 @@ export const Switch = ({ label, checked, hint, disabled = false, onChange }: Swi
         aria-hidden
         className={cx(
           'flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-150 ease-out motion-reduce:transition-none',
-          'group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-mint',
-          checked ? 'bg-mint' : 'bg-line-strong',
+          'group-focus-visible:outline-2 group-focus-visible:outline-offset-2',
+          ON[accent].ring,
+          checked ? ON[accent].track : 'bg-line-strong',
         )}
       >
         <span
