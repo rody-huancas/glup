@@ -7,7 +7,7 @@ use std::{
 };
 
 use sha2::{Digest, Sha256};
-use ureq::Agent;
+use ureq::{config::IpFamily, Agent, ResponseExt};
 
 use crate::services::background::model::{model_path, part_path, ModelFile};
 
@@ -19,8 +19,11 @@ const CHUNK_SIZE: usize      = 256 * 1024;
 // Progress is reported every this many bytes, not on every chunk.
 const PROGRESS_STEP: u64     = 1024 * 1024;
 const CONNECT_TIMEOUT: u64   = 20;
-const RESPONSE_TIMEOUT: u64  = 30;
+// Two hops (huggingface.co, then its CDN), each with its name to look up: room for a slow DNS.
+const RESPONSE_TIMEOUT: u64  = 60;
 const PARTIAL_CONTENT: u16   = 206;
+// A cut download goes on by itself from where it stopped, this many times, before asking.
+pub const ATTEMPTS: usize    = 3;
 
 // What the server sends: the rest of the file (resumed) or the whole file again.
 pub struct Fetched {
@@ -173,10 +176,24 @@ fn install(params: &DownloadParams, hash: &str) -> Result<DownloadEnd, String> {
     Ok(DownloadEnd::Installed)
 }
 
-// Resumes a cut download from where the .part ended (if the server allows it). The hash is computed
-// while the bytes arrive; on a resume, the part already on disk is read once first, so the hash still
-// covers exactly the bytes of the file.
+// The download, going on by itself from where it stopped when the network cuts it (a few times).
 pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
+    let mut attempt = 1;
+    loop {
+        match download_once(&params) {
+            Err(error) if error == NETWORK_ERROR && attempt < ATTEMPTS && !params.cancel.load(Ordering::SeqCst) => {
+                log(&format!("intento {attempt} de {ATTEMPTS} cortado; sigo desde el byte {}", size_of(&part_path(params.folder, params.model))));
+                attempt += 1;
+            }
+            result => return result,
+        }
+    }
+}
+
+// Resumes a cut download from where the .part ended (if the server allows it; a server that sends the
+// whole file again, 200 instead of 206, starts it over). The hash is computed while the bytes arrive;
+// on a resume, the part already on disk is read once first, so the hash still covers exactly the file.
+fn download_once(params: &DownloadParams) -> Result<DownloadEnd, String> {
     if model_path(params.folder, params.model).exists() {
         return Ok(DownloadEnd::Installed);
     }
@@ -194,7 +211,7 @@ pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
     if start == params.model.size {
         (params.on_verifying)();
         hash_from_disk(&part, u64::MAX, &mut hasher).map_err(|_| WRITE_ERROR.to_string())?;
-        return install(&params, &to_hex(&hasher.finalize()));
+        return install(params, &to_hex(&hasher.finalize()));
     }
 
     let mut fetched = (params.fetch)(start)?;
@@ -222,7 +239,10 @@ pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
     match copied {
         Ok(Copied::Cancelled(_)) => return Ok(DownloadEnd::Cancelled),
         Ok(Copied::Complete(_))  => {}
-        Err(_)                   => return Err(NETWORK_ERROR.to_string()),
+        Err(error)               => {
+            log(&format!("se cortó con {} de {} bytes: {error}", size_of(&part), params.model.size));
+            return Err(NETWORK_ERROR.to_string());
+        }
     }
 
     // A shorter file is a cut download (kept to resume); a longer one fails the hash.
@@ -231,24 +251,63 @@ pub fn download(params: DownloadParams) -> Result<DownloadEnd, String> {
     }
 
     (params.on_verifying)();
-    install(&params, &to_hex(&hasher.finalize()))
+    install(params, &to_hex(&hasher.finalize()))
+}
+
+fn log(line: &str) {
+    #[cfg(debug_assertions)]
+    eprintln!("[glup:descarga] {line}");
+    #[cfg(not(debug_assertions))]
+    let _ = line;
+}
+
+// Only the host of a url (the rest is signed and long).
+fn host_of(url: &str) -> &str {
+    url.split("//").nth(1).and_then(|rest| rest.split('/').next()).unwrap_or(url)
+}
+
+// The order of the addresses tried: IPv4 first. Where IPv6 is set up but does not go out (common at
+// home), each IPv6 address of huggingface.co waits until it times out, and the connection gives up
+// before reaching IPv4; only when IPv4 fails is everything tried (IPv6-only networks).
+pub const FAMILIES: [IpFamily; 2] = [IpFamily::Ipv4Only, IpFamily::Any];
+
+// The agent of every download of Glup.
+pub fn agent(family: IpFamily) -> Agent {
+    Agent::config_builder()
+        .ip_family(family)
+        .timeout_connect(Some(Duration::from_secs(CONNECT_TIMEOUT)))
+        .timeout_recv_response(Some(Duration::from_secs(RESPONSE_TIMEOUT)))
+        .save_redirect_history(true)
+        .build()
+        .into()
 }
 
 // The real network: the fixed url, asking for the rest of the file when part of it is already here.
 pub fn fetch_http(url: &str, start: u64) -> Result<Fetched, String> {
-    let agent: Agent = Agent::config_builder()
-        .timeout_connect(Some(Duration::from_secs(CONNECT_TIMEOUT)))
-        .timeout_recv_response(Some(Duration::from_secs(RESPONSE_TIMEOUT)))
-        .build()
-        .into();
-
-    let mut request = agent.get(url);
-    if start > 0 {
-        request = request.header("Range", format!("bytes={start}-"));
-    }
-
-    let response = request.call().map_err(|_| NETWORK_ERROR.to_string())?;
+    let asked    = std::time::Instant::now();
+    let response = FAMILIES
+        .iter()
+        .find_map(|family| {
+            let mut request = agent(*family).get(url);
+            if start > 0 {
+                request = request.header("Range", format!("bytes={start}-"));
+            }
+            request
+                .call()
+                .inspect_err(|error| log(&format!("{} ({family:?}) desde el byte {start}: falló a los {} ms: {error}", host_of(url), asked.elapsed().as_millis())))
+                .ok()
+        })
+        .ok_or_else(|| NETWORK_ERROR.to_string())?;
     let resumed  = start > 0 && response.status().as_u16() == PARTIAL_CONTENT;
+    let header   = |name: &str| response.headers().get(name).and_then(|value| value.to_str().ok()).unwrap_or("-").to_string();
+    let hops     = response.get_redirect_history().map(|history| history.iter().map(|uri| uri.host().unwrap_or("?").to_string()).collect::<Vec<_>>().join(" → ")).unwrap_or_default();
+    log(&format!(
+        "desde el byte {start}: {} en {} ms ({hops}), largo {}, rango {}",
+        response.status().as_u16(),
+        asked.elapsed().as_millis(),
+        header("content-length"),
+        header("content-range"),
+    ));
 
     Ok(Fetched { reader: Box::new(response.into_body().into_reader()), resumed })
 }

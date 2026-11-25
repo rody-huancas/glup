@@ -143,6 +143,10 @@ mod tests {
         assert_eq!(name_for("C:/musica/cancion.mp3", OutputKind::Tagged { tag: "recorte", extension: "mp3" }, &[]), PathBuf::from("C:/musica/cancion (recorte).mp3"));
         assert_eq!(name_for("C:/v/viaje.mkv", OutputKind::Tagged { tag: "recorte", extension: "mkv" }, &["C:/v/viaje (recorte).mkv"]), PathBuf::from("C:/v/viaje (recorte) (2).mkv"));
         assert_eq!(name_for("C:/v/viaje.mp4", OutputKind::Tagged { tag: "subtítulos", extension: "mp4" }, &[]), PathBuf::from("C:/v/viaje (subtítulos).mp4"));
+        assert_eq!(name_for("C:/fotos/playa.heic", OutputKind::Tagged { tag: "Instagram historia", extension: "jpg" }, &[]), PathBuf::from("C:/fotos/playa (Instagram historia).jpg"));
+        assert_eq!(name_for("C:/fotos/playa.png", OutputKind::Tagged { tag: "marca", extension: "png" }, &[]), PathBuf::from("C:/fotos/playa (marca).png"));
+        assert_eq!(name_for("C:/fotos/vieja.jpg", OutputKind::Tagged { tag: "x4", extension: "jpg" }, &["C:/fotos/vieja (x4).jpg"]), PathBuf::from("C:/fotos/vieja (x4) (2).jpg"));
+        assert_eq!(name_for("C:/fotos/vieja.jpg", OutputKind::Tagged { tag: "mejorada", extension: "jpg" }, &[]), PathBuf::from("C:/fotos/vieja (mejorada).jpg"));
         assert_eq!(name_for("C:/docs/contrato.pdf", OutputKind::Folder { suffix: "paginas" }, &["C:/docs/contrato-paginas"]), PathBuf::from("C:/docs/contrato-paginas (2)"));
     }
 

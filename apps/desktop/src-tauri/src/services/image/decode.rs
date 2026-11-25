@@ -21,6 +21,16 @@ pub fn decode(path: &Path) -> ImageResult<DynamicImage> {
     Ok(image)
 }
 
+// The size as shown (turned by its EXIF orientation), reading only the header when it can.
+pub fn upright_size(path: &Path) -> Option<(u32, u32)> {
+    if heif::is_heif(path) {
+        return decode(path).ok().map(|image| (image.width(), image.height()));
+    }
+    let (width, height) = ImageReader::open(path).ok()?.with_guessed_format().ok()?.into_dimensions().ok()?;
+    let turned          = matches!(orientation(path), Orientation::Rotate90 | Orientation::Rotate270 | Orientation::Rotate90FlipH | Orientation::Rotate270FlipH);
+    Some(if turned { (height, width) } else { (width, height) })
+}
+
 // EXIF orientation only, without decoding the pixels.
 pub fn orientation(path: &Path) -> Orientation {
     ImageReader::open(path)

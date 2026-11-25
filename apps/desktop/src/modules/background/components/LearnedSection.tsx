@@ -7,14 +7,16 @@ import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { SectionLabel } from '@/shared/components/SectionLabel';
 import { Skeleton } from '@/shared/components/Skeleton';
 
-// Ajustes › "Lo que aprendí": the tools Glup downloaded (the background model, the video program), to
-// free their space.
+// Ajustes › "Lo que aprendí": the tools Glup downloaded (the background model, the video program, the
+// models to listen and to improve photos), to free their space.
 export const LearnedSection = () => {
   const background = useLearned(LEARNABLES.background);
   const video      = useLearned(LEARNABLES.video);
   const fast       = useLearned(LEARNABLES['transcribe-fast']);
   const precise    = useLearned(LEARNABLES['transcribe-precise']);
-  const items      = [background, video, fast, precise];
+  const quick      = useLearned(LEARNABLES['upscale-fast']);
+  const detailed   = useLearned(LEARNABLES['upscale-detail']);
+  const items      = [background, video, fast, precise, quick, detailed];
   const installed  = items.filter((item) => item.status?.installed);
   const confirming = items.find((item) => item.confirming) ?? null;
   const loading    = items.some((item) => item.status === null);

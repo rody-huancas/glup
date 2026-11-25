@@ -4,15 +4,13 @@ use std::{
     fs::{self, File},
     io::{self, BufReader, BufWriter, Write},
     path::{Path, PathBuf},
-    time::Duration,
 };
 
 use flate2::bufread::DeflateDecoder;
 use tauri::{AppHandle, Manager};
-use ureq::Agent;
 
 use crate::services::background::{
-    download::{HashWriter, Fetched, NETWORK_ERROR, WRITE_ERROR},
+    download::{agent as download_agent, HashWriter, Fetched, FAMILIES, NETWORK_ERROR, WRITE_ERROR},
     model::{ModelFile, ModelStatus},
 };
 
@@ -46,8 +44,6 @@ pub const MISSING_ERROR: &str = "Primero tengo que aprender a trabajar con video
 // The N editions of Windows come without Media Foundation, which makes the H.264 video.
 pub const MEDIA_ERROR: &str   = "Tu Windows no trae lo necesario para videos. Instala el «Paquete de características multimedia» desde Configuración › Aplicaciones › Características opcionales.";
 
-const CONNECT_TIMEOUT: u64  = 20;
-const RESPONSE_TIMEOUT: u64 = 30;
 const PARTIAL_CONTENT: u16  = 206;
 // The Media Foundation libraries FFmpeg loads for h264_mf and aac_mf.
 const MEDIA_LIBRARIES: [&str; 2] = ["mfplat.dll", "mf.dll"];
@@ -100,13 +96,10 @@ pub fn range_header(start: u64) -> String {
 
 // Always a Range request: a server that answers with the whole zip (200) is not sending ffmpeg.exe.
 pub fn fetch_range(start: u64) -> Result<Fetched, String> {
-    let agent: Agent = Agent::config_builder()
-        .timeout_connect(Some(Duration::from_secs(CONNECT_TIMEOUT)))
-        .timeout_recv_response(Some(Duration::from_secs(RESPONSE_TIMEOUT)))
-        .build()
-        .into();
-
-    let response = agent.get(FFMPEG_ZIP_URL).header("Range", range_header(start)).call().map_err(|_| NETWORK_ERROR.to_string())?;
+    let response = FAMILIES
+        .iter()
+        .find_map(|family| download_agent(*family).get(FFMPEG_ZIP_URL).header("Range", range_header(start)).call().ok())
+        .ok_or_else(|| NETWORK_ERROR.to_string())?;
     if response.status().as_u16() != PARTIAL_CONTENT {
         return Err(NETWORK_ERROR.to_string());
     }

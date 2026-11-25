@@ -1,2 +1,2 @@
-// The colour of what is chosen: Glup's mint, or the yellow of the Audio y video screens.
-export type Accent = 'mint' | 'media';
+// The colour of what is chosen: Glup's mint, or the colour of the family of the screen.
+export type Accent = 'mint' | 'media' | 'images';

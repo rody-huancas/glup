@@ -1,6 +1,6 @@
-import { MediaOption } from '@/modules/media/components/MediaOption';
 import { SUBTITLES_TEXTS } from '@/modules/subtitles/constants/texts';
 import type { SubtitleMode } from '@/modules/subtitles/types/subtitleMode';
+import { ChoiceCard } from '@/shared/components/ChoiceCard';
 import { Switch } from '@/shared/components/Switch';
 import { useId } from 'react';
 
@@ -24,7 +24,7 @@ export const SubtitleSaveOptions = ({ mode, background, canEmbed, onMode, onBack
     <div className="flex flex-col gap-1.5">
       <span id={labelId} className="text-[11px] font-semibold text-muted">{SUBTITLES_TEXTS.saveAs}</span>
       <div role="radiogroup" aria-labelledby={labelId} className="flex flex-wrap gap-2 [&>*]:min-w-44">
-        {modes.map((each) => <MediaOption key={each} label={SUBTITLES_TEXTS.modes[each].label} hint={SUBTITLES_TEXTS.modes[each].hint} selected={mode === each} onChoose={() => onMode(each)} />)}
+        {modes.map((each) => <ChoiceCard accent="media" key={each} label={SUBTITLES_TEXTS.modes[each].label} hint={SUBTITLES_TEXTS.modes[each].hint} selected={mode === each} onChoose={() => onMode(each)} />)}
       </div>
       {!canEmbed && <p className="text-[11px] text-muted">{SUBTITLES_TEXTS.embedOnly}</p>}
       {mode === 'burn' && (

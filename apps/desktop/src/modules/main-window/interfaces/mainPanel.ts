@@ -1,13 +1,14 @@
-import type { RefObject } from 'react';
 import type { HomeFiles } from '@/modules/home/interfaces/homeFiles';
 import type { PageId } from '@/modules/main-window/types/pageId';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import type { TrimTarget } from '@/modules/media/interfaces/trimTarget';
 import type { OrganizeTarget } from '@/modules/organize/interfaces/organizeTarget';
+import type { ImageTarget } from '@/modules/photo-tools/interfaces/imageTarget';
 import type { ScanTarget } from '@/modules/scan/interfaces/scanTarget';
 import type { SignTarget } from '@/modules/sign/interfaces/signTarget';
 import type { WelcomeState } from '@/modules/welcome/interfaces/welcomeState';
+import type { RefObject } from 'react';
 
 export interface MainPanelState {
   page                : PageId;
@@ -35,6 +36,9 @@ export interface MainPanelState {
   // The video getting its subtitles: listened to, reviewed and saved there.
   subtitling          : TrimTarget | null;
   stopSubtitles       : () => void;
+  // The photos on a screen of Imágenes (Tamaño para redes, Marca de agua, Mejorar calidad).
+  imaging             : ImageTarget | null;
+  stopImages          : () => void;
   // Signing, organizing or scanning: no sidebar, and the island stays open.
   fullScreen          : boolean;
   // First run: the welcome covers the panel until it is answered.

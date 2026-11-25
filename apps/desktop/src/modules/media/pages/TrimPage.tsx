@@ -1,7 +1,6 @@
 import { LearnModelStep } from '@/modules/background/components/LearnModelStep';
 import { LEARNABLES } from '@/modules/background/constants/learnables';
 import { AnimationOptionsPanel } from '@/modules/media/components/AnimationOptionsPanel';
-import { MediaOption } from '@/modules/media/components/MediaOption';
 import { MediaPlayer } from '@/modules/media/components/MediaPlayer';
 import { TrimTimeField } from '@/modules/media/components/TrimTimeField';
 import { TrimTimeline } from '@/modules/media/components/TrimTimeline';
@@ -15,6 +14,7 @@ import { formatTime } from '@/modules/media/utils/time';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
 import { Button } from '@/shared/components/Button';
+import { ChoiceCard } from '@/shared/components/ChoiceCard';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { useKeyDown } from '@/shared/hooks/useKeyDown';
@@ -122,7 +122,7 @@ export const TrimPage = ({ target, location, onExit }: TrimPageProps) => {
                     <div className="flex flex-col gap-1.5">
                       <span id={modeId} className="text-[11px] font-semibold text-muted">{TRIM_TEXTS.mode}</span>
                       <div role="radiogroup" aria-labelledby={modeId} className="grid grid-cols-2 gap-2">
-                        {MODES.map((option) => <MediaOption key={option} label={TRIM_TEXTS.modes[option].label} hint={TRIM_TEXTS.modes[option].hint} selected={editor.mode === option} onChoose={() => editor.setMode(option)} />)}
+                        {MODES.map((option) => <ChoiceCard accent="media" key={option} label={TRIM_TEXTS.modes[option].label} hint={TRIM_TEXTS.modes[option].hint} selected={editor.mode === option} onChoose={() => editor.setMode(option)} />)}
                       </div>
                       {showKey && (
                         <p aria-live="polite" className="text-[12px] text-muted">

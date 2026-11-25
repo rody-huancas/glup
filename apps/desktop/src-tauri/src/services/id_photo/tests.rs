@@ -189,7 +189,7 @@ fn real_id_photo_from_a_portrait() {
 
     let rgb         = image.to_rgb8();
     let mut session = open(&model, Device::Gpu).or_else(|_| open(&model, Device::Cpu)).unwrap();
-    let logits      = infer(&mut session, &preprocess(&rgb)).unwrap();
+    let logits      = infer(&mut session, &preprocess(&rgb), [1, 3, MODEL_SIDE as usize, MODEL_SIDE as usize]).unwrap();
     let mask        = resize_mask(&mask_from_logits(&logits, MODEL_SIDE).unwrap(), rgb.width(), rgb.height());
 
     let (head, warning) = super::find_head(&rgb, &mask).unwrap();

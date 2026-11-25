@@ -21,10 +21,12 @@ interface LearnModelStepProps {
   // The action waits for this download: "Descargar" starts one task for both (the download, then the
   // action), instead of a download of its own here.
   onAccept?   : () => void;
+  // On the screens of a family, its buttons in its colour.
+  accent?     : 'media' | 'images';
 }
 
 // The first "Quitar fondo" or video: Glup asks before downloading, with the size, and shows the download.
-export const LearnModelStep = ({ learnable, downloading, onStarted, onStopped, onReady, onBack, onAccept }: LearnModelStepProps) => {
+export const LearnModelStep = ({ learnable, downloading, onStarted, onStopped, onReady, onBack, onAccept, accent }: LearnModelStepProps) => {
   const model         = useModelDownload({ learnable, downloading, onStarted, onStopped, onReady });
   const controllerRef = useAttentiveMascot(downloading);
   const progress      = model.task?.progress ?? null;
@@ -50,7 +52,7 @@ export const LearnModelStep = ({ learnable, downloading, onStarted, onStopped, o
             <div className="flex flex-col gap-2">
               {model.error && <p className="text-[11px] text-[#E58A9A]">{model.error}</p>}
               <div className="flex gap-2">
-                <Button onClick={onAccept ?? model.start} disabled={!model.status} className="h-9">
+                <Button variant={accent ?? 'primary'} onClick={onAccept ?? model.start} disabled={!model.status} className="h-9">
                   {model.error ? BACKGROUND_TEXTS.retry : BACKGROUND_TEXTS.download}
                 </Button>
                 <Button variant="secondary" onClick={onBack} className="h-9">

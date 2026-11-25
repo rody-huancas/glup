@@ -14,6 +14,7 @@ import { IDLE_STATE } from '@/modules/mascot/constants/mascot';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import type { TrimPurpose } from '@/modules/media/types/trimPurpose';
+import type { ImageScreen } from '@/modules/photo-tools/types/imageScreen';
 import { useSaveLocation } from '@/modules/settings/hooks/useSaveLocation';
 import type { ActionTool } from '@/modules/tools/interfaces/actionTool';
 import { useFileDrop } from '@/shared/hooks/useFileDrop';
@@ -36,9 +37,10 @@ interface UseHomeFilesParams {
   onScan          : (paths: string[]) => void;
   onTrim          : (path: string, purpose: TrimPurpose) => void;
   onSubtitles     : (path: string) => void;
+  onImages        : (screen: ImageScreen, paths: string[]) => void;
 }
 
-export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles }: UseHomeFilesParams): HomeFiles => {
+export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages }: UseHomeFilesParams): HomeFiles => {
   const [dragging, setDragging]       = useState(false);
   const [notice, setNotice]           = useState<string | null>(null);
   // Glup eating no longer keeps the island open, so only the setter is used.
@@ -55,7 +57,7 @@ export const useHomeFiles = ({ commandAvatar, onFilesIncoming, onSign, onOrganiz
 
   const onFinished   = useCallback(() => discardRef.current(), []);
   const saveLocation = useSaveLocation();
-  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles });
+  const actions      = useActionSelection({ onFinished, destination: saveLocation.destination, bundle: saveLocation.bundleZip, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages });
 
   useChewing({ mascotRef: dropMascotRef, active: actions.pending !== null });
   useDropZoneGestures({ mascotRef: dropMascotRef, active: !dragging && !actions.selection && !actions.pending });

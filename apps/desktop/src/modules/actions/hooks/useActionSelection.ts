@@ -32,6 +32,7 @@ import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions
 import { exportPdfPages } from '@/modules/pdf/services/pageImages';
 import { checkPdfPassword } from '@/modules/pdf/services/password';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
+import type { ImageScreen } from '@/modules/photo-tools/types/imageScreen';
 import { getHeifSupport } from '@/modules/photos/services/photos';
 import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
 import { needsPhotoTool } from '@/modules/photos/utils/photos';
@@ -61,6 +62,8 @@ interface UseActionSelectionParams {
   onTrim      : (path: string, purpose: TrimPurpose) => void;
   // And "Subtítulos", with the video.
   onSubtitles : (path: string) => void;
+  // And the screens of Imágenes, with every photo.
+  onImages    : (screen: ImageScreen, paths: string[]) => void;
 }
 
 interface ExecuteParams {
@@ -84,6 +87,9 @@ interface ChainedRun {
 }
 
 // Actions that open a second step before running.
+// Actions that open a screen of Imágenes.
+const IMAGE_SCREENS: Partial<Record<ActionId, ImageScreen>> = { 'social-size': 'social', 'photo-mark': 'mark', 'upscale': 'upscale' };
+
 const ACTION_STEPS: Partial<Record<ActionId, ActionsPhase>> = {
   convert       : 'formats',
   'to-jpg'      : 'jpg-quality',
@@ -122,7 +128,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -140,6 +146,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const scanRef                   = useRef(onScan);
   const trimRef                   = useRef(onTrim);
   const subtitlesRef              = useRef(onSubtitles);
+  const imagesRef                 = useRef(onImages);
   const loadId                    = useRef(0);
   // The step after learning: the background choice, or what the video is for.
   const learnDone                 = useRef<ActionsPhase>('background');
@@ -153,7 +160,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     scanRef.current        = onScan;
     trimRef.current        = onTrim;
     subtitlesRef.current   = onSubtitles;
-  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles]);
+    imagesRef.current      = onImages;
+  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim, onSubtitles, onImages]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -311,6 +319,14 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     // And "Subtítulos", which listens and lets the phrases be reviewed there.
     if (actionId === 'subtitles') {
       subtitlesRef.current(selection.paths[0]);
+      finishedRef.current();
+      return;
+    }
+
+    // And the screens of Imágenes (the frame, the mark or the model are chosen there).
+    const screen = IMAGE_SCREENS[actionId];
+    if (screen) {
+      imagesRef.current(screen, selection.paths);
       finishedRef.current();
       return;
     }

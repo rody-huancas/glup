@@ -6,8 +6,11 @@ import type { NumberingOptions } from '@/modules/pdf/interfaces/numberingOptions
 import type { ReduceOptions } from '@/modules/pdf/interfaces/reduceOptions';
 import type { SplitOptions } from '@/modules/pdf/interfaces/splitOptions';
 import type { WatermarkOptions } from '@/modules/pdf/interfaces/watermarkOptions';
+import type { MarkOptions } from '@/modules/photo-mark/interfaces/markOptions';
 import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
+import type { SocialRunOptions } from '@/modules/social/interfaces/socialRunOptions';
+import type { UpscaleOptions } from '@/modules/upscale/interfaces/upscaleOptions';
 import type { VideoOptions } from '@/modules/video/interfaces/videoOptions';
 
 export interface RunActionOptions {
@@ -24,6 +27,9 @@ export interface RunActionOptions {
   video?       : VideoOptions;
   jpg?         : JpgQuality;
   audio?       : ExtractOptions;
+  social?      : SocialRunOptions;
+  mark?        : MarkOptions;
+  upscale?     : UpscaleOptions;
 }
 
 export interface RunActionParams {

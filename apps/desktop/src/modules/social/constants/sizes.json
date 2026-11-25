@@ -1,0 +1,59 @@
+[
+  {
+    "id": "instagram",
+    "network": "Instagram",
+    "sizes": [
+      { "id": "instagram-square", "label": "Publicación cuadrada", "tag": "Instagram cuadrada", "width": 1080, "height": 1080 },
+      { "id": "instagram-portrait", "label": "Publicación vertical 4:5", "tag": "Instagram vertical", "width": 1080, "height": 1350 },
+      { "id": "instagram-story", "label": "Historia", "tag": "Instagram historia", "width": 1080, "height": 1920 }
+    ]
+  },
+  {
+    "id": "facebook",
+    "network": "Facebook",
+    "sizes": [
+      { "id": "facebook-post", "label": "Publicación", "tag": "Facebook publicación", "width": 1200, "height": 630 },
+      { "id": "facebook-cover", "label": "Portada", "tag": "Facebook portada", "width": 1640, "height": 624 },
+      { "id": "facebook-profile", "label": "Foto de perfil", "tag": "Facebook perfil", "width": 720, "height": 720 }
+    ]
+  },
+  {
+    "id": "whatsapp",
+    "network": "WhatsApp",
+    "sizes": [
+      { "id": "whatsapp-status", "label": "Estado", "tag": "WhatsApp estado", "width": 1080, "height": 1920 },
+      { "id": "whatsapp-profile", "label": "Foto de perfil", "tag": "WhatsApp perfil", "width": 640, "height": 640 }
+    ]
+  },
+  {
+    "id": "tiktok",
+    "network": "TikTok",
+    "sizes": [
+      { "id": "tiktok-post", "label": "Publicación", "tag": "TikTok", "width": 1080, "height": 1920 }
+    ]
+  },
+  {
+    "id": "youtube",
+    "network": "YouTube",
+    "sizes": [
+      { "id": "youtube-thumbnail", "label": "Miniatura", "tag": "YouTube miniatura", "width": 1280, "height": 720 },
+      { "id": "youtube-banner", "label": "Banner", "tag": "YouTube banner", "width": 2560, "height": 1440 }
+    ]
+  },
+  {
+    "id": "linkedin",
+    "network": "LinkedIn",
+    "sizes": [
+      { "id": "linkedin-post", "label": "Publicación", "tag": "LinkedIn publicación", "width": 1200, "height": 627 },
+      { "id": "linkedin-cover", "label": "Portada", "tag": "LinkedIn portada", "width": 1584, "height": 396 }
+    ]
+  },
+  {
+    "id": "x",
+    "network": "X",
+    "sizes": [
+      { "id": "x-post", "label": "Publicación", "tag": "X publicación", "width": 1600, "height": 900 },
+      { "id": "x-header", "label": "Encabezado", "tag": "X encabezado", "width": 1500, "height": 500 }
+    ]
+  }
+]
