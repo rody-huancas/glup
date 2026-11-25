@@ -1,4 +1,5 @@
 import { RESULT_MOODS } from '@/modules/actions/constants/resultMoods';
+import { useAutoFolderNotices } from '@/modules/auto-folders/hooks/useAutoFolderNotices';
 import { useIslandDock } from '@/modules/dock/hooks/useIslandDock';
 import { revealHistoryEntry } from '@/modules/history/store/historyReveal';
 import { ISLAND_TIMING } from '@/modules/island/constants/island';
@@ -12,6 +13,7 @@ import { useIslandSignals } from '@/modules/island/hooks/useIslandSignals';
 import { useIslandTimeline } from '@/modules/island/hooks/useIslandTimeline';
 import { useIslandWatchdog } from '@/modules/island/hooks/useIslandWatchdog';
 import { useLaunchOpen } from '@/modules/island/hooks/useLaunchOpen';
+import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
 import type { HoldReason } from '@/modules/island/types/holdReason';
 import { createIslandElements } from '@/modules/island/utils/elements';
 import { logBubble, logPosition } from '@/modules/island/utils/islandLog';
@@ -291,6 +293,19 @@ export const useIsland = () => {
   }, [send, avatarRef]);
 
   useScreenTextDone(onScreenText);
+
+  // What Carpetas automáticas did, once for everything: the pill's notice, or a Windows notification
+  // when there is no pill to tell it on.
+  const onAutoFolders = useCallback((notice: IslandNotice) => {
+    if (phaseRef.current === 'hidden' || restRef.current === 'hidden') {
+      void notifyTask({ body: notice.message, page: notice.page ?? 'auto-folders' }).catch(() => undefined);
+      return;
+    }
+    send({ type: 'notice', notice });
+    avatarRef.current?.setState(RESULT_MOODS[notice.tone]);
+  }, [send, avatarRef]);
+
+  useAutoFolderNotices(onAutoFolders);
 
   // "Ver" on the notice: Historial, with that line open.
   const navigateTo   = panel.navigate;
