@@ -59,7 +59,7 @@ export const Island = () => {
           <MainPanel panel={panel} controls={island.controls} avatarAnchorRef={elements.avatarAnchor} />
         </IslandContent>
         <IslandPillAnchor anchorRef={elements.pillAnchor} placement={placement} />
-        <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={island.notice} placement={placement} onView={island.onNoticeView} />
+        <IslandNoticeView anchorRef={elements.noticeAnchor} textRef={elements.noticeText} notice={island.notice} placement={placement} onView={island.onNoticeView} onViewPage={island.onNoticePage} />
         <IslandPillProgress visible={island.progress.visible && !bubble} fraction={island.progress.fraction} placement={placement} />
         <IslandPillDot visible={island.pendingSelection && island.notice === null} placement={placement} />
         <IslandMascotFlyer liftRef={elements.lift} flyerRef={elements.flyer} squashRef={elements.squash} hidden={panel.fullScreen || panel.welcome.visible}>
