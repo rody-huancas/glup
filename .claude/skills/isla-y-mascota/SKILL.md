@@ -262,6 +262,29 @@ arma con piezas PNG apiladas y posicionadas en porcentajes según `constants/lay
   tiempos en `constants/` y su versión para movimiento reducido (quieta si el gesto dice algo).
 - En la pastilla no se animan brazos ni patitas: no se ven.
 
+### Glup asomado (pastilla de arriba)
+
+En la pastilla del borde de arriba Glup no sale cortado: se **asoma** (`glup-peek-160.webp` y `-320`,
+sacados de `glup-peek-sin-cara.png`, con los cachetes del dibujo pero sin ojos ni boca). Su base plana
+va sobre el borde de abajo de la pastilla y se ven la cabeza, los audífonos y las manitos. Los demás
+bordes, las esquinas y la burbuja siguen con el Glup de siempre.
+
+- Es **la misma instancia** con otra piel: `Mascot` con `peek` (solo el de la isla) dibuja también la
+  capa asomada. La variable CSS `--peek` (0 entero, 1 asomado), puesta en `squash`, funde el cuerpo
+  (con brazos, patitas y archivos) en la capa asomada y lleva cada pieza de la cara de su lugar en el
+  cuerpo entero a su lugar en el dibujo asomado (`getPieceStyle` mezcla ambas posiciones con `calc`).
+  Así la cara sigue viva (parpadeo, mirada, estados) con los ojos y bocas de siempre.
+- `constants/peek.ts`: `PEEK_LAYER` (dónde va la capa dentro de la caja de Glup, elegida para que su
+  cara caiga sobre la del Glup entero) y `PEEK_PIECES` (la cara medida en `glup-peek.png`: ojos un
+  poco más chicos para su separación, 0,78; boca casi igual, 0,97). Si el dibujo cambia, se vuelven a
+  medir los dos PNG, que están alineados píxel a píxel.
+- Dónde: `usesPeek(placement)` (borde de arriba, pastilla acostada). `TOP_PILL_SHAPES` hace esa
+  pastilla un poco más alta (150 × 38) y `PEEK_POSE` deja 3 px bajo el borde de la pantalla; el aviso
+  lo lleva asomado al principio (34 px de alto) y el texto empieza después de lo que se ve.
+- La transición: al abrirse, `--peek` va a 0 en la primera mitad del vuelo (`MASCOT_MOTION.peek`);
+  al cerrarse, vuelve a 1 en la segunda mitad. Con movimiento reducido se pone de golpe, como el resto.
+  `setCollapsedPose` y `setExpandedPose` lo ponen según el borde (al moverse de borde, también).
+
 ### Piezas nuevas
 
 Las piezas salen del diseño original (estilo 3D suave, menta y lila). Una pieza nueva:
