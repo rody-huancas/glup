@@ -1,10 +1,10 @@
+import type { FamilyId } from '@/modules/families/types/familyId';
 import type { ToolGroup } from '@/modules/tools/interfaces/toolGroup';
 import type { Tool } from '@/modules/tools/types/tool';
-import type { ToolSection } from '@/modules/tools/types/toolSection';
 
 interface GroupToolsParams {
   tools    : Tool[];
-  sections : ToolSection[];
+  families : FamilyId[];
 }
 
 // Accents and capitals do not matter: "imagenes" finds "Imágenes".
@@ -22,8 +22,8 @@ export const filterTools = (tools: Tool[], query: string): Tool[] => {
   });
 };
 
-// Sections in their fixed order; the ones left without tools are dropped.
-export const groupTools = ({ tools, sections }: GroupToolsParams): ToolGroup[] =>
-  sections
-    .map((section) => ({ section, tools: tools.filter((tool) => tool.section === section) }))
+// Families in their fixed order; the ones left without tools are dropped.
+export const groupTools = ({ tools, families }: GroupToolsParams): ToolGroup[] =>
+  families
+    .map((family) => ({ family, tools: tools.filter((tool) => tool.family === family) }))
     .filter((group) => group.tools.length > 0);

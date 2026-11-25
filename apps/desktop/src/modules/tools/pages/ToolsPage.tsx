@@ -26,7 +26,7 @@ export const ToolsPage = ({ files, onNavigate }: PageProps) => {
       <PageHeader title={TOOLS_TEXTS.title} subtitle={TOOLS_TEXTS.subtitle} />
       <ToolSearchField query={query} onChange={setQuery} />
       <div className="-mr-3 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto scroll-thin pr-3">
-        {groups.map((group) => <ToolGroupSection key={group.section} group={group} onRun={runTool} onChangeShortcut={changeShortcut} />)}
+        {groups.map((group) => <ToolGroupSection key={group.family} group={group} onRun={runTool} onChangeShortcut={changeShortcut} />)}
         {groups.length === 0 && <ToolsEmpty />}
       </div>
     </div>

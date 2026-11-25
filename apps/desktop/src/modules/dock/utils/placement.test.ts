@@ -85,10 +85,11 @@ describe('placeIsland', () => {
 });
 
 describe('dockRegion', () => {
-  it('on top in the middle, the regions are the ones of always', () => {
+  it('on top in the middle, the regions fit the peeking pill, its hover and its landing', () => {
     const placement = place('top');
 
-    expect(dockRegion(placement, 'collapsed')).toEqual({ x: 508, y: 0, width: 184, height: 36 });
+    expect(dockRegion(placement, 'collapsed')).toEqual({ x: 507, y: 0, width: 186, height: 42 });
+    expect(dockRegion(place('bottom'), 'collapsed').width).toBe(184);
     expect(dockRegion(placement, 'expanded')).toEqual({ x: 62, y: 0, width: 1076, height: 640 });
     expect(dockRegion(placement, 'frame')).toEqual({ x: 0, y: 0, width: 1200, height: 720 });
   });

@@ -4,6 +4,7 @@ import type { FileSelection } from '@/modules/actions/interfaces/fileSelection';
 import type { PendingSelection } from '@/modules/actions/interfaces/pendingSelection';
 import type { ActionId } from '@/modules/actions/types/actionId';
 import type { ActionsPhase } from '@/modules/actions/types/actionsPhase';
+import type { DialogFileType } from '@/modules/actions/types/fileType';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
 import type { MascotState } from '@/modules/mascot/types/mascotState';
 import type { SaveLocation } from '@/modules/settings/interfaces/saveLocation';
@@ -24,5 +25,7 @@ export interface HomeFiles {
   choose                  : (actionId: ActionId) => void;
   close                   : () => void;
   pickFiles               : () => void;
+  // «Elegir archivos» of a family: only its kinds in the dialog.
+  pickFilesOf             : (type: DialogFileType) => void;
   runTool                 : (tool: ActionTool) => Promise<boolean>;
 }

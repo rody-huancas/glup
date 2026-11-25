@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { cx } from '@/shared/utils/classNames';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ink';
 
 interface ButtonProps {
   children   : ReactNode;
@@ -16,6 +16,8 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   secondary : 'border border-line-strong bg-raised text-text hover:bg-line',
   // Removing something: coral, filled on hover.
   danger    : 'border border-danger/40 bg-danger-soft text-danger hover:bg-danger hover:text-danger-ink',
+  // On a mint card (Inicio): the ink as the fill, the mint as the text.
+  ink       : 'bg-mint-ink text-mint hover:brightness-150',
 };
 
 export const Button = ({ children, onClick, variant = 'primary', disabled = false, className }: ButtonProps) => (

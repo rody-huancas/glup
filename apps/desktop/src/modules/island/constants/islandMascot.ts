@@ -20,6 +20,9 @@ export const MASCOT_MOTION = {
   celebrate : { hold: 0.6 },
   // lead: flight start after the goodbye wave (Recoger, Esc) · leaveLead: when the cursor left, no wave.
   farewell  : { hold: 0.15, lead: 0.28, leaveLead: 0 },
+  // The peeking Glup of the top pill turns into the whole one (and back) during this share of the
+  // flight: at its start when it opens, at its end when it closes. The face moves along.
+  peek      : { share: 0.5, ease: 'power1.inOut' },
 };
 
 const LOOK_LEFT: Point           = { x: -1, y: 0 };

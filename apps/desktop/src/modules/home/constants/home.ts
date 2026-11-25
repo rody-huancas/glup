@@ -3,12 +3,11 @@ import type { Face } from '@/modules/mascot/interfaces/face';
 
 export const HOME_TEXTS = {
   title       : '¿Qué le damos de comer hoy?',
-  subtitle    : 'Suelta un archivo o elige una herramienta.',
+  subtitle    : 'Suéltale tus archivos o elige una familia de herramientas.',
   dropTitle   : 'Suelta aquí tus archivos',
   // With files chosen, the zone is a one-line bar.
   dropMore    : 'Suelta más archivos o elige',
   chooseFiles : 'Elegir archivos',
-  quickTools  : 'Herramientas rápidas',
   back        : 'Volver',
   tipTitle    : 'Truco',
   tipText     : 'Lleva un archivo al borde de arriba de tu pantalla y Glup se lo come sin abrir esta ventana.',

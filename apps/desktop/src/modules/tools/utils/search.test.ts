@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ACTIONS } from '@/modules/actions/constants/actions';
-import { QUICK_TOOLS, TOOL_SECTIONS, TOOLS } from '@/modules/tools/constants/tools';
+import { FAMILY_IDS } from '@/modules/families/constants/families';
+import { TOOLS } from '@/modules/tools/constants/tools';
 import { filterTools, groupTools, normalizeText } from '@/modules/tools/utils/search';
 
 const titles = (query: string): string[] => filterTools(TOOLS, query).map((tool) => tool.id);
@@ -37,15 +38,15 @@ describe('filterTools', () => {
 });
 
 describe('groupTools', () => {
-  it('keeps the section order and drops empty sections', () => {
-    const groups = groupTools({ tools: filterTools(TOOLS, 'peso foto'), sections: TOOL_SECTIONS });
-    expect(groups.map((group) => group.section)).toEqual(['images']);
-    expect(groupTools({ tools: filterTools(TOOLS, 'peso'), sections: TOOL_SECTIONS }).map((group) => group.section)).toEqual(['pdf', 'images', 'videos']);
+  it('keeps the family order and drops empty families', () => {
+    const groups = groupTools({ tools: filterTools(TOOLS, 'peso foto'), families: FAMILY_IDS });
+    expect(groups.map((group) => group.family)).toEqual(['images']);
+    expect(groupTools({ tools: filterTools(TOOLS, 'peso'), families: FAMILY_IDS }).map((group) => group.family)).toEqual(['images', 'pdf', 'media']);
   });
 
-  it('shows the four sections with everything', () => {
-    const groups = groupTools({ tools: TOOLS, sections: TOOL_SECTIONS });
-    expect(groups.map((group) => group.section)).toEqual(['pdf', 'images', 'videos', 'text', 'files', 'pc']);
+  it('shows the six families with everything', () => {
+    const groups = groupTools({ tools: TOOLS, families: FAMILY_IDS });
+    expect(groups.map((group) => group.family)).toEqual(['images', 'pdf', 'media', 'text', 'clipboard', 'pc']);
   });
 });
 
@@ -59,11 +60,5 @@ describe('tools.json', () => {
     TOOLS.forEach((tool) => {
       if (tool.kind === 'action') expect(actionIds).toContain(tool.actionId);
     });
-  });
-
-  it('marks the quick tools for Inicio', () => {
-    expect(QUICK_TOOLS.map((tool) => tool.id)).toEqual([
-      'merge-pdf', 'split-pdf', 'compress-pdf', 'sign-pdf', 'pdf-to-images', 'convert-image', 'iphone-to-jpg', 'compress-image', 'remove-background',
-    ]);
   });
 });
