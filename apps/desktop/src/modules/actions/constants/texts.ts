@@ -83,4 +83,6 @@ export const WORKING_TEXTS: Record<ActionId, string> = {
   'id-photo'          : 'Guardando tu foto…',
   'sign'              : 'Firmando…',
   'scan'              : 'Escaneando…',
+  'extract-audio'     : 'Sacando el audio…',
+  'trim'              : 'Recortando…',
 };

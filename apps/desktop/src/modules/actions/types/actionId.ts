@@ -18,4 +18,6 @@ export type ActionId =
   | 'to-pdf'
   | 'remove-background'
   | 'scan'
+  | 'extract-audio'
+  | 'trim'
   | 'zip';
