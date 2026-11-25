@@ -11,11 +11,11 @@ export const needsRustPreview = (path: string): boolean => isHeic(path) || AVIF_
 // "Fotos de iPhone a JPG" shows only when every file is a HEIC or HEIF.
 export const allHeic = (files: FileInfo[]): boolean => files.length > 0 && files.every((file) => isHeic(file.path));
 
-// FFmpeg has to be learned first when some photo is in a format this Windows cannot open.
-export const needsPhotoTool = (files: FileInfo[], support: HeifSupport): boolean => {
+// This photo needs FFmpeg to open: a HEIC or AVIF this Windows cannot open, and FFmpeg not here.
+export const pathNeedsPhotoTool = (path: string, support: HeifSupport): boolean => {
   if (support.ffmpeg) return false;
-
-  const heic = files.some((file) => isHeic(file.path));
-  const avif = files.some((file) => AVIF_EXTENSIONS.includes(getExtension(file.path)));
-  return (heic && !support.heic) || (avif && !support.avif);
+  return (isHeic(path) && !support.heic) || (AVIF_EXTENSIONS.includes(getExtension(path)) && !support.avif);
 };
+
+// FFmpeg has to be learned first when some photo is in a format this Windows cannot open.
+export const needsPhotoTool = (files: FileInfo[], support: HeifSupport): boolean => files.some((file) => pathNeedsPhotoTool(file.path, support));
