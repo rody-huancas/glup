@@ -1,8 +1,9 @@
 import type { UpscaleLevel } from '@/modules/upscale/types/upscaleLevel';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const UPSCALE_TEXTS = {
   title       : 'Mejorar calidad',
-  subtitle    : (count: number) => (count === 1 ? '1 foto' : `${count} fotos`),
+  subtitle    : (count: number) => (count === 1 ? '1 foto' : `${formatCount(count)} fotos`),
   level       : 'Cómo la mejoro',
   levels      : {
     fast   : { label: 'Rápido', hint: 'Liviano: para cualquier foto' },
@@ -13,7 +14,7 @@ export const UPSCALE_TEXTS = {
   sameHint    : 'Igual de grande, pero más nítida y con menos ruido.',
   output      : (width: number, height: number) => `Saldrá de ${width} × ${height} px`,
   sameOutput  : (width: number, height: number) => `Saldrá del mismo tamaño: ${width} × ${height} px`,
-  tooBig      : (count: number) => (count === 1 ? 'Esta foto saldría demasiado grande: prueba con x2.' : `${count} fotos saldrían demasiado grandes: prueba con x2.`),
+  tooBig      : (count: number) => (count === 1 ? 'Esta foto saldría demasiado grande: prueba con x2.' : `${formatCount(count)} fotos saldrían demasiado grandes: prueba con x2.`),
   allTooBig   : 'Con esta escala saldrían demasiado grandes.',
   compare     : 'Ver antes y después',
   backToPhoto : 'Volver a la foto',

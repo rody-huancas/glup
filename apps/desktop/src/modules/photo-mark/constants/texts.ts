@@ -1,8 +1,9 @@
 import type { MarkFont, MarkKind, MarkPlace } from '@/modules/photo-mark/types/markTypes';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const MARK_TEXTS = {
   title       : 'Marca de agua',
-  subtitle    : (count: number) => (count === 1 ? '1 foto' : `${count} fotos`),
+  subtitle    : (count: number) => (count === 1 ? '1 foto' : `${formatCount(count)} fotos`),
   kind        : 'Qué pongo',
   kinds       : {
     text : { label: 'Texto', hint: 'Tu nombre, tu marca, ©…' },

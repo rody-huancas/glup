@@ -1,5 +1,7 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 export const PHOTO_TOOLS_TEXTS = {
-  page     : (index: number, total: number) => `Foto ${index} de ${total}`,
+  page     : (index: number, total: number) => `Foto ${index} de ${formatCount(total)}`,
   previous : 'Foto anterior',
   next     : 'Foto siguiente',
   loading  : 'Abriendo la foto…',

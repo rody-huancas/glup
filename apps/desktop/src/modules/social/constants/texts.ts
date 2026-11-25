@@ -1,8 +1,9 @@
 import type { SocialFit, SocialFormat } from '@/modules/social/types/socialFit';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const SOCIAL_TEXTS = {
   title       : 'Tamaño para redes',
-  subtitle    : (count: number) => (count === 1 ? '1 foto' : `${count} fotos`),
+  subtitle    : (count: number) => (count === 1 ? '1 foto' : `${formatCount(count)} fotos`),
   network     : 'Red',
   size        : 'Medida',
   custom      : 'Personalizado',

@@ -1,3 +1,5 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 // Learning to work with videos (the one-time download) and Ajustes › "Lo que aprendí".
 export const VIDEO_TOOL_TEXTS = {
   learnBody  : (size: string) => `Para trabajar con videos necesito aprender algo nuevo. Es una descarga de ${size}, una sola vez. Tus videos nunca salen de tu PC.`,
@@ -22,6 +24,6 @@ export const VIDEO_TEXTS = {
   reading     : 'Mirando el video…',
   tooLong     : (size: string) => `Es muy largo para que pese menos de 25 MB; quedará en unos ${size}.`,
   tooLongFor  : (limit: string, size: string) => `Es muy largo para que pese menos de ${limit}; quedará en unos ${size}.`,
-  severalLong : (count: number) => `${count} de los videos son muy largos para ese peso: quedarán un poco por encima.`,
+  severalLong : (count: number) => `${formatCount(count)} de los videos son muy largos para ese peso: quedarán un poco por encima.`,
   estimate    : (size: string) => `Quedará en unos ${size}`,
 };

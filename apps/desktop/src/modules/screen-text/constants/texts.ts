@@ -1,7 +1,9 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 export const SCREEN_TEXT_TEXTS = {
   hint   : 'Arrastra sobre el texto que quieres copiar · Esc para cancelar',
   qrHint : 'Arrastra sobre el código QR · Esc para cancelar',
-  codes  : (count: number) => (count === 1 ? 'Encontré un código' : `Encontré ${count} códigos`),
+  codes  : (count: number) => (count === 1 ? 'Encontré un código' : `Encontré ${formatCount(count)} códigos`),
   alsoQr : (words: number) => `Copié ${words} ${words === 1 ? 'palabra' : 'palabras'} · y hay un QR`,
   noCode : 'No encontré ningún código ahí',
   copied : (words: number) => `Copié ${words} ${words === 1 ? 'palabra' : 'palabras'}`,
