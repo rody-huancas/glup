@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::services::settings::SaveMode;
 
@@ -11,7 +11,7 @@ pub const GLUP_FOLDER: &str          = "Glup";
 pub const MISSING_FOLDER_ERROR: &str = "La carpeta elegida ya no está";
 pub const FOLDER_ERROR: &str         = "No pude crear la carpeta";
 
-#[derive(Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Destination {
     pub mode: SaveMode,
