@@ -42,6 +42,7 @@ pub fn run() {
         .manage(TaskRegistry::default())
         .manage(CleanupState::default())
         .manage(services::folder_sort::FolderSortState::default())
+        .manage(services::scan::ScanState::default())
         .manage(services::performance::PerformanceState::default())
         .manage(TrayAutostart::default())
         .manage(BackgroundSession::default())
@@ -68,6 +69,11 @@ pub fn run() {
             commands::actions::sign_pdf,
             commands::actions::organize_pdf,
             commands::actions::check_pdf_password,
+            commands::scan::open_scan_photo,
+            commands::scan::get_scan_photo,
+            commands::scan::get_scan_preview,
+            commands::scan::close_scan,
+            commands::scan::scan_document,
             commands::folder_sort::get_sort_folder,
             commands::folder_sort::get_downloads_to_sort,
             commands::folder_sort::preview_folder_sort,

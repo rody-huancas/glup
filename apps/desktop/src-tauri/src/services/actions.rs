@@ -39,6 +39,7 @@ use crate::services::{
         watermark::{self as pdf_watermark, WatermarkOptions, EMPTY_TEXT, WATERMARK_SUFFIX},
     },
     progress::{self, Stage},
+    scan,
     settings::{self as app_settings, SaveMode},
     signatures, tasks,
     video::{self, plan::VideoOptions, ReduceVideoParams, VideoResult, ALREADY_LIGHT, REDUCED_SUFFIX as VIDEO_SUFFIX, VIDEO_EXTENSION},
@@ -1522,6 +1523,56 @@ pub fn save_id_photo(app: &AppHandle, request: IdPhotoSaveRequest) -> Result<Act
         pages_done       : None,
         pages_total      : None,
     })
+}
+
+// "Escanear documento": the photos of sheets, straight and clean, in one PDF named after the first
+// photo (hoja-escaneado.pdf). Cancelling between pages leaves nothing behind.
+pub fn scan_document(app: &AppHandle, request: scan::ScanRequest) -> Result<ActionReport, String> {
+    let control = app.state::<ActionControl>();
+    control.begin(&request.task_id);
+
+    let sources: Vec<PathBuf> = request.pages.iter().map(|page| PathBuf::from(&page.path)).collect();
+    let first                 = sources.first().cloned().ok_or(scan::NO_PAGES)?;
+    let run                   = Run {
+        app,
+        paths         : sources.clone(),
+        destination   : request.destination.clone().unwrap_or_default(),
+        cancel        : &control.cancelled,
+        reserved      : Mutex::new(HashSet::new()),
+        task          : request.task_id.clone(),
+        keep_location : false,
+    };
+
+    let rendered = scan::render(scan::RenderParams { app, request: &request, cancel: &control.cancelled });
+    let kind     = OutputKind::Suffixed { suffix: scan::SCAN_SUFFIX, extension: PDF_EXTENSION };
+    let report   = |outcomes: Vec<FileOutcome>, batch: Option<&Saved>, cancelled: bool| ActionReport {
+        action_id        : scan::SCAN_ACTION.to_string(),
+        outcomes,
+        output           : batch.map(|result| result.output.to_string_lossy().into_owned()),
+        output_size      : batch.map(|result| result.size),
+        total            : sources.len(),
+        cancelled,
+        bundled          : false,
+        output_is_folder : false,
+        pages_done       : None,
+        pages_total      : None,
+    };
+
+    let finished = match rendered {
+        Ok(None)           => return Ok(report(Vec::new(), None, true)),
+        Ok(Some(document)) => run.save(SaveParams { source: &first, kind, bytes: &document.bytes }).map(|saved| (saved, document)),
+        Err(error)         => Err(error),
+    };
+    scan::close(app);
+
+    match finished {
+        Ok((result, document)) => {
+            let entry = history::new_entry(NewEntryParams { output: &result.output, kind: PDF_KIND, action: scan::SCAN_ACTION, detail: scan::detail(&document) });
+            let _     = history::append(app, vec![entry]);
+            Ok(report(vec![saved(&first, &result)], Some(&result), false))
+        }
+        Err(error) => Ok(report(vec![failed(&first, error)], None, false)),
+    }
 }
 
 fn saved_outcome(source: &Path, output: &Path, size: u64) -> FileOutcome {
