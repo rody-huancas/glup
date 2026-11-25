@@ -10,13 +10,13 @@ export const IMPLEMENTED_ACTIONS: Record<SelectionType, ActionId[]> = {
   pdf         : ['merge', 'compress', 'sign', 'split-pages', 'organize-pages', 'to-images', 'protect', 'watermark', 'page-numbers', 'extract-images', 'extract-text', 'zip'],
   'pdf-mixed' : ['merge', 'extract-text', 'zip'],
   'pdf-locked': ['unlock'],
-  video       : ['compress', 'transcribe', 'zip'],
-  audio       : ['transcribe', 'zip'],
+  video       : ['compress', 'transcribe', 'extract-audio', 'trim', 'zip'],
+  audio       : ['transcribe', 'trim', 'zip'],
   mixed       : ['zip'],
 };
 
 // Results that can be delivered in one zip: one per file (2 or more files)…
-export const BUNDLE_ACTIONS: ActionId[] = ['convert', 'to-jpg', 'compress', 'remove-background', 'protect', 'watermark', 'page-numbers'];
+export const BUNDLE_ACTIONS: ActionId[] = ['convert', 'to-jpg', 'compress', 'remove-background', 'protect', 'watermark', 'page-numbers', 'extract-audio'];
 
 // …or several files out of a single PDF.
 export const PAGE_BUNDLE_ACTIONS: ActionId[] = ['split-pages', 'to-images', 'extract-images'];

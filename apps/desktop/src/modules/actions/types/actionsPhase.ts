@@ -1,7 +1,8 @@
 // order: merge order · split: how to split · pages: pick pages · image-format: PDF to images · reduce: PDF level.
 // learn-model: asks to download what "Quitar fondo" needs · learning-model: downloading it · background: which background.
 // protect / unlock: the password · watermark: text and look · numbering: where and how · video: what it is for ·
-// id-format / id-preview: the size of the ID photo and its framing · jpg-quality: "Fotos de iPhone a JPG".
+// id-format / id-preview: the size of the ID photo and its framing · jpg-quality: "Fotos de iPhone a JPG" ·
+// extract-audio: the format and quality of "Sacar el audio".
 export type ActionsPhase =
   | 'choosing'
   | 'formats'
@@ -22,6 +23,7 @@ export type ActionsPhase =
   | 'id-preview'
   | 'transcribe'
   | 'jpg-quality'
+  | 'extract-audio'
   | 'working'
   | 'learning'
   | 'result';

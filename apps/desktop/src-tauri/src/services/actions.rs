@@ -38,6 +38,7 @@ use crate::services::{
         split as pdf_split,
         watermark::{self as pdf_watermark, WatermarkOptions, EMPTY_TEXT, WATERMARK_SUFFIX},
     },
+    media::{self, extract::extension as audio_extension},
     progress::{self, Stage},
     scan,
     settings::{self as app_settings, SaveMode},
@@ -129,6 +130,9 @@ pub struct ActionOptions {
     // "Fotos de iPhone a JPG".
     #[serde(default)]
     pub jpg: Option<JpgQuality>,
+    // "Sacar el audio": the format and the quality.
+    #[serde(default)]
+    pub audio: Option<media::extract::ExtractOptions>,
 }
 
 // "Reducir peso" for PDFs: the level and, optionally, a size the result must stay under.
@@ -683,13 +687,13 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
 
     let options     = request.options.unwrap_or(ActionOptions {
         format: None, destination: None, bundle: None, split: None, reduce: None, background: None, password: None, watermark: None, numbering: None,
-        video: None, jpg: None,
+        video: None, jpg: None, audio: None,
     });
     let destination = options.destination.unwrap_or_default();
     let paths       = request.paths.iter().map(PathBuf::from).collect::<Vec<_>>();
     let total       = paths.len();
     let action      = request.action_id.as_str();
-    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "to-jpg" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers");
+    let bundled     = options.bundle.unwrap_or(false) && total > 1 && matches!(action, "convert" | "to-jpg" | "compress" | "remove-background" | "protect" | "watermark" | "page-numbers" | "extract-audio");
     let scratch     = if bundled { Some(scratch_folder()?) } else { None };
 
     // Bundled results are made in the scratch folder first, then zipped into the real destination.
@@ -713,6 +717,7 @@ pub fn run(app: &AppHandle, request: ActionRequest) -> Result<ActionReport, Stri
         ("compress", _) if videos   => run_reduce_video(&run, options.video.unwrap_or_default()),
         ("compress", _)             => run_compress(&run),
         ("to-pdf", _)               => run_to_pdf(&run),
+        ("extract-audio", _)        => run_extract_audio(&run, options.audio.unwrap_or_default()),
         ("remove-background", _)    => run_remove_background(&run, options.background.unwrap_or_default()),
         ("zip", _)                  => run_zip(&run),
         ("merge", _)                => run_merge(&run),
@@ -1474,6 +1479,116 @@ fn run_reduce_video(run: &Run, options: VideoOptions) -> Collected {
     let detail              = |source: &Path, result: &Saved| history::reduced_detail(file_size(source), result.size);
     let (outcomes, entries) = collect_results(CollectParams { run, results, action: "compress", kind: VIDEO_KIND, detail: &detail });
     Collected { outcomes, entries, batch: None, cancelled }
+}
+
+// "Sacar el audio": one video at a time (FFmpeg already uses the processor), into video.mp3 (or .m4a,
+// .wav) beside it or where chosen. Cancelar stops FFmpeg and deletes the half-made file.
+fn run_extract_audio(run: &Run, options: media::extract::ExtractOptions) -> Collected {
+    let ffmpeg = match media::ffmpeg(run.app) {
+        Ok(path) => path,
+        Err(error) => {
+            let outcomes = run.paths.iter().map(|source| failed(source, error.clone())).collect();
+            return Collected { outcomes, entries: Vec::new(), batch: None, cancelled: false };
+        }
+    };
+
+    let mut results   = Vec::new();
+    let mut copies    = Vec::new();
+    let mut cancelled = false;
+    for (index, source) in run.paths.iter().enumerate() {
+        if run.cancel.load(Ordering::SeqCst) {
+            cancelled = true;
+            break;
+        }
+        let folder = match destination::prepare(source, &run.destination) {
+            Ok(folder) => folder,
+            Err(error) => {
+                results.push(Some(Err(error)));
+                copies.push(false);
+                continue;
+            }
+        };
+        let output = run.reserve(&OutputNameParams { folder: &folder, source, kind: OutputKind::Converted { extension: audio_extension(options.format) } });
+        let name   = file_name(source);
+        let made   = media::extract_audio(media::ExtractParams {
+            ffmpeg      : &ffmpeg,
+            source,
+            output      : &output,
+            options,
+            cancel      : run.cancel,
+            on_progress : &|done| video_progress(run, index, done, &name),
+        });
+        match made {
+            Ok(Some(extracted)) => {
+                copies.push(extracted.copied);
+                results.push(Some(Ok(FileResult::Saved(Saved { output, size: extracted.size }))));
+            }
+            Ok(None) => {
+                cancelled = true;
+                results.push(None);
+                copies.push(false);
+            }
+            Err(error) => {
+                results.push(Some(Err(error)));
+                copies.push(false);
+            }
+        }
+    }
+
+    let copied              = |source: &Path| run.paths.iter().position(|path| path == source).and_then(|index| copies.get(index).copied()).unwrap_or(false);
+    let detail              = |source: &Path, _: &Saved| media::extract_detail(options, copied(source));
+    let (outcomes, entries) = collect_results(CollectParams { run, results, action: "extract-audio", kind: "audio", detail: &detail });
+    Collected { outcomes, entries, batch: None, cancelled }
+}
+
+// "Recortar": the stretch into "<nombre> (recorte).ext", as a task with its progress and Cancelar.
+pub fn trim_media(app: &AppHandle, request: media::TrimRequest) -> Result<ActionReport, String> {
+    let control = app.state::<ActionControl>();
+    control.begin(&request.task_id);
+
+    let source = PathBuf::from(&request.path);
+    let run    = Run {
+        app,
+        paths         : vec![source.clone()],
+        destination   : request.destination.clone().unwrap_or_default(),
+        cancel        : &control.cancelled,
+        reserved      : Mutex::new(HashSet::new()),
+        task          : request.task_id.clone(),
+        keep_location : false,
+    };
+    let report = |outcomes: Vec<FileOutcome>, batch: Option<&Saved>, cancelled: bool| ActionReport {
+        action_id        : media::TRIM_ACTION.to_string(),
+        outcomes,
+        output           : batch.map(|result| result.output.to_string_lossy().into_owned()),
+        output_size      : batch.map(|result| result.size),
+        total            : 1,
+        cancelled,
+        bundled          : false,
+        output_is_folder : false,
+        pages_done       : None,
+        pages_total      : None,
+    };
+
+    let made = media::ffmpeg(app).and_then(|ffmpeg| {
+        let folder    = destination::prepare(&source, &run.destination)?;
+        let extension = source.extension().map(|extension| extension.to_string_lossy().to_lowercase()).unwrap_or_default();
+        let output    = run.reserve(&OutputNameParams { folder: &folder, source: &source, kind: OutputKind::Trimmed { extension: &extension } });
+        let name      = file_name(&source);
+        let trimmed   = media::trim(media::TrimParams { ffmpeg: &ffmpeg, request: &request, output: &output, cancel: run.cancel, on_progress: &|done| video_progress(&run, 0, done, &name) })?;
+        Ok(trimmed.map(|trimmed| (Saved { output, size: trimmed.size }, trimmed.has_video, trimmed.start)))
+    });
+
+    match made {
+        Ok(None) => Ok(report(Vec::new(), None, true)),
+        Ok(Some((result, has_video, start))) => {
+            progress::emit(app, ActionProgress::at(&run.task, Stage::Saving));
+            let kind  = if has_video { VIDEO_KIND } else { "audio" };
+            let entry = history::new_entry(NewEntryParams { output: &result.output, kind, action: media::TRIM_ACTION, detail: media::trim_detail(&request, start) });
+            let _     = history::append(app, vec![entry]);
+            Ok(report(vec![saved(&source, &result)], Some(&result), false))
+        }
+        Err(error) => Ok(report(vec![failed(&source, error)], None, false)),
+    }
 }
 
 #[derive(Deserialize)]

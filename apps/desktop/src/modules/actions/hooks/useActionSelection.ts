@@ -33,6 +33,7 @@ import { checkPdfPassword } from '@/modules/pdf/services/password';
 import type { PageImageFormat } from '@/modules/pdf/types/pageImageFormat';
 import { getHeifSupport } from '@/modules/photos/services/photos';
 import type { JpgQuality } from '@/modules/photos/types/jpgQuality';
+import type { ExtractOptions } from '@/modules/media/interfaces/extractOptions';
 import { needsPhotoTool } from '@/modules/photos/utils/photos';
 import type { SaveDestination } from '@/modules/settings/interfaces/appSettings';
 import type { TaskSpec } from '@/modules/tasks/interfaces/taskSpec';
@@ -55,6 +56,8 @@ interface UseActionSelectionParams {
   onOrganize  : (path: string) => void;
   // So does "Escanear documento", with every photo.
   onScan      : (paths: string[]) => void;
+  // And "Recortar", with the audio or the video.
+  onTrim      : (path: string) => void;
 }
 
 interface ExecuteParams {
@@ -104,6 +107,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
   'learning-model' : 'choosing',
   background       : 'choosing',
   video            : 'choosing',
+  'extract-audio'  : 'choosing',
   'id-format'      : 'choosing',
   'id-preview'     : 'id-format',
   transcribe       : 'choosing',
@@ -115,7 +119,7 @@ const BACK_STEPS: Partial<Record<ActionsPhase, ActionsPhase>> = {
 
 // Choosing what to do with the dropped files. Running it is handed to the task store, which outlives the
 // panel: the selection is cleared right away and the task shows its progress and result on its own.
-export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan }: UseActionSelectionParams) => {
+export const useActionSelection = ({ onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim }: UseActionSelectionParams) => {
   const [selection, setSelection] = useState<FileSelection | null>(null);
   const [pending, setPending]     = useState<PendingSelection | null>(null);
   const [slow, setSlow]           = useState(false);
@@ -131,6 +135,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
   const signRef                   = useRef(onSign);
   const organizeRef               = useRef(onOrganize);
   const scanRef                   = useRef(onScan);
+  const trimRef                   = useRef(onTrim);
   const loadId                    = useRef(0);
   // The step after learning: the background choice, or what the video is for.
   const learnDone                 = useRef<ActionsPhase>('background');
@@ -142,7 +147,8 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     signRef.current        = onSign;
     organizeRef.current    = onOrganize;
     scanRef.current        = onScan;
-  }, [onFinished, destination, bundle, onSign, onOrganize, onScan]);
+    trimRef.current        = onTrim;
+  }, [onFinished, destination, bundle, onSign, onOrganize, onScan, onTrim]);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((timer) => window.clearTimeout(timer));
@@ -287,6 +293,23 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     if (actionId === 'scan') {
       scanRef.current(selection.paths);
       finishedRef.current();
+      return;
+    }
+
+    // And the trimming one (it asks to learn FFmpeg there if it is missing).
+    if (actionId === 'trim') {
+      trimRef.current(selection.paths[0]);
+      finishedRef.current();
+      return;
+    }
+
+    // "Sacar el audio" asks the format; the first time, Glup has to learn (download FFmpeg).
+    if (actionId === 'extract-audio') {
+      learnDone.current = 'extract-audio';
+      setLearnable('video');
+      void getVideoTool()
+        .then((status) => setPhase((current) => nextLearnPhase(current, status.installed ? 'installed' : 'missing', 'extract-audio')))
+        .catch(() => setPhase((current) => nextLearnPhase(current, 'missing', 'extract-audio')));
       return;
     }
 
@@ -440,6 +463,10 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     runOrLearn({ spec, needs: options.level === 'fast' ? 'transcribe-fast' : 'transcribe-precise' });
   }, [selection, phase, runOrLearn]);
 
+  const extractAudio = useCallback((audio: ExtractOptions) => {
+    if (phase === 'extract-audio') execute({ actionId: 'extract-audio', options: { audio } });
+  }, [phase, execute]);
+
   const reduceVideo = useCallback((video: VideoOptions) => {
     if (phase === 'video') execute({ actionId: 'compress', options: { video } });
   }, [phase, execute]);
@@ -488,6 +515,7 @@ export const useActionSelection = ({ onFinished, destination, bundle, onSign, on
     watermarkPdf,
     numberPages,
     reduceVideo,
+    extractAudio,
     startTranscribe,
     learnable,
     chained        : chained !== null,

@@ -90,6 +90,16 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   `libx264`. Todo lo que decide (tamaño de imagen, tasas de bits, argumentos) es puro en
   `services/video/plan.rs`; el proceso se lanza en `encode.rs`, con progreso leído de `-progress` y
   Cancelar que lo detiene y borra el archivo a medias. Uno a la vez.
+- **Sacar el audio y Recortar** (`services/media`, `modules/media`): el mismo FFmpeg, con argumentos
+  puros (`extract.rs`, `trim.rs`, `preview.rs`) y probados contra tonos y videos que FFmpeg genera en
+  una carpeta temporal. Sacar el audio: MP3 con `libmp3lame` (LGPL, viene en el build), M4A con `aac`
+  o WAV; si el sonido ya está en ese formato se copia (`-c:a copy`) y el Historial lo dice. Recortar
+  es una pantalla completa (como Organizar): «Rápido» copia y empieza en el cuadro clave anterior
+  (`keyframe_before`, se muestra antes de guardar), «Exacto» recodifica (`h264_mf`, o VP9/Opus en
+  WebM); salida `<nombre> (recorte).ext` (`OutputKind::Trimmed`). El reproductor lee el archivo por
+  el protocolo `glupmedia` (`serve.rs`: solo los archivos que abrió la pantalla, por un token, con
+  Range); si el WebView no lo reproduce (por extensión o por códec: HEVC de celular, AC-3), una copia liviana en `%TEMP%\glup-recorte` que
+  `close_media` borra al salir.
 - **Sacar texto**: el OCR de Windows (`Windows.Media.Ocr`, crate `windows`) desde Rust; nada que
   descargar. En un PDF, las páginas con texto seleccionable las lee pdf.js tal cual y solo las
   escaneadas se renderizan y pasan por el OCR. Rust arma el texto (`services/text/compose.rs`, por
@@ -143,6 +153,8 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 | PDF (2+) | Unir, Reducir peso, Poner contraseña, Marca de agua, Numerar páginas, Juntar en ZIP |
 | PDF + imágenes | Unir en un PDF, Juntar en ZIP |
 | Video (1+) | Reducir peso (Para WhatsApp, Para correo, Lo más liviano o un peso máximo; la primera vez pide descargar FFmpeg) |
+| Video (1+) | Sacar el audio (MP3 por defecto, M4A o WAV; Normal o Alta; ZIP con 2+) |
+| Audio o video (1) | Recortar (pantalla propia con línea de tiempo; si falta FFmpeg lo pide ahí; `fileType: "media"` abre «Elegir archivos» en «Videos y audios» y `menuTypes` lo pone en el clic derecho de ambos) |
 | Imagen (1) | Foto tamaño carnet (pasaporte 3,5 × 4,5, cuadrada 5 × 5 o a medida; foto y hoja 10 × 15 a 300 ppp; usa el modelo de Quitar fondo y el detector de rostros de Windows) |
 | Audio (1+) y video (secundaria) | Pasar audio a texto (Whisper con la tarjeta de video si hay una que sirva —`glup-voz.exe`, Vulkan— y si no con el procesador; Ajustes › «Usar la tarjeta de video»: Automático o Nunca; el progreso dice con cuál; Rápido o Más preciso, cada nivel con su descarga; texto, .txt y .srt) |
 | Imágenes, PDFs o ambos | Sacar texto (solo Windows: el OCR que trae el sistema; el resultado se lee en el panel, se copia o se guarda como .txt) |

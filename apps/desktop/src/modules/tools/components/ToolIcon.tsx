@@ -7,6 +7,7 @@ import { CleanupIcon } from '@/shared/icons/CleanupIcon';
 import { ClipboardIcon } from '@/shared/icons/ClipboardIcon';
 import { CompressIcon } from '@/shared/icons/CompressIcon';
 import { DuplicatesIcon } from '@/shared/icons/DuplicatesIcon';
+import { ExtractAudioIcon } from '@/shared/icons/ExtractAudioIcon';
 import { ConvertIcon } from '@/shared/icons/ConvertIcon';
 import { FolderIcon } from '@/shared/icons/FolderIcon';
 import { GaugeIcon } from '@/shared/icons/GaugeIcon';
@@ -25,6 +26,7 @@ import { SplitIcon } from '@/shared/icons/SplitIcon';
 import { TextIcon } from '@/shared/icons/TextIcon';
 import { ToImagesIcon } from '@/shared/icons/ToImagesIcon';
 import { ToPdfIcon } from '@/shared/icons/ToPdfIcon';
+import { TrimIcon } from '@/shared/icons/TrimIcon';
 import { UnlockIcon } from '@/shared/icons/UnlockIcon';
 import { WatermarkIcon } from '@/shared/icons/WatermarkIcon';
 import { ZipIcon } from '@/shared/icons/ZipIcon';
@@ -41,6 +43,8 @@ const STROKE_ICONS: Record<ToolIconName, ComponentType<IconProps>> = {
   'merge'             : MergeIcon,
   'split'             : SplitIcon,
   'scan'              : ScanIcon,
+  'extract-audio'     : ExtractAudioIcon,
+  'trim'              : TrimIcon,
   'organize-pages'    : PagesIcon,
   'lock'              : LockIcon,
   'unlock'            : UnlockIcon,

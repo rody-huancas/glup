@@ -23,17 +23,19 @@ const MULTI_SELECT: &str   = "Player";
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CatalogTool {
-    id        : String,
-    kind      : String,
-    file_type : Option<String>,
-    menu      : Option<String>,
+    id         : String,
+    kind       : String,
+    file_type  : Option<String>,
+    menu       : Option<String>,
+    // The kinds of file of its option, when not only its file type (Recortar: audio and video).
+    menu_types : Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MenuTool {
-    pub id        : String,
-    pub label     : String,
-    pub file_type : String,
+    pub id         : String,
+    pub label      : String,
+    pub file_types : Vec<String>,
 }
 
 // The tools that go in the right click, in the catalog's order.
@@ -42,7 +44,10 @@ pub fn menu_tools(catalog: &str) -> Vec<MenuTool> {
     tools
         .into_iter()
         .filter(|tool| tool.kind == "action")
-        .filter_map(|tool| Some(MenuTool { label: tool.menu?, file_type: tool.file_type?, id: tool.id }))
+        .filter_map(|tool| {
+            let file_types = tool.menu_types.or_else(|| tool.file_type.map(|file_type| vec![file_type]))?;
+            Some(MenuTool { label: tool.menu?, file_types, id: tool.id })
+        })
         .collect()
 }
 
@@ -99,7 +104,7 @@ pub fn menu_keys(params: MenuKeysParams) -> Vec<RegKey> {
     let mut keys = Vec::new();
 
     for extension in all_extensions() {
-        let tools: Vec<&MenuTool> = params.tools.iter().filter(|tool| extensions_of(&tool.file_type).contains(&extension)).collect();
+        let tools: Vec<&MenuTool> = params.tools.iter().filter(|tool| tool.file_types.iter().any(|file_type| extensions_of(file_type).contains(&extension))).collect();
         if tools.is_empty() {
             continue;
         }
