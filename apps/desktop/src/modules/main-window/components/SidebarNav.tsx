@@ -1,5 +1,6 @@
-import { useCleanup } from '@/modules/cleanup/hooks/useCleanup';
-import { NAV_ITEMS, NAV_TEXTS } from '@/modules/main-window/constants/navigation';
+import { FAMILY_STYLES } from '@/modules/families/constants/families';
+import { familyOfPage } from '@/modules/families/utils/families';
+import { NAV_ITEMS } from '@/modules/main-window/constants/navigation';
 import type { PageId } from '@/modules/main-window/types/pageId';
 import { UPDATE_TEXTS } from '@/modules/updates/constants/texts';
 import { useUpdate } from '@/modules/updates/hooks/useUpdate';
@@ -10,11 +11,12 @@ interface SidebarNavProps {
   onNavigate : (page: PageId) => void;
 }
 
-// Limpieza shows a mint dot when a scan finished while the person was elsewhere; Ajustes a lilac one
-// while a newer version waits.
+// The active item is filled with color: mint, or the family's color while on a family's screen (which
+// lives under Inicio). Ajustes shows a lilac dot while a newer version waits.
 export const SidebarNav = ({ page, onNavigate }: SidebarNavProps) => {
-  const { unseen }    = useCleanup();
   const { available } = useUpdate();
+  const family        = familyOfPage(page);
+  const current       = family ? 'home' : page;
 
   return (
     <nav className="flex flex-col gap-1">
@@ -23,10 +25,11 @@ export const SidebarNav = ({ page, onNavigate }: SidebarNavProps) => {
           key={item.id}
           label={item.label}
           icon={item.icon}
-          active={item.id === page}
-          badge={(item.id === 'cleanup' && unseen && page !== 'cleanup') || (item.id === 'settings' && available !== null)}
-          badgeLabel={item.id === 'settings' ? UPDATE_TEXTS.badge : NAV_TEXTS.newResult}
-          badgeTone={item.id === 'settings' ? 'lilac' : 'mint'}
+          active={item.id === current}
+          activeClassName={family ? FAMILY_STYLES[family].nav : undefined}
+          badge={item.id === 'settings' && available !== null}
+          badgeLabel={UPDATE_TEXTS.badge}
+          badgeTone="lilac"
           onClick={() => onNavigate(item.id)}
         />
       ))}
