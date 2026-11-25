@@ -82,11 +82,26 @@ fn the_menu_comes_from_tools_json() {
       { "id": "b", "kind": "action", "fileType": "pdf" },
       { "id": "c", "kind": "page", "page": "cleanup", "menu": "No" }
     ]"#;
-    assert_eq!(menu_tools(catalog), vec![MenuTool { id: "a".to_string(), label: "Hacer A".to_string(), file_type: "pdf".to_string() }]);
+    assert_eq!(menu_tools(catalog), vec![MenuTool { id: "a".to_string(), label: "Hacer A".to_string(), file_types: vec!["pdf".to_string()] }]);
+
+    // An option for several kinds of file.
+    let both = r#"[{ "id": "t", "kind": "action", "fileType": "audio", "menu": "Recortar…", "menuTypes": ["audio", "video"] }]"#;
+    assert_eq!(menu_tools(both)[0].file_types, vec!["audio".to_string(), "video".to_string()]);
 }
 
 fn tool(id: &str, label: &str, file_type: &str) -> MenuTool {
-    MenuTool { id: id.to_string(), label: label.to_string(), file_type: file_type.to_string() }
+    MenuTool { id: id.to_string(), label: label.to_string(), file_types: vec![file_type.to_string()] }
+}
+
+#[test]
+fn trimming_is_in_the_menu_of_videos_and_audios() {
+    let tools = menu::catalog_tools();
+    let keys  = menu_keys(MenuKeysParams { base: "Base", exe: Path::new(r"C:\Glup.exe"), tools: &tools });
+    for extension in ["mp4", "mov", "mkv", "avi", "webm", "m4v", "3gp", "wmv", "mp3", "wav"] {
+        assert!(keys.iter().any(|key| key.path.contains(&format!(r".{extension}\shell\Glup\shell\")) && key.path.ends_with("-trim-media")), "{extension}");
+    }
+    assert!(keys.iter().any(|key| key.path.contains(r".mp4\shell\Glup\shell\") && key.path.ends_with("-extract-audio")));
+    assert!(!keys.iter().any(|key| key.path.contains(r".mp3\shell\Glup\shell\") && key.path.ends_with("-extract-audio")));
 }
 
 #[test]
