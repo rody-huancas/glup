@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod archive;
+pub mod auto_folders;
 pub mod background;
 pub mod cleanup;
 pub mod clipboard;
