@@ -33,7 +33,7 @@ src/
 
 Módulos actuales: `island` (la isla y su máquina de estados), `mascot` (Glup y sus animaciones),
 `main-window` (el layout del panel), `home`, `actions`, `tasks`, `pdf`, `sign`, `organize`, `cleanup`,
-`history`, `settings`, `text`, `screen-text`, `shortcuts`, `clipboard`, `tools`, `updates`, `video`, `notices`, `id-photo`, `transcribe`, `folder-sort`, `photos`, `performance`. Se crean **solo las subcarpetas que se usan**.
+`history`, `settings`, `text`, `screen-text`, `shortcuts`, `clipboard`, `tools`, `updates`, `video`, `notices`, `id-photo`, `transcribe`, `folder-sort`, `photos`, `performance`, `families`. Se crean **solo las subcarpetas que se usan**.
 
 ## Reglas obligatorias
 
@@ -65,7 +65,10 @@ Módulos actuales: `island` (la isla y su máquina de estados), `mascot` (Glup y
 9. **Estilos con Tailwind v4 y los tokens** de `index.css` (`@theme`): `bg-bg`, `bg-surface`,
    `bg-raised`, `border-line`, `text-text`, `text-muted`, `bg-mint`, `text-mint-ink`, `text-lilac`,
    `text-danger`, `bg-danger-soft` (quitar o borrar: `Button variant="danger"`),
-   `rounded-control`, `rounded-panel`. Nada de colores sueltos (`#fff`, `bg-white`, `text-red-500`)
+   `rounded-control`, `rounded-panel`. Las seis familias tienen los suyos (`fam-images`, `fam-pdf`,
+   `fam-media`, `fam-text`, `fam-clipboard`, `fam-pc`, cada uno con `-dark`, `-deep` e `-ink`); sus
+   clases se escriben enteras en `FAMILY_STYLES` (`modules/families`) para que Tailwind las vea, y
+   `FamilyScope` hace que lo menta de adentro (botón, barra) tome el color de una familia. Nada de colores sueltos (`#fff`, `bg-white`, `text-red-500`)
    ni valores arbitrarios para colores. Un color o radio nuevo se agrega como token. Fuente: Plus
    Jakarta Sans, incluida localmente con `@fontsource`: la app funciona sin internet.
 10. **Sin librerías de componentes.** Los controles salen de `shared/components/`. Antes de crear un

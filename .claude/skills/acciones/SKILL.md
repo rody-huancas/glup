@@ -55,10 +55,11 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
 7. **Resultado y textos**: el resumen en `utils/result.ts` y los textos en `constants/texts.ts`
    (`RESULT_TEXTS`). El detalle del historial («Peso reducido: de 3,8 MB a 1,6 MB», «Unido · 3
    archivos · 24 páginas»).
-8. **Herramientas**: toda acción se agrega al catálogo `modules/tools/constants/tools.json` (sección,
-   ícono, nombre y descripción corta; `actionId` igual al de `actions.json`). Si merece acceso directo
-   en Inicio, lleva `quickTitle` y aparece en Herramientas rápidas. Pasa por el mismo flujo que el
-   drop (nunca ejecuta a ciegas).
+8. **Herramientas**: toda acción se agrega al catálogo `modules/tools/constants/tools.json` (familia,
+   ícono, nombre y descripción corta; `actionId` igual al de `actions.json`). `family` es la única
+   fuente de la familia (Imágenes, PDF, Audio y video, Texto, Portapapeles, Tu PC): de ahí salen la
+   página de la familia, los grupos del buscador y el color de su tarea. Pasa por el mismo flujo que
+   el drop (nunca ejecuta a ciegas).
 9. **Pruebas**: Rust con archivos generados (casos normales, nombres repetidos, cancelación, archivos
    raros), y Vitest para la lógica del paso intermedio.
 
