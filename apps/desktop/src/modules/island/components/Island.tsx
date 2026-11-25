@@ -67,6 +67,7 @@ export const Island = () => {
             onClick={island.onMascotClick}
             reactToDrops={false}
             limbs={island.limbsVisible}
+            peek
           />
         </IslandMascotFlyer>
         {bubble && island.state === 'collapsed' && <IslandBubbleButton placement={placement} onOpen={island.onMascotClick} />}

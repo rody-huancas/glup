@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import { ISLAND_COLORS } from '@/modules/island/constants/island';
 import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement';
-import { alongLength, dockShape } from '@/modules/dock/utils/placement';
+import { alongLength, dockShape, usesPeek } from '@/modules/dock/utils/placement';
 import { MASCOT_MOTION } from '@/modules/island/constants/islandMascot';
 import {
   CLOSE_MOTION,
@@ -20,6 +20,7 @@ import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { addFlightFlourish } from '@/modules/island/utils/mascotFlight';
 import { getOvershootEnd } from '@/modules/island/utils/overshoot';
 import { getThemeColor } from '@/modules/island/utils/themeColor';
+import { PEEK_VARIABLE } from '@/modules/mascot/constants/peek';
 import { REVEAL_ATTRIBUTE } from '@/shared/constants/reveal';
 import type { RevealGroup } from '@/shared/types/revealGroup';
 
@@ -55,6 +56,9 @@ const resolveTargets = (elements: IslandElements): IslandTargets | null => {
     avatarAnchor : avatarAnchor.current,
   };
 };
+
+// 1 where Glup peeks (the top pill and its notice), 0 where it is whole (the avatar, every other pill).
+const peekVars = (placement: IslandPlacement, resting: boolean): gsap.TweenVars => ({ [PEEK_VARIABLE]: resting && usesPeek(placement) ? 1 : 0 });
 
 // Fill color, plus the border, which only shows on the expanded panel.
 const getFillVars = (target: VisibleIslandState): gsap.TweenVars => ({
@@ -117,6 +121,7 @@ const buildOpenTimeline = ({ targets, placement, shape, cues, onRender, onShapeS
     .to(outline, { ...getOutlineVars('expanded'), duration: colors.duration, ease: colors.ease }, grow)
     .call(settleShape, undefined, settleAt)
     .to(flyer, { ...getFitVars(flyer, avatarAnchor), duration: flight.duration, ease: flight.ease }, grow)
+    .fromTo(squash, peekVars(placement, true), { ...peekVars(placement, false), duration: flight.duration * MASCOT_MOTION.peek.share, ease: MASCOT_MOTION.peek.ease }, grow)
     .to(
       squash,
       { scaleX: landing.scaleX, scaleY: landing.scaleY, transformOrigin: landing.origin, duration: landing.impact, ease: 'power1.in' },
@@ -163,6 +168,7 @@ const buildCloseTimeline = ({ targets, placement, shape, cues, farewell, onRende
     .to(content, { opacity: 0, y: fadeOut.y, duration: fadeOut.duration, ease: fadeOut.ease }, 0)
     .to(squash, { scaleX: 1, scaleY: 1, duration: fadeOut.duration }, 0)
     .to(flyer, { ...getFitVars(flyer, pillAnchor), duration: flight.duration, ease: flight.ease }, takeOff)
+    .to(squash, { ...peekVars(placement, true), duration: flight.duration * MASCOT_MOTION.peek.share, ease: MASCOT_MOTION.peek.ease }, takeOff + flight.duration * (1 - MASCOT_MOTION.peek.share))
     .to(shape, { ...collapsed, duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(fill, { ...getFillVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
     .to(outline, { ...getOutlineVars('collapsed'), duration: shrink.duration, ease: shrink.ease }, shrinkAt)
@@ -177,7 +183,7 @@ const buildCloseTimeline = ({ targets, placement, shape, cues, farewell, onRende
 // Reduced motion: a plain fade, the shape jumps straight to its final form.
 // Faces still change; there is no flight, arc or hop.
 const buildReducedTimeline = ({ targets, placement, shape, cues, farewell, onRender }: BuildParams, target: VisibleIslandState): gsap.core.Timeline => {
-  const { panel, fill, outline, content, flyer, pillAnchor, avatarAnchor } = targets;
+  const { panel, fill, outline, content, flyer, squash, pillAnchor, avatarAnchor } = targets;
   const { duration, ease } = REDUCED_MOTION.fade;
   const timeline           = gsap.timeline({ paused: true, onUpdate: onRender });
 
@@ -191,6 +197,7 @@ const buildReducedTimeline = ({ targets, placement, shape, cues, farewell, onRen
       .set(fill, getFillVars('expanded'))
       .set(outline, getOutlineVars('expanded'))
       .set(flyer, getFitVars(flyer, avatarAnchor))
+      .set(squash, peekVars(placement, false))
       .set(content, { opacity: 1, y: 0 });
 
     if (items.length > 0) timeline.set(items, { ...REVEAL_TO });
@@ -204,6 +211,7 @@ const buildReducedTimeline = ({ targets, placement, shape, cues, farewell, onRen
     .set(fill, getFillVars('collapsed'))
     .set(outline, getOutlineVars('collapsed'))
     .set(flyer, getFitVars(flyer, pillAnchor))
+    .set(squash, peekVars(placement, true))
     .set(content, { opacity: 0 })
     .set(panel, { opacity: 1 });
 };
@@ -245,7 +253,7 @@ export const setCollapsedPose = ({ elements, placement, shape, onRender }: Islan
   gsap.set(targets.outline, getOutlineVars('collapsed'));
   gsap.set(targets.content, { opacity: 0, y: 0 });
   gsap.set(targets.lift, { y: 0 });
-  gsap.set(targets.squash, { scaleX: 1, scaleY: 1, rotation: 0 });
+  gsap.set(targets.squash, { scaleX: 1, scaleY: 1, rotation: 0, ...peekVars(placement, true) });
   gsap.set(targets.flyer, getFitVars(targets.flyer, targets.pillAnchor));
 };
 
@@ -262,7 +270,7 @@ export const setExpandedPose = ({ elements, placement, shape, onRender }: Island
   gsap.set(targets.outline, getOutlineVars('expanded'));
   gsap.set(targets.content, { opacity: 1, y: 0 });
   gsap.set(targets.lift, { y: 0 });
-  gsap.set(targets.squash, { scaleX: 1, scaleY: 1, rotation: 0 });
+  gsap.set(targets.squash, { scaleX: 1, scaleY: 1, rotation: 0, ...peekVars(placement, false) });
   gsap.set(targets.flyer, getFitVars(targets.flyer, targets.avatarAnchor));
 };
 
