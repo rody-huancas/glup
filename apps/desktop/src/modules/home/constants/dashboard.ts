@@ -1,5 +1,6 @@
 import { LOW_SPACE_SHARE } from '@/modules/cleanup/constants/categories';
 import { formatFileSize } from '@/modules/actions/utils/fileSize';
+import { formatCount } from '@/shared/utils/numbers';
 
 const MB = 1024 * 1024;
 
@@ -50,7 +51,7 @@ export const DASHBOARD_TEXTS = {
   lowDiskGo   : 'Abrir Limpieza',
   cleanup     : (bytes: number) => `Limpieza encontró ${formatFileSize(bytes)} que puedes liberar.`,
   cleanupGo   : 'Ver Limpieza',
-  downloads   : (bytes: number, count: number) => `Tienes ${formatFileSize(bytes)} en Descargas para ordenar (${count} archivos).`,
+  downloads   : (bytes: number, count: number) => `Tienes ${formatFileSize(bytes)} en Descargas para ordenar (${formatCount(count)} archivos).`,
   downloadsGo : 'Ordenar Descargas',
 };
 

@@ -1,3 +1,4 @@
+
 export const UPDATE_TEXTS = {
   available    : (version: string) => `Hay una versión nueva (${version})`,
   notesTitle   : 'Lo que trae',

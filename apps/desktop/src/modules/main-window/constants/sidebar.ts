@@ -1,4 +1,5 @@
 import type { SettingEntry } from '@/modules/main-window/interfaces/settingEntry';
+import { formatCount } from '@/shared/utils/numbers';
 
 export const SIDEBAR_TEXTS = {
   search        : 'Buscar',
@@ -15,8 +16,8 @@ export const SIDEBAR_TEXTS = {
   collapse      : (section: string) => `Contraer ${section}`,
   remove        : (tool: string) => `Quitar ${tool} de favoritos`,
   move          : (tool: string) => `Mover ${tool} (arrastra, o Alt y las flechas)`,
-  newEntries    : (count: number) => (count === 1 ? '1 entrada nueva' : `${count} entradas nuevas`),
-  tasks         : (count: number) => `${count} tareas`,
+  newEntries    : (count: number) => (count === 1 ? '1 entrada nueva' : `${formatCount(count)} entradas nuevas`),
+  tasks         : (count: number) => `${formatCount(count)} tareas`,
   openTask      : (title: string) => `Ver la tarea: ${title}`,
   private       : 'Todo en tu PC',
 };

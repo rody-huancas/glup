@@ -1,3 +1,5 @@
+import { formatCount } from '@/shared/utils/numbers';
+
 export const RECENT_LIMIT = 5;
 
 export const MISSING_NOTICE_TIME = 2500;
@@ -21,7 +23,7 @@ export const HISTORY_TEXTS = {
   clearCancel  : 'Cancelar',
   clearConfirm : 'Limpiar',
   clearFailed  : 'No pude cambiar el historial. Vuelve a intentarlo.',
-  removeTitle  : (count: number) => `¿Quitar ${count} ${count === 1 ? 'elemento' : 'elementos'} del historial?`,
+  removeTitle  : (count: number) => `¿Quitar ${formatCount(count)} ${count === 1 ? 'elemento' : 'elementos'} del historial?`,
   removeBody   : (count: number) => `${count === 1 ? 'Se quitará' : 'Se quitarán'} de la lista de Glup. Tus archivos no se borran de tu PC.`,
   removeOk     : 'Quitar',
   selectAll    : 'Seleccionar todo',
