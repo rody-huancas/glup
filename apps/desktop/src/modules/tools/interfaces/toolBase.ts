@@ -17,4 +17,6 @@ export interface ToolBase {
   menuNeedsStep? : boolean;
   // The kinds of file of that option when not only its file type (Recortar: audio and video).
   menuTypes?     : string[];
+  // A rule of Carpetas automáticas can do it alone, with no screen to review it.
+  auto?          : boolean;
 }
