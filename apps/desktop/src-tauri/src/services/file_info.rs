@@ -7,10 +7,18 @@ use crate::services::{pdf::info, video::{self, probe::VideoInfo}};
 
 pub const PDF_EXTENSIONS: [&str; 1]    = ["pdf"];
 pub const IMAGE_EXTENSIONS: [&str; 12] = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff", "avif", "heic", "heif", "hif"];
-pub const VIDEO_EXTENSIONS: [&str; 7]  = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v"];
+pub const VIDEO_EXTENSIONS: [&str; 8]  = ["mp4", "mov", "mkv", "avi", "webm", "3gp", "m4v", "wmv"];
 pub const AUDIO_EXTENSIONS: [&str; 9]  = ["mp3", "m4a", "wav", "ogg", "opus", "aac", "flac", "wma", "amr"];
 // The photos of iPhone ("Fotos de iPhone a JPG").
 pub const IPHONE_EXTENSIONS: [&str; 3] = ["heic", "heif", "hif"];
+
+// The first box of an ISO file (MP4, MOV, 3GP, M4V, HEIC…).
+fn iso_box(head: &[u8]) -> bool {
+    matches!(head.get(4..8), Some(b"ftyp" | b"moov" | b"wide" | b"mdat" | b"free" | b"skip"))
+}
+
+// WMV and WMA: the header of an ASF file.
+const ASF: [u8; 8] = [0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11];
 
 // Enough bytes to recognize every supported signature; the file is never decoded.
 const SNIFF_BYTES: usize = 16;
@@ -62,9 +70,8 @@ pub fn sniff_kind(head: &[u8]) -> FileKind {
     let ftyp   = crate::services::image::heif::container::is_heif(head);
     let webp   = starts(b"RIFF") && head.get(8..12) == Some(b"WEBP");
     // MP4, MOV, 3GP and M4V share the ISO box format ("ftyp", or "moov"/"wide"/"mdat" in old QuickTime);
-    // MKV and WebM start with EBML; AVI is RIFF.
-    let boxed  = matches!(head.get(4..8), Some(b"ftyp" | b"moov" | b"wide" | b"mdat" | b"free" | b"skip"));
-    let video  = boxed || starts(&[0x1A, 0x45, 0xDF, 0xA3]) || (starts(b"RIFF") && head.get(8..12) == Some(b"AVI "));
+    // MKV and WebM start with EBML; AVI is RIFF; WMV is ASF.
+    let video  = iso_box(head) || starts(&[0x1A, 0x45, 0xDF, 0xA3]) || (starts(b"RIFF") && head.get(8..12) == Some(b"AVI ")) || starts(&ASF);
 
     if starts(b"%PDF") {
         FileKind::Pdf
@@ -108,7 +115,11 @@ pub fn read(path: &str, ffmpeg: Option<&Path>) -> FileInfo {
 
     let expected = if is_file { kind_of(&extension) } else { FileKind::Other };
     // Audio formats are too varied to check by their first bytes (an MP3 without tags, raw AAC…): FFmpeg reads them later.
-    let kind     = if expected == FileKind::Audio || (expected != FileKind::Other && sniff_kind(&read_head(file_path)) == expected) { expected } else { FileKind::Other };
+    let head     = read_head(file_path);
+    // A video named as one in an ISO box is a video even when its brand is that of a HEIF sequence
+    // ("hevc", "msf1"…), as some phones write their HEVC videos.
+    let as_video = expected == FileKind::Video && iso_box(&head);
+    let kind     = if expected == FileKind::Audio || as_video || (expected != FileKind::Other && sniff_kind(&head) == expected) { expected } else { FileKind::Other };
 
     let pdf   = if kind == FileKind::Pdf { info::read(file_path) } else { None };
     let video = if kind == FileKind::Video { video::probe_if_ready(ffmpeg, file_path) } else { None };
@@ -172,6 +183,24 @@ mod tests {
         assert_eq!(sniff_kind(&[0x1A, 0x45, 0xDF, 0xA3, 0x9F]), FileKind::Video);
         assert_eq!(sniff_kind(b"RIFF\0\0\0\0AVI LIST"), FileKind::Video);
         assert_eq!(sniff_kind(b"hola"), FileKind::Other);
+        assert_eq!(sniff_kind(&[0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6]), FileKind::Video);
+    }
+
+    #[test]
+    fn a_phone_video_with_a_heif_brand_is_still_a_video() {
+        let folder = std::env::temp_dir().join(format!("glup-file-info-phone-{}", std::process::id()));
+        fs::create_dir_all(&folder).unwrap();
+
+        for (name, brand) in [("whatsapp.mp4", b"isom"), ("celular.mp4", b"hevc"), ("samsung.mp4", b"msf1"), ("iphone.mov", b"qt  ")] {
+            let file = folder.join(name);
+            fs::write(&file, [&b"\0\0\0\x18ftyp"[..], brand, &[0; 8]].concat()).unwrap();
+            assert_eq!(read(file.to_str().unwrap(), None).kind, FileKind::Video, "{name}");
+        }
+        // The same brand in a photo is still a photo.
+        let photo = folder.join("foto.heic");
+        fs::write(&photo, [&b"\0\0\0\x18ftypheic"[..], &[0; 8]].concat()).unwrap();
+        assert_eq!(read(photo.to_str().unwrap(), None).kind, FileKind::Image);
+        let _ = fs::remove_dir_all(&folder);
     }
 
     #[test]
