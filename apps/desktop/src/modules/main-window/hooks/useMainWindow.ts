@@ -10,6 +10,7 @@ import type { MascotState } from '@/modules/mascot/types/mascotState';
 import { useTrimMode } from '@/modules/media/hooks/useTrimMode';
 import { useOrganizeMode } from '@/modules/organize/hooks/useOrganizeMode';
 import { useImageScreen } from '@/modules/photo-tools/hooks/useImageScreen';
+import { sendToQrReader } from '@/modules/qr/store/qrInbox';
 import { useScanMode } from '@/modules/scan/hooks/useScanMode';
 import { useSignMode } from '@/modules/sign/hooks/useSignMode';
 import { useSubtitlesMode } from '@/modules/subtitles/hooks/useSubtitlesMode';
@@ -30,7 +31,12 @@ export const useMainWindow = (): MainPanelState => {
   const trimMode      = useTrimMode();
   const subtitlesMode = useSubtitlesMode();
   const imageScreen   = useImageScreen();
-  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start, onSubtitles: subtitlesMode.start, onImages: imageScreen.start });
+  // «Leer QR» with files: they wait for the screen in its inbox, and the panel goes there.
+  const readQr        = useCallback((paths: string[]) => {
+    sendToQrReader({ paths });
+    setPage('qr-read');
+  }, []);
+  const files         = useHomeFiles({ commandAvatar, onFilesIncoming: showHome, onSign: signMode.start, onOrganize: organizeMode.start, onScan: scanMode.start, onTrim: trimMode.start, onSubtitles: subtitlesMode.start, onImages: imageScreen.start, onReadQr: readQr });
 
   useTaskMood(commandAvatar);
   useExplorerRequests({ files, onNavigate: setPage });
