@@ -1,0 +1,227 @@
+{
+  "folder": {
+    "id": 0,
+    "name": "Ana",
+    "size": 173946175488,
+    "dir": true,
+    "kind": "videos",
+    "files": 214380,
+    "path": "C:\\Users\\Ana",
+    "share": 0.32,
+    "note": null,
+    "blocked": null
+  },
+  "crumbs": [
+    {
+      "id": 0,
+      "name": "Ana",
+      "size": 173946175488,
+      "dir": true,
+      "kind": "videos",
+      "files": 214380,
+      "path": "C:\\Users\\Ana",
+      "share": 0.32,
+      "note": null,
+      "blocked": null
+    }
+  ],
+  "children": [
+    {
+      "id": 1,
+      "name": "Videos",
+      "size": 51754355916,
+      "dir": true,
+      "kind": "videos",
+      "files": 1204,
+      "path": "C:\\Users\\Ana\\Videos",
+      "share": 0.94,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 2,
+      "name": "AppData",
+      "size": 33822867456,
+      "dir": true,
+      "kind": "system",
+      "files": 168220,
+      "path": "C:\\Users\\Ana\\AppData",
+      "share": 0.98,
+      "note": null,
+      "blocked": "Es de Windows o de un programa"
+    },
+    {
+      "id": 3,
+      "name": "Descargas",
+      "size": 24051816857,
+      "dir": true,
+      "kind": "other",
+      "files": 3112,
+      "path": "C:\\Users\\Ana\\Descargas",
+      "share": 0.41,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 4,
+      "name": "Imágenes",
+      "size": 20078972108,
+      "dir": true,
+      "kind": "photos",
+      "files": 12840,
+      "path": "C:\\Users\\Ana\\Imágenes",
+      "share": 0.91,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 5,
+      "name": "Documentos",
+      "size": 10307921510,
+      "dir": true,
+      "kind": "documents",
+      "files": 6420,
+      "path": "C:\\Users\\Ana\\Documentos",
+      "share": 0.62,
+      "note": null,
+      "blocked": "Tiene proyectos adentro"
+    },
+    {
+      "id": 6,
+      "name": "Música",
+      "size": 4617089843,
+      "dir": true,
+      "kind": "other",
+      "files": 980,
+      "path": "C:\\Users\\Ana\\Música",
+      "share": 0.55,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 7,
+      "name": "Escritorio",
+      "size": 2254857830,
+      "dir": true,
+      "kind": "documents",
+      "files": 342,
+      "path": "C:\\Users\\Ana\\Escritorio",
+      "share": 0.48,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 8,
+      "name": "ubuntu.vhdx",
+      "size": 13743895347,
+      "dir": false,
+      "kind": "programs",
+      "files": 1,
+      "path": "C:\\Users\\Ana\\AppData\\Local\\Packages\\ubuntu.vhdx",
+      "share": 1,
+      "note": "Disco virtual de Docker o de Linux (WSL, Hyper-V). No lo borres: se achica desde el propio programa.",
+      "blocked": "No se debe borrar desde aquí"
+    }
+  ],
+  "rest": null,
+  "kinds": [
+    {
+      "kind": "videos",
+      "size": 67645734912
+    },
+    {
+      "kind": "system",
+      "size": 38654705664
+    },
+    {
+      "kind": "photos",
+      "size": 22548578304
+    },
+    {
+      "kind": "documents",
+      "size": 15032385536
+    },
+    {
+      "kind": "programs",
+      "size": 18253611008
+    },
+    {
+      "kind": "other",
+      "size": 11811160064
+    }
+  ],
+  "biggest": [
+    {
+      "id": 20,
+      "name": "Boda Lucía y Diego.mp4",
+      "size": 8482560409,
+      "dir": false,
+      "kind": "videos",
+      "files": 1,
+      "path": "C:\\Users\\Ana\\Videos\\Boda Lucía y Diego.mp4",
+      "share": 1,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 21,
+      "name": "Viaje a Paracas 4K.mov",
+      "size": 5583457484,
+      "dir": false,
+      "kind": "videos",
+      "files": 1,
+      "path": "C:\\Users\\Ana\\Videos\\Viaje a Paracas 4K.mov",
+      "share": 1,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 22,
+      "name": "Instalador juego.exe",
+      "size": 3865470566,
+      "dir": false,
+      "kind": "programs",
+      "files": 1,
+      "path": "C:\\Users\\Ana\\Downloads\\Instalador juego.exe",
+      "share": 1,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 23,
+      "name": "Respaldo celular.zip",
+      "size": 3113851289,
+      "dir": false,
+      "kind": "other",
+      "files": 1,
+      "path": "C:\\Users\\Ana\\Downloads\\Respaldo celular.zip",
+      "share": 1,
+      "note": null,
+      "blocked": null
+    },
+    {
+      "id": 24,
+      "name": "Clase grabada 03.mp4",
+      "size": 1932735283,
+      "dir": false,
+      "kind": "videos",
+      "files": 1,
+      "path": "C:\\Users\\Ana\\Videos\\Clase grabada 03.mp4",
+      "share": 1,
+      "note": null,
+      "blocked": null
+    }
+  ],
+  "totals": {
+    "files": 214380,
+    "bytes": 173946175488,
+    "cloudFiles": 38,
+    "cloudBytes": 1288490188,
+    "denied": 4,
+    "links": 12,
+    "hardLinks": 0,
+    "done": true,
+    "cancelled": false,
+    "seconds": 41
+  }
+}

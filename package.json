@@ -9,6 +9,10 @@
     "version:set": "node scripts/set-version.mjs",
     "sweep": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sweep-target.ps1",
     "sweep:dry": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sweep-target.ps1 -DryRun",
-    "voz:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-voz.ps1"
+    "voz:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-voz.ps1",
+    "docs:shots": "node scripts/docs-shots.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.65.1"
   }
 }

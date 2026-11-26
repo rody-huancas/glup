@@ -1,0 +1,129 @@
+{
+  "groups": [
+    {
+      "id": 1,
+      "kind": "same",
+      "files": [
+        {
+          "path": "C:\\Users\\Ana\\Pictures\\Cumpleaños Mateo\\IMG_2045.jpg",
+          "size": 6396313,
+          "modified": 1760000000000
+        },
+        {
+          "path": "C:\\Users\\Ana\\Downloads\\IMG_2045 (1).jpg",
+          "size": 6396313,
+          "modified": 1760086400000
+        }
+      ],
+      "keep": 0,
+      "quit": [
+        1
+      ],
+      "review": false,
+      "freeable": 6396313
+    },
+    {
+      "id": 2,
+      "kind": "same",
+      "files": [
+        {
+          "path": "C:\\Users\\Ana\\Videos\\Viaje a Paracas.mp4",
+          "size": 851443712,
+          "modified": 1760000000000
+        },
+        {
+          "path": "C:\\Users\\Ana\\Downloads\\Viaje a Paracas.mp4",
+          "size": 851443712,
+          "modified": 1760086400000
+        },
+        {
+          "path": "C:\\Users\\Ana\\Desktop\\Viaje a Paracas - copia.mp4",
+          "size": 851443712,
+          "modified": 1760172800000
+        }
+      ],
+      "keep": 0,
+      "quit": [
+        1,
+        2
+      ],
+      "review": false,
+      "freeable": 1702887424
+    },
+    {
+      "id": 3,
+      "kind": "same",
+      "files": [
+        {
+          "path": "C:\\Users\\Ana\\Documents\\Contrato alquiler.pdf",
+          "size": 5033164,
+          "modified": 1760000000000
+        },
+        {
+          "path": "C:\\Users\\Ana\\Downloads\\Contrato alquiler (2).pdf",
+          "size": 5033164,
+          "modified": 1760086400000
+        }
+      ],
+      "keep": 0,
+      "quit": [
+        1
+      ],
+      "review": false,
+      "freeable": 5033164
+    },
+    {
+      "id": 4,
+      "kind": "same",
+      "files": [
+        {
+          "path": "C:\\Users\\Ana\\Documents\\Trabajo\\Presupuesto casa.xlsx",
+          "size": 419430,
+          "modified": 1760000000000
+        },
+        {
+          "path": "C:\\Users\\Ana\\Documents\\Casa\\Presupuesto casa.xlsx",
+          "size": 419430,
+          "modified": 1760086400000
+        }
+      ],
+      "keep": null,
+      "quit": [],
+      "review": true,
+      "freeable": 419430
+    },
+    {
+      "id": 5,
+      "kind": "same",
+      "files": [
+        {
+          "path": "C:\\Users\\Ana\\Music\\Podcast cocina.mp3",
+          "size": 60817408,
+          "modified": 1760000000000
+        },
+        {
+          "path": "C:\\Users\\Ana\\Downloads\\Podcast cocina.mp3",
+          "size": 60817408,
+          "modified": 1760086400000
+        }
+      ],
+      "keep": 0,
+      "quit": [
+        1
+      ],
+      "review": false,
+      "freeable": 60817408
+    }
+  ],
+  "files": 11,
+  "freeable": 1775239168,
+  "scanned": 18420,
+  "cloudOnly": 6,
+  "projects": 3,
+  "cancelled": false,
+  "summary": {
+    "tone": "success",
+    "message": "Encontré 5 grupos de copias: puedes liberar 1,7 GB",
+    "note": null
+  }
+}

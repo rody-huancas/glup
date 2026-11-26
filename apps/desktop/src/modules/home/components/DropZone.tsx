@@ -29,7 +29,9 @@ export const DropZone = ({ files, compact }: DropZoneProps) => {
       {...REVEAL_PROPS.card}
       aria-label={HOME_TEXTS.dropTitle}
       className={cx(
-        'flex min-h-[152px] min-w-0 shrink-0 items-center gap-5 overflow-hidden rounded-[22px] border-2 border-dashed bg-mint px-[22px] py-4 text-mint-ink transition-colors',
+        'flex min-w-0 shrink-0 items-center gap-5 overflow-hidden rounded-[22px] border-2 border-dashed bg-mint px-[22px] py-4 text-mint-ink transition-colors',
+        // The bar's height is GSAP's alone: a minimum here would keep it tall.
+        !compact && 'min-h-[152px]',
         files.dragging ? 'border-mint-ink' : 'border-mint-ink/25',
       )}
     >

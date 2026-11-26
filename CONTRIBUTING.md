@@ -92,6 +92,30 @@ por usuario y no pide administrador.
   - **Instalación:** registrar el paquete al instalar (`Add-AppxPackage -ExternalLocation`, o la API
     `PackageManager`) y quitarlo al desinstalar.
 
+### El modo demo y las imágenes del README
+
+La interfaz también abre en el navegador, sin Tauri, con datos de ejemplo inventados (una tal «Ana»):
+`apps/desktop/vite.demo.config.ts` cambia las llamadas a Rust por `apps/desktop/src/demo/` (los datos
+están en `src/demo/fixtures/`). Es solo para desarrollo: `demo.html` no entra en el instalador.
+
+```bash
+cd apps/desktop && npx vite --config vite.demo.config.ts
+# http://localhost:1430/demo.html?screen=home
+```
+
+Cada pantalla y estado se abre por la dirección: `?screen=home|tools|history|clipboard|space|duplicates|
+settings|position|subtitles|scan|task|result`, `?screen=family&id=pdf`, `?island=collapsed|notice|open` y
+`?scene=desktop` (la isla sobre un escritorio). Si una pantalla pide un dato que el demo no tiene, la
+consola dice `[glup:demo] sin datos para …`.
+
+`pnpm docs:shots` vuelve a sacar todas las imágenes de `docs/images` con esa interfaz: maneja el Edge que
+trae Windows con `playwright-core` (sin descargar navegadores) y usa el FFmpeg que Glup descargó para los
+videos (o el de `GLUP_FFMPEG`). Deja WebP para las capturas y GIF y MP4 para el clip, y no deja nada
+corriendo ni archivos temporales.
+Con nombres, rehace solo esas: `pnpm docs:shots inicio isla-abierta glup` (`glup` es el GIF y el MP4). El
+reloj del demo marca siempre las 16:30 de hoy (`src/demo/clock.ts`), así las imágenes no cambian según la
+hora en que se saquen.
+
 ## Lo que no se negocia
 
 - **Los archivos originales nunca se modifican ni se borran.**

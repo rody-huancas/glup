@@ -1,0 +1,35 @@
+{
+  "cues": [
+    {
+      "start": 400,
+      "end": 3600,
+      "text": "Hola a todos, hoy vamos a ver cómo armar un presupuesto familiar."
+    },
+    {
+      "start": 3800,
+      "end": 7200,
+      "text": "Primero anotamos todo lo que entra en el mes."
+    },
+    {
+      "start": 7400,
+      "end": 11000,
+      "text": "Después, los gastos fijos: alquiler, luz, agua e internet."
+    },
+    {
+      "start": 11200,
+      "end": 14800,
+      "text": "Lo que sobra lo repartimos entre ahorro y gastos variables."
+    },
+    {
+      "start": 15000,
+      "end": 18600,
+      "text": "Un truco: separa el ahorro apenas cobras, no al final."
+    },
+    {
+      "start": 18800,
+      "end": 22400,
+      "text": "La próxima clase vemos cómo usar una hoja de cálculo."
+    }
+  ],
+  "cancelled": false
+}

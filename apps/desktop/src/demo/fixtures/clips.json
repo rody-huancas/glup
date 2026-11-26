@@ -1,0 +1,52 @@
+[
+  {
+    "id": "c1",
+    "kind": "text",
+    "preview": "Av. Los Fresnos 418, dpto. 302 — referencia: frente al parque",
+    "width": 0,
+    "height": 0,
+    "source": "WhatsApp",
+    "minutesAgo": 3,
+    "pinned": true
+  },
+  {
+    "id": "c2",
+    "kind": "image",
+    "preview": "",
+    "width": 1280,
+    "height": 720,
+    "source": "Herramienta Recortes",
+    "minutesAgo": 12,
+    "pinned": false
+  },
+  {
+    "id": "c3",
+    "kind": "text",
+    "preview": "Reunión del proyecto: jueves 4 p. m. por videollamada. Llevar el avance del informe.",
+    "width": 0,
+    "height": 0,
+    "source": "Outlook",
+    "minutesAgo": 40,
+    "pinned": false
+  },
+  {
+    "id": "c4",
+    "kind": "text",
+    "preview": "N.º de pedido 58214-B",
+    "width": 0,
+    "height": 0,
+    "source": "Microsoft Edge",
+    "minutesAgo": 95,
+    "pinned": false
+  },
+  {
+    "id": "c5",
+    "kind": "text",
+    "preview": "Receta: 2 tazas de harina, 1 de leche, 3 huevos y una pizca de sal.",
+    "width": 0,
+    "height": 0,
+    "source": "Microsoft Edge",
+    "minutesAgo": 210,
+    "pinned": false
+  }
+]

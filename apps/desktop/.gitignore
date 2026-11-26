@@ -1,2 +1,4 @@
 node_modules
 dist
+# The clip of the demo (pnpm docs:shots makes it and removes it).
+demo-media

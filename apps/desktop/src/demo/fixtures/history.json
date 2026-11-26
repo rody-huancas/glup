@@ -1,0 +1,134 @@
+[
+  {
+    "name": "Vacaciones Cusco 014.jpg",
+    "path": "C:\\Users\\Ana\\Pictures\\Vacaciones Cusco 014.jpg",
+    "type": "image",
+    "action": "to-jpg",
+    "detail": "Convertido a JPG",
+    "daysAgo": 0,
+    "minutesAgo": 25
+  },
+  {
+    "name": "Contrato alquiler-reducido.pdf",
+    "path": "C:\\Users\\Ana\\Documents\\Contrato alquiler-reducido.pdf",
+    "type": "pdf",
+    "action": "compress",
+    "detail": "Peso reducido: de 4,8 MB a 1,1 MB",
+    "saved": 3880000,
+    "daysAgo": 0,
+    "minutesAgo": 48
+  },
+  {
+    "name": "Nota de voz.txt",
+    "path": "C:\\Users\\Ana\\Downloads\\Nota de voz.txt",
+    "type": "audio",
+    "action": "transcribe",
+    "detail": "Pasado a texto · 3 min de audio",
+    "seconds": 192,
+    "daysAgo": 0,
+    "minutesAgo": 130
+  },
+  {
+    "name": "Recibo luz noviembre.pdf",
+    "path": "C:\\Users\\Ana\\Documents\\Recibo luz noviembre.pdf",
+    "type": "pdf",
+    "action": "merge",
+    "detail": "Unido · 3 archivos · 7 páginas",
+    "daysAgo": 1,
+    "at": "18:03"
+  },
+  {
+    "name": "Cumpleaños Mateo (sin fondo).png",
+    "path": "C:\\Users\\Ana\\Pictures\\Cumpleaños Mateo (sin fondo).png",
+    "type": "image",
+    "action": "remove-background",
+    "detail": "Fondo quitado",
+    "daysAgo": 1,
+    "at": "17:50"
+  },
+  {
+    "name": "Lima de noche-comprimida.jpg",
+    "path": "C:\\Users\\Ana\\Pictures\\Lima de noche-comprimida.jpg",
+    "type": "image",
+    "action": "compress",
+    "detail": "Peso reducido: de 6,2 MB a 1,9 MB",
+    "saved": 4510000,
+    "daysAgo": 1,
+    "at": "09:12"
+  },
+  {
+    "name": "Viaje a Paracas-reducido.mp4",
+    "path": "C:\\Users\\Ana\\Videos\\Viaje a Paracas-reducido.mp4",
+    "type": "video",
+    "action": "compress",
+    "detail": "Peso reducido: de 212 MB a 38 MB",
+    "saved": 182000000,
+    "daysAgo": 2,
+    "at": "20:31"
+  },
+  {
+    "name": "Clase de marketing.txt",
+    "path": "C:\\Users\\Ana\\Documents\\Clase de marketing.txt",
+    "type": "audio",
+    "action": "transcribe",
+    "detail": "Pasado a texto · 41 min de audio",
+    "seconds": 2460,
+    "daysAgo": 2,
+    "at": "16:05"
+  },
+  {
+    "name": "Copiado de la pantalla",
+    "path": "",
+    "type": "screen-text",
+    "action": "screen-text",
+    "detail": "Texto copiado · 58 palabras",
+    "text": "Horario de atención: lunes a viernes de 9:00 a 18:00. Sábados de 9:00 a 13:00.",
+    "daysAgo": 3,
+    "at": "12:40"
+  },
+  {
+    "name": "Solicitud de beca-firmado.pdf",
+    "path": "C:\\Users\\Ana\\Documents\\Solicitud de beca-firmado.pdf",
+    "type": "pdf",
+    "action": "sign",
+    "detail": "Firmado · 1 firma en 2 páginas",
+    "daysAgo": 3,
+    "at": "11:22"
+  },
+  {
+    "name": "Podcast cocina.mp3",
+    "path": "C:\\Users\\Ana\\Music\\Podcast cocina.mp3",
+    "type": "video",
+    "action": "extract-audio",
+    "detail": "Audio sacado a MP3",
+    "daysAgo": 4,
+    "at": "19:48"
+  },
+  {
+    "name": "Fotos boda Lucía.zip",
+    "path": "C:\\Users\\Ana\\Downloads\\Fotos boda Lucía.zip",
+    "type": "zip",
+    "action": "zip",
+    "detail": "Juntado en ZIP · 48 archivos · 312 MB",
+    "daysAgo": 4,
+    "at": "15:30"
+  },
+  {
+    "name": "Ordené Descargas",
+    "path": "",
+    "type": "folder-sort",
+    "action": "folder-sort",
+    "detail": "86 archivos en 7 carpetas",
+    "daysAgo": 5,
+    "at": "10:02"
+  },
+  {
+    "name": "Presupuesto casa.pdf",
+    "path": "C:\\Users\\Ana\\Documents\\Presupuesto casa.pdf",
+    "type": "pdf",
+    "action": "split-pages",
+    "detail": "Separado en 4 PDFs",
+    "daysAgo": 6,
+    "at": "21:15"
+  }
+]
