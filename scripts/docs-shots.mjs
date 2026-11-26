@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { writeBadges } from './badges.mjs';
 
 const root    = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const desktop = join(root, 'apps', 'desktop');
@@ -211,18 +212,17 @@ const copyArt = () => {
   readdirSync(assets).filter((file) => file.endsWith('-128.webp')).forEach((file) => copyFileSync(join(assets, file), join(families, file.replace('-128', ''))));
 };
 
-// The logo: Glup drawn by the app itself from its layers (never the app icon, which is the body alone),
-// at rest (no motion), cut to what is drawn with the same margin on every side, at 2x of its 112 px.
-const LOGO_WIDTH  = 112;
-const LOGO_MARGIN = 0.06;
-
-const logo = async (browser) => {
-  const context = await browser.newContext({ viewport: { width: 400, height: 400 }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+// Glup drawn by the app itself from its layers (never the old icon, which was the body alone), at rest
+// (no motion), cut to what is drawn with the same margin on every side: `width` wide, or a `width`
+// square with Glup in the middle. A PNG, transparent around.
+const drawGlup = async (browser, { width, square, margin }) => {
+  const size    = Math.ceil(width * 1.2);
+  const context = await browser.newContext({ viewport: { width: size + 100, height: size + 100 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
   const page    = await context.newPage();
-  await page.goto(`${BASE}?scene=mascot`);
+  await page.goto(`${BASE}?scene=mascot&size=${size}`);
   await settle(page, 800);
   const shot    = await page.locator('#mascot').screenshot({ omitBackground: true });
-  const trimmed = await page.evaluate(async ({ data, width, margin }) => {
+  const png     = await page.evaluate(async ({ data, width, square, margin }) => {
     const image = new Image();
     image.src   = `data:image/png;base64,${data}`;
     await image.decode();
@@ -243,25 +243,52 @@ const logo = async (browser) => {
         }
       }
     }
-    // What is drawn, scaled to 2x of the logo's width, with the same margin around it.
-    const drawn   = { width: right - left + 1, height: bottom - top + 1 };
-    const scale   = (width * 2 * (1 - 2 * margin)) / drawn.width;
-    const pad     = Math.round(width * 2 * margin);
-    const out     = document.createElement('canvas');
-    out.width     = width * 2;
-    out.height    = Math.round(drawn.height * scale) + pad * 2;
+    const drawn  = { width: right - left + 1, height: bottom - top + 1 };
+    const pad    = Math.round(width * margin);
+    const inside = width - pad * 2;
+    const scale  = inside / Math.max(drawn.width, square ? drawn.height : 0);
+    const out    = document.createElement('canvas');
+    out.width    = width;
+    out.height   = square ? width : Math.round(drawn.height * scale) + pad * 2;
+    const shown  = { width: Math.round(drawn.width * scale), height: Math.round(drawn.height * scale) };
     const writing = out.getContext('2d');
     writing.imageSmoothingQuality = 'high';
-    writing.drawImage(source, left, top, drawn.width, drawn.height, pad, pad, out.width - pad * 2, out.height - pad * 2);
+    writing.drawImage(source, left, top, drawn.width, drawn.height, (out.width - shown.width) / 2, (out.height - shown.height) / 2, shown.width, shown.height);
     return out.toDataURL('image/png').split(',')[1];
-  }, { data: shot.toString('base64'), width: LOGO_WIDTH, margin: LOGO_MARGIN });
+  }, { data: shot.toString('base64'), width, square, margin });
   await context.close();
+  return Buffer.from(png, 'base64');
+};
+
+// The logo of the README: 2x of the 112 px it is shown at.
+const LOGO_WIDTH = 112;
+
+const logo = async (browser) => {
   const file = join(images, 'logo.png');
-  writeFileSync(file, Buffer.from(trimmed, 'base64'));
+  writeFileSync(file, await drawGlup(browser, { width: LOGO_WIDTH * 2, square: false, margin: 0.06 }));
   return file;
 };
 
-// `pnpm docs:shots inicio glup logo` makes only those (glup: the GIF and the MP4); with no names, all of them.
+// The icon of the app: a 1024 px square that `tauri icon` turns into every size. Only the files the app
+// already has are replaced (no Android nor iOS ones).
+const ICON_SIZE = 1024;
+
+const appIcon = async (browser) => {
+  const source = join(scratch, 'glup-icon.png');
+  const out    = join(scratch, 'icons');
+  const icons  = join(desktop, 'src-tauri', 'icons');
+  writeFileSync(source, await drawGlup(browser, { width: ICON_SIZE, square: true, margin: 0.04 }));
+  const cli  = join(desktop, 'node_modules', '@tauri-apps', 'cli', 'tauri.js');
+  const made = spawnSync(process.execPath, [cli, 'icon', source, '-o', out], { cwd: desktop, encoding: 'utf8' });
+  if (made.status !== 0) throw new Error(`tauri icon: ${made.stderr}`);
+  return readdirSync(icons).filter((file) => existsSync(join(out, file))).map((file) => {
+    copyFileSync(join(out, file), join(icons, file));
+    return join(icons, file);
+  });
+};
+
+// `pnpm docs:shots inicio glup logo` makes only those (glup: the GIF and the MP4; icono: the icon of the
+// app; insignias: the badges); with no names, all of them.
 const only   = process.argv.slice(2);
 const wanted = (name) => only.length === 0 || only.includes(name);
 
@@ -276,6 +303,8 @@ const main = async () => {
     for (const shot of DESKTOPS.filter((item) => wanted(item.name))) made.push(await desktopShot(browser, shot));
     if (wanted('glup')) made.push(...encodeClip(await clip(browser)));
     if (wanted('logo')) made.push(await logo(browser));
+    if (wanted('insignias')) made.push(...writeBadges());
+    if (wanted('icono')) made.push(...(await appIcon(browser)));
     if (only.length === 0) copyArt();
   } finally {
     await browser.close();
