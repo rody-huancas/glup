@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
 use crate::services::{
+    paths,
     actions::{ActionControl, ActionProgress},
     cleanup::folders,
     folder_sort::{
@@ -138,7 +139,7 @@ fn summary(tone: &str, message: String, notes: Vec<String>) -> TaskSummary {
 
 // Descargas as the person knows it (the folder itself is "Downloads"); any other by its own name.
 pub fn display_name(folder: &Path, downloads: Option<&Path>) -> String {
-    if downloads.is_some_and(|downloads| downloads == folder) {
+    if downloads.is_some_and(|downloads| paths::same_path(downloads, folder)) {
         return DOWNLOADS_NAME.to_string();
     }
     folder.file_name().map_or_else(|| folder.to_string_lossy().into_owned(), |name| name.to_string_lossy().into_owned())
