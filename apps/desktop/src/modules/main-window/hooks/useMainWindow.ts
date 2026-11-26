@@ -1,5 +1,6 @@
 import { useExplorerRequests } from '@/modules/explorer/hooks/useExplorerRequests';
 import { useHomeFiles } from '@/modules/home/hooks/useHomeFiles';
+import { logNav } from '@/modules/island/utils/islandLog';
 import { DEFAULT_PAGE } from '@/modules/main-window/constants/navigation';
 import type { MainPanelState } from '@/modules/main-window/interfaces/mainPanel';
 import type { PageId } from '@/modules/main-window/types/pageId';
@@ -17,7 +18,7 @@ import { useSignMode } from '@/modules/sign/hooks/useSignMode';
 import { useSubtitlesMode } from '@/modules/subtitles/hooks/useSubtitlesMode';
 import { useTaskMood } from '@/modules/tasks/hooks/useTaskMood';
 import { useWelcome } from '@/modules/welcome/hooks/useWelcome';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export const useMainWindow = (): MainPanelState => {
   const [page, setPage]               = useState<PageId>(DEFAULT_PAGE);
@@ -25,6 +26,10 @@ export const useMainWindow = (): MainPanelState => {
   const avatarRef                     = useRef<MascotController | null>(null);
 
   const commandAvatar = useCallback((state: MascotState) => avatarRef.current?.setState(state), []);
+  useEffect(() => {
+    logNav(`ruta → ${page}`);
+  }, [page]);
+
   const showHome      = useCallback(() => setPage(DEFAULT_PAGE), []);
   const signMode      = useSignMode();
   const organizeMode  = useOrganizeMode();

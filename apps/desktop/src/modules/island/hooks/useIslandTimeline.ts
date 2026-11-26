@@ -16,7 +16,7 @@ import type { IslandMotion } from '@/modules/island/interfaces/islandTimeline';
 import type { VisibleIslandState } from '@/modules/island/types/islandState';
 import { renderIslandShape } from '@/modules/island/utils/islandShape';
 import { buildHoverTween, buildIslandTimeline, buildNoticeTimeline, hideHoverGlow, setCollapsedPose, setExpandedPose, setHoverGlow } from '@/modules/island/utils/islandTimeline';
-import { logIsland } from '@/modules/island/utils/islandLog';
+import { logIsland, logNav } from '@/modules/island/utils/islandLog';
 import { planNotice } from '@/modules/island/utils/noticePlan';
 import { setIslandArea } from '@/modules/island/utils/islandWindow';
 import type { MascotController } from '@/modules/mascot/interfaces/controller';
@@ -86,6 +86,7 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
     area.current = area.current
       .then(() => {
         logIsland(`región → ${kind}`);
+        logNav(`set_island_area → ${kind}`);
         return setIslandArea(dockRegion(placementRef.current, kind), regionShape(placementRef.current, kind));
       })
       .catch(() => undefined);
@@ -335,6 +336,7 @@ export const useIslandTimeline = ({ elements, mascotRef, placementRef }: UseIsla
         }
 
         if (settled.current === 'expanded') {
+          logNav('relayout con el panel abierto: el panel entero vuelve con un fundido');
           setExpandedPose({ elements, placement: placementRef.current, shape: shape.current, onRender: render });
           void setArea('expanded');
           // Moved open (Ajustes › Posición): it stays open and comes in softly where it lands.
