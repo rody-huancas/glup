@@ -15,17 +15,19 @@ pub enum Level {
 }
 
 pub const FAST_MODEL: ModelFile = ModelFile {
-    name   : "whisper-small-q5_1.bin",
-    url    : "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small-q5_1.bin",
-    sha256 : "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
-    size   : 190_085_487,
+    name     : "whisper-small-q5_1.bin",
+    url      : "https://github.com/rody-huancas/glup/releases/download/models-v1/whisper-small-q5_1.bin",
+    fallback : Some("https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small-q5_1.bin"),
+    sha256   : "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+    size     : 190_085_487,
 };
 
 pub const PRECISE_MODEL: ModelFile = ModelFile {
-    name   : "whisper-medium-q5_0.bin",
-    url    : "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-medium-q5_0.bin",
-    sha256 : "19fea4b380c3a618ec4723c3eef2eb785ffba0d0538cf43f8f235e7b3b34220f",
-    size   : 539_212_467,
+    name     : "whisper-medium-q5_0.bin",
+    url      : "https://github.com/rody-huancas/glup/releases/download/models-v1/whisper-medium-q5_0.bin",
+    fallback : Some("https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-medium-q5_0.bin"),
+    sha256   : "19fea4b380c3a618ec4723c3eef2eb785ffba0d0538cf43f8f235e7b3b34220f",
+    size     : 539_212_467,
 };
 
 // Chosen by measuring a 5 min 25 s meeting in Spanish on a laptop processor (8 threads):

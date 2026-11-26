@@ -29,7 +29,7 @@ use tauri::{AppHandle, Manager};
 use crate::services::{
     actions::{ActionControl, ActionProgress, Via},
     background::{
-        download::{self, fetch_http, DownloadEnd, DownloadParams},
+        download::{self, fetch_model, DownloadEnd, DownloadParams},
         model::{delete_in, model_path, models_folder, status_in, ModelStatus},
     },
     destination::{self, Destination},
@@ -181,7 +181,7 @@ pub fn download_model(app: &AppHandle, task: &Option<String>, level: Level) -> R
         cancel       : &control.cancelled,
         on_progress  : &|done| emit(app, span.downloading(done)),
         on_verifying : &|| emit(app, span.verifying()),
-        fetch        : &|start| fetch_http(model.url, start),
+        fetch        : &|start| fetch_model(model, start),
     })?;
 
     Ok(match end {
