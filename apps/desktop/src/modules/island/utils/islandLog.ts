@@ -16,3 +16,7 @@ export const logBubble = (line: string) => log('burbuja', line);
 
 // Ajustes › Posición: what moves while the slider or the marker is held (settings, window, region, phase).
 export const logPosition = (line: string) => log('posicion', line);
+
+// Going from one screen to another: the screen, its mount and unmount, the island's phase, the region and
+// the window (to see what moves besides the content).
+export const logNav = (line: string) => log('nav', line);
