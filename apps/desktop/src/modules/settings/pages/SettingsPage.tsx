@@ -9,6 +9,7 @@ import { ScreenTextHistoryToggle } from '@/modules/screen-text/components/Screen
 import { AutostartToggle } from '@/modules/settings/components/AutostartToggle';
 import { NotificationsToggle } from '@/modules/settings/components/NotificationsToggle';
 import { SaveLocationPicker } from '@/modules/settings/components/SaveLocationPicker';
+import { UserNameSetting } from '@/modules/settings/components/UserNameSetting';
 import { GENERAL_TEXTS } from '@/modules/settings/constants/general';
 import { SAVE_TEXTS, SETTINGS_TEXTS } from '@/modules/settings/constants/saveLocation';
 import { ShortcutSetting } from '@/modules/shortcuts/components/ShortcutSetting';
@@ -30,6 +31,8 @@ export const SettingsPage = ({ files }: PageProps) => (
     <section className="flex flex-col gap-2.5">
       <SectionLabel>{GENERAL_TEXTS.title}</SectionLabel>
       <Card className="flex flex-col gap-3.5 p-3.5">
+        <UserNameSetting />
+        <div className="border-t border-line" />
         <AutostartToggle />
         <div className="border-t border-line" />
         <NotificationsToggle />
