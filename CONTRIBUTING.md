@@ -92,6 +92,31 @@ por usuario y no pide administrador.
   - **Instalación:** registrar el paquete al instalar (`Add-AppxPackage -ExternalLocation`, o la API
     `PackageManager`) y quitarlo al desinstalar.
 
+### Las copias de los modelos (models-v1)
+
+Glup descarga sus modelos primero del release `models-v1` de este repositorio y, si no están ahí, de su
+origen (Hugging Face, en una revisión fija). En los dos casos comprueba el SHA-256 de cada archivo. La
+lista de cada modelo (nombre, copia, origen, hash y peso) está en `background/model.rs`,
+`transcribe/model.rs` y `upscale/model.rs`, y una prueba revisa que cada copia apunte a `models-v1`.
+FFmpeg se sigue bajando de BtbN/FFmpeg-Builds: por qué, en `THIRD_PARTY_NOTICES.md`.
+
+Para publicar las copias (o agregar un modelo nuevo):
+
+1. Junta en una carpeta fuera del repo (por defecto `Downloads\glup-espejo`) cada modelo con el nombre
+   que tiene en el código, bajado de su URL de origen; su licencia original (`<modelo>-LICENSE.txt`,
+   tomada del commit exacto) y un `<modelo>-README.md` con su origen: repositorio, revisión y autor.
+2. Con el CLI de GitHub (`gh auth login` una vez), corre:
+
+   ```powershell
+   .\scripts\publish-models.ps1            # agrega -WhatIf para ver qué haría sin subir nada
+   ```
+
+   Comprueba cada modelo contra el SHA-256 del código, escribe `SHA256SUMS.txt` y crea el release
+   `models-v1` marcado como «no es la última versión» (no es una versión de Glup), con todo adentro. Si
+   el release ya existe, sube solo lo que falte; nunca reemplaza un archivo.
+3. Un modelo nuevo: agrégalo también a la lista del script (una prueba revisa que coincidan) y a
+   `THIRD_PARTY_NOTICES.md`.
+
 ### El modo demo y las imágenes del README
 
 La interfaz también abre en el navegador, sin Tauri, con datos de ejemplo inventados (una tal «Ana»):
