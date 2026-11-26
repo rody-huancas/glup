@@ -7,9 +7,9 @@
 **Una mascota que vive arriba de tu pantalla y te ayuda con tus archivos: fotos, PDF, audios y videos.
 Gratis y sin internet.**
 
-[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-7ee0bc)](LICENSE)
-[![Windows 10 y 11](https://img.shields.io/badge/Windows-10%20%7C%2011-9d90fa)](https://github.com/rody-huancas/glup/releases/latest)
-[![Versión 0.1.0](https://img.shields.io/badge/versi%C3%B3n-0.1.0-f6c36b)](https://github.com/rody-huancas/glup/releases/latest)
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-7ee0bc?style=flat)](LICENSE)
+[![Windows 10 y 11](https://img.shields.io/badge/Windows-10%20%7C%2011-9d90fa?style=flat)](https://github.com/rody-huancas/glup/releases/latest)
+[![Versión 0.1.0](https://img.shields.io/badge/versi%C3%B3n-0.1.0-f6c36b?style=flat)](https://github.com/rody-huancas/glup/releases/latest)
 
 <img src="docs/images/glup.gif" alt="Glup se abre, recibe una foto del iPhone y la pasa a JPG" width="760" />
 
