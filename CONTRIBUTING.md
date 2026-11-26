@@ -169,26 +169,26 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 
 ## Publicar una versión
 
-Solo Windows por ahora. La versión vive en `apps/desktop/src-tauri/Cargo.toml` (Tauri la lee de ahí) y
-`apps/desktop/package.json` la sigue.
+Solo Windows por ahora. La versión vive en `apps/desktop/src-tauri/Cargo.toml` (Tauri la lee de ahí);
+`Cargo.lock`, `apps/desktop/package.json` y la insignia de versión del README la siguen.
 
-1. **Subir la versión** en `master`: `pnpm version:set 0.2.0`. Cambia `Cargo.toml`, `Cargo.lock` y
-   `package.json` juntos.
-2. **Commit**: `git commit -am "chore: versión 0.2.0"` y `git push`. Espera a que el CI pase.
-3. **Tag con las notas**. El mensaje del tag es lo que trae la versión: va al Release y a lo que Glup
-   muestra en Ajustes (cambiar el texto del borrador después no cambia lo que ve Glup).
+1. **Subir la versión** en `master`: `pnpm version:set 0.2.0` (cambia todo junto, o nada si algo falta).
+2. **Escribir las notas** en `.github/release-notes.md`, en palabras llanas: van al Release y a lo que
+   Glup muestra en Ajustes al avisar de la actualización. `{version}` se cambia por el número.
+3. **Commit y push**: `git commit -am "chore: versión 0.2.0"` y `git push`. Espera a que el CI pase:
+   arma el mismo instalador que el Release (en debug y sin firmar), con `glup-voz.exe` adentro.
+4. **Tag y push del tag**: `git tag v0.2.0` y `git push origin v0.2.0`. El workflow `Release` compila
+   `glup-voz.exe` y Glup en release y deja un **borrador** con `Glup_0.2.0_x64-setup.exe`, su `.sig` y
+   `latest.json`; al final comprueba que estén los tres y que `latest.json` apunte a ese instalador.
+   Falla si el tag no coincide con `Cargo.toml`.
+5. **Revisar el borrador** en GitHub › Releases: los tres archivos, las notas, e instalar el `.exe` y
+   probarlo.
+6. **Publicarlo como la última versión**: `gh release edit v0.2.0 --draft=false --latest` (o en la web,
+   «Publish release» con «Set as the latest release» marcado). Tiene que ser la última: Glup busca
+   `releases/latest/download/latest.json`, y el release `models-v1` (los modelos) nunca debe ganarle.
+   Desde ese momento las copias instaladas ven la versión nueva (al arrancar, cada 6 horas o con «Buscar
+   actualizaciones» en Ajustes).
 
-   ```bash
-   git tag -a v0.2.0 -m "- Herramientas: el catálogo completo
-   - Arreglos en la isla"
-   ```
-
-4. **Push del tag**: `git push origin v0.2.0`. El workflow `Release` compila y deja un **borrador**
-   con el instalador `.exe` (NSIS, el único) y `latest.json`. Falla si el tag no coincide con `Cargo.toml`.
-5. **Revisar el borrador** en GitHub › Releases: que estén los archivos (también los `.sig`), instalar
-   el `.exe` y probarlo.
-6. **Publicarlo** («Publish release»). Desde ese momento las copias instaladas lo ven como versión
-   nueva (lo revisan al arrancar y cada 6 horas, o con «Buscar actualizaciones» en Ajustes).
-
-La firma usa los secretos `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Si se
-pierde la clave privada, las copias instaladas ya no pueden actualizarse solas: guárdala bien.
+La firma del actualizador usa los secretos `TAURI_SIGNING_PRIVATE_KEY` y
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`; la clave pública está en `tauri.conf.json`. Si se pierde la clave
+privada, las copias instaladas ya no pueden actualizarse solas: guárdala bien.
