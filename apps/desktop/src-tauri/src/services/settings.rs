@@ -90,6 +90,8 @@ pub struct Settings {
     // "Mostrar Glup en el clic derecho" and "En Enviar a" (Ajustes › General), on unless turned off.
     pub explorer_menu_off: bool,
     pub send_to_off: bool,
+    // Ajustes › General › «¿Cómo te llamo?»: the name of the greeting in Inicio (None: the account's).
+    pub user_name: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]

@@ -179,6 +179,7 @@ pub fn run() {
             commands::performance::get_app_icon,
             commands::photos::get_image_preview,
             commands::settings::get_settings,
+            commands::settings::get_account_name,
             commands::settings::update_settings,
             commands::background::get_background_model,
             commands::background::download_background_model,
