@@ -13,7 +13,7 @@ use sha2::{Digest, Sha256};
 
 use super::{
     cutout,
-    download::{copy_chunks, download, matches_hash, sha256_of, CopyParams, Copied, DownloadEnd, DownloadParams, Fetched, HashWriter, ATTEMPTS, CORRUPT_ERROR, FAMILIES, NETWORK_ERROR},
+    download::{copy_chunks, download, fetch_first, matches_hash, sha256_of, sources, CopyParams, Copied, DownloadEnd, DownloadParams, Fetched, HashWriter, ATTEMPTS, CORRUPT_ERROR, FAMILIES, NETWORK_ERROR},
     mask::{apply_mask, mask_from_logits, on_white, preprocess, Mask, MEAN, MODEL_SIDE, STD},
     model::{delete_in, model_path, part_path, status_in, ModelFile},
     session::{infer, is_idle, open, Device},
@@ -45,7 +45,7 @@ fn fake_model(folder: &Path, bytes: &[u8]) -> ModelFile {
     let hash = sha256_of(&source).expect("hash");
     fs::remove_file(&source).expect("cleanup");
 
-    ModelFile { name: "model.onnx", url: "https://example.invalid/model.onnx", sha256: Box::leak(hash.into_boxed_str()), size: bytes.len() as u64 }
+    ModelFile { name: "model.onnx", url: "https://example.invalid/model.onnx", fallback: None, sha256: Box::leak(hash.into_boxed_str()), size: bytes.len() as u64 }
 }
 
 fn served_bytes() -> Vec<u8> {
@@ -374,7 +374,7 @@ fn cancelling_keeps_the_part() {
 #[test]
 fn deleting_removes_the_model_and_any_part() {
     let folder = Folder::new("delete");
-    let model  = ModelFile { name: "m.onnx", url: "", sha256: "", size: 10 };
+    let model  = ModelFile { name: "m.onnx", url: "", fallback: None, sha256: "", size: 10 };
     fs::write(model_path(&folder.0, &model), b"0123456789").expect("model");
     fs::write(part_path(&folder.0, &model), b"01").expect("part");
 
@@ -438,14 +438,15 @@ fn real_model_times_per_image() {
     }
 }
 
-// The real url: it follows the redirect and honors the range, so a cut download really resumes.
+// The real sources (Glup's copy, or its origin while the copy is not published): they follow the
+// redirect and honor the range, so a cut download really resumes.
 #[test]
 #[ignore]
 fn real_url_resumes_from_a_byte() {
-    use super::{download::fetch_http, model::BACKGROUND_MODEL};
+    use super::{download::fetch_model, model::BACKGROUND_MODEL};
 
     let start       = BACKGROUND_MODEL.size - 1_000_000;
-    let mut fetched = fetch_http(BACKGROUND_MODEL.url, start).expect("fetch");
+    let mut fetched = fetch_model(&BACKGROUND_MODEL, start).expect("fetch");
     let mut rest    = Vec::new();
     fetched.reader.read_to_end(&mut rest).expect("read");
 
@@ -462,4 +463,68 @@ fn real_hash_speed() {
     let start = Instant::now();
     let _     = sha256_of(&file).unwrap();
     println!("leer y comprobar {} MB de nuevo: {} ms", fs::metadata(&file).unwrap().len() / 1_000_000, start.elapsed().as_millis());
+}
+
+const MIRROR: &str = "https://github.com/rody-huancas/glup/releases/download/models-v1/";
+
+fn served(text: &str) -> Fetched {
+    Fetched { reader: Box::new(std::io::Cursor::new(text.as_bytes().to_vec())), resumed: false }
+}
+
+fn read_all(fetched: Fetched) -> String {
+    let mut text = String::new();
+    let mut reader = fetched.reader;
+    reader.read_to_string(&mut text).expect("read");
+    text
+}
+
+const COPY: &str   = "https://copia/modelo.onnx";
+const ORIGIN: &str = "https://origen/modelo.onnx";
+
+// What was got (its text) and which urls were asked, when the ones in `missing` do not answer.
+fn try_sources(missing: &[&str]) -> (Option<String>, Vec<String>) {
+    let asked = std::cell::RefCell::new(Vec::new());
+    let got   = fetch_first(&[COPY, ORIGIN], |url| {
+        asked.borrow_mut().push(url.to_string());
+        if missing.contains(&url) { Err(NETWORK_ERROR.to_string()) } else { Ok(served(url)) }
+    });
+    (got.ok().map(read_all), asked.into_inner())
+}
+
+#[test]
+fn a_model_comes_from_glups_copy_first_and_from_its_origin_if_the_copy_is_not_there() {
+    // The copy is there: the origin is never asked.
+    assert_eq!(try_sources(&[]), (Some(COPY.to_string()), vec![COPY.to_string()]));
+    // Not published yet (or gone): then the origin.
+    assert_eq!(try_sources(&[COPY]), (Some(ORIGIN.to_string()), vec![COPY.to_string(), ORIGIN.to_string()]));
+    // Neither answers: an error, after asking both.
+    assert_eq!(try_sources(&[COPY, ORIGIN]), (None, vec![COPY.to_string(), ORIGIN.to_string()]));
+}
+
+#[test]
+fn every_model_points_at_glups_copy_with_its_origin_behind() {
+    use super::model::BACKGROUND_MODEL;
+    use crate::services::{transcribe::model as voice, upscale::model as upscale, video::tool};
+
+    for model in [&BACKGROUND_MODEL, &voice::FAST_MODEL, &voice::PRECISE_MODEL, &upscale::FAST_MODEL, &upscale::DETAIL_MODEL] {
+        assert_eq!(model.url, format!("{MIRROR}{}", model.name), "{}", model.name);
+        let origin = model.fallback.expect("origin");
+        // Pinned to an exact revision, never «main».
+        assert!(origin.starts_with("https://huggingface.co/") && origin.split('/').any(|part| part.len() == 40 && part.chars().all(|c| c.is_ascii_hexdigit())), "{origin}");
+        assert_eq!(sources(model), vec![model.url, origin]);
+    }
+    // FFmpeg stays where it is: only its zip, by a range.
+    assert_eq!(sources(&tool::FFMPEG_DOWNLOAD), vec![tool::FFMPEG_ZIP_URL]);
+}
+
+// scripts/publish-models.ps1 checks each copy against the same SHA-256 Glup expects.
+#[test]
+fn the_publish_script_checks_the_same_files_glup_expects() {
+    use super::model::BACKGROUND_MODEL;
+    use crate::services::{transcribe::model as voice, upscale::model as upscale};
+
+    let script = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../scripts/publish-models.ps1"));
+    for model in [&BACKGROUND_MODEL, &voice::FAST_MODEL, &voice::PRECISE_MODEL, &upscale::FAST_MODEL, &upscale::DETAIL_MODEL] {
+        assert!(script.contains(&format!("'{}'", model.name)) && script.contains(&format!("'{}'", model.sha256)), "{}", model.name);
+    }
 }
