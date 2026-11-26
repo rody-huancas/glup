@@ -6,21 +6,26 @@ use std::{
 use serde::Serialize;
 use tauri::{AppHandle, Manager};
 
-// The model Glup downloads once, pinned to one exact file (never "the latest"). To move it to a copy
-// in the repo's Releases, change the url (and the hash, if the file changes).
+// The model Glup downloads once, pinned to one exact file (never "the latest"): first from the copy in
+// Glup's own Releases (models-v1, published with scripts/publish-models.ps1), and if that cannot be had,
+// from where it came from. The same bytes either way: the hash is checked at the end.
 pub struct ModelFile {
     pub name: &'static str,
+    // The copy in Glup's own Releases.
     pub url: &'static str,
+    // Where it was copied from (exact revision), used when the copy cannot be had.
+    pub fallback: Option<&'static str>,
     pub sha256: &'static str,
     pub size: u64,
 }
 
 // BiRefNet_lite (MIT, ZhengPeng7), ONNX export by onnx-community, fp16 weights.
 pub const BACKGROUND_MODEL: ModelFile = ModelFile {
-    name   : "birefnet-lite-fp16.onnx",
-    url    : "https://huggingface.co/onnx-community/BiRefNet_lite-ONNX/resolve/de15b22ba131738a16dff04aab8bdf8dc32e3ac1/onnx/model_fp16.onnx",
-    sha256 : "d39b897ceb16ae654c1731f3dba0cf9b368d9cae74b5a57459b455cc8bfec402",
-    size   : 114_538_221,
+    name     : "birefnet-lite-fp16.onnx",
+    url      : "https://github.com/rody-huancas/glup/releases/download/models-v1/birefnet-lite-fp16.onnx",
+    fallback : Some("https://huggingface.co/onnx-community/BiRefNet_lite-ONNX/resolve/de15b22ba131738a16dff04aab8bdf8dc32e3ac1/onnx/model_fp16.onnx"),
+    sha256   : "d39b897ceb16ae654c1731f3dba0cf9b368d9cae74b5a57459b455cc8bfec402",
+    size     : 114_538_221,
 };
 
 pub const MODELS_FOLDER: &str  = "models";

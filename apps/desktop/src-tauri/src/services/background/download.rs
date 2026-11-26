@@ -282,7 +282,33 @@ pub fn agent(family: IpFamily) -> Agent {
         .into()
 }
 
-// The real network: the fixed url, asking for the rest of the file when part of it is already here.
+// Where a model is asked for, in order: Glup's own copy, then where it came from.
+pub fn sources(model: &ModelFile) -> Vec<&'static str> {
+    std::iter::once(model.url).chain(model.fallback).collect()
+}
+
+// The first source that answers; a copy not published yet (404) or out of reach gives way to the next.
+// Each try of a cut download asks again from the first, for the same bytes (the hash checks them all).
+pub fn fetch_first(sources: &[&str], fetch: impl Fn(&str) -> Result<Fetched, String>) -> Result<Fetched, String> {
+    let mut last = NETWORK_ERROR.to_string();
+    for url in sources {
+        match fetch(url) {
+            Ok(fetched) => return Ok(fetched),
+            Err(error)  => {
+                log(&format!("{} no respondió; pruebo la siguiente", host_of(url)));
+                last = error;
+            }
+        }
+    }
+    Err(last)
+}
+
+// A model from its sources, asking for the rest of the file when part of it is already here.
+pub fn fetch_model(model: &ModelFile, start: u64) -> Result<Fetched, String> {
+    fetch_first(&sources(model), |url| fetch_http(url, start))
+}
+
+// The real network: one url, asking for the rest of the file when part of it is already here.
 pub fn fetch_http(url: &str, start: u64) -> Result<Fetched, String> {
     let asked    = std::time::Instant::now();
     let response = FAMILIES

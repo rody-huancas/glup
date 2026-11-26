@@ -170,7 +170,7 @@ fn real_upscale_download_of_both_levels() {
     use std::sync::atomic::AtomicBool;
 
     use super::model::{DETAIL_MODEL, FAST_MODEL};
-    use crate::services::background::download::{download, fetch_http, DownloadEnd, DownloadParams};
+    use crate::services::background::download::{download, fetch_model, DownloadEnd, DownloadParams};
 
     let folder = std::env::temp_dir().join(format!("glup-upscale-download-{}", std::process::id()));
     let _      = std::fs::remove_dir_all(&folder);
@@ -178,13 +178,13 @@ fn real_upscale_download_of_both_levels() {
     let cancel = AtomicBool::new(false);
     for model in [&FAST_MODEL, &DETAIL_MODEL] {
         let start = std::time::Instant::now();
-        let end   = download(DownloadParams { folder: &folder, model, cancel: &cancel, on_progress: &|_| {}, on_verifying: &|| {}, fetch: &|from| fetch_http(model.url, from) });
+        let end   = download(DownloadParams { folder: &folder, model, cancel: &cancel, on_progress: &|_| {}, on_verifying: &|| {}, fetch: &|from| fetch_model(model, from) });
         println!("{}: {end:?} en {:.1} s", model.name, start.elapsed().as_secs_f64());
         assert_eq!(end, Ok(DownloadEnd::Installed));
     }
 
     // A resume through the CDN: 206 and exactly the rest of the file.
-    let mut fetched = fetch_http(DETAIL_MODEL.url, 30_000_000).unwrap();
+    let mut fetched = fetch_model(&DETAIL_MODEL, 30_000_000).unwrap();
     let mut rest    = Vec::new();
     std::io::Read::read_to_end(&mut fetched.reader, &mut rest).unwrap();
     assert!(fetched.resumed);

@@ -20,7 +20,9 @@ pub const FFMPEG_NAME: &str  = "ffmpeg.exe";
 // FFmpeg n9.0.2, BtbN/FFmpeg-Builds "win64-lgpl-9.0" from the autobuild of 2026-10-31 (month-end builds
 // stay published for about two years). The zip has ffmpeg, ffprobe and ffplay (169 MB); only the
 // compressed bytes of bin/ffmpeg.exe are asked for, with an HTTP Range: 55 MB instead of 169.
-// To move it to a copy in the repo's Releases, change the url, the range and the hashes together.
+// Unlike the models it has no copy in Glup's Releases: publishing it would make Glup distribute it, with
+// the whole source of FFmpeg and of every LGPL library inside (see THIRD_PARTY_NOTICES.md). To change
+// it, change the url, the range and the hashes together.
 pub const FFMPEG_ZIP_URL: &str = "https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-10-31-12-59/ffmpeg-n9.0.2-39-g7adfbe40dc-win64-lgpl-9.0.zip";
 // Where the deflated bin/ffmpeg.exe starts inside that zip (after its local header) and how long it is.
 pub const FFMPEG_DATA_START: u64 = 111_661_878;
@@ -31,10 +33,11 @@ pub const FFMPEG_EXE_SHA256: &str  = "d03c858a130cae1382902925d9f46eb15d7de42e02
 
 // The compressed part is downloaded (and resumed) like the background model, under this name.
 pub const FFMPEG_DOWNLOAD: ModelFile = ModelFile {
-    name   : "ffmpeg.exe.deflate",
-    url    : FFMPEG_ZIP_URL,
-    sha256 : FFMPEG_DATA_SHA256,
-    size   : FFMPEG_DATA_SIZE,
+    name     : "ffmpeg.exe.deflate",
+    url      : FFMPEG_ZIP_URL,
+    fallback : None,
+    sha256   : FFMPEG_DATA_SHA256,
+    size     : FFMPEG_DATA_SIZE,
 };
 
 pub const FOLDER_ERROR: &str  = "No pude preparar la carpeta de lo que aprendo";

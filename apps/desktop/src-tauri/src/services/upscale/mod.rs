@@ -24,7 +24,7 @@ use self::{
 use crate::services::{
     actions::{ActionControl, Via},
     background::{
-        download::{self, fetch_http, DownloadEnd, DownloadParams},
+        download::{self, fetch_model, DownloadEnd, DownloadParams},
         model::{delete_in, model_path, models_folder, status_in, ModelStatus},
         session::{BackgroundSession, Device},
     },
@@ -92,7 +92,7 @@ pub fn download_model(app: &AppHandle, task: &Option<String>, level: UpscaleLeve
         cancel       : &control.cancelled,
         on_progress  : &|done| progress::emit(app, span.downloading(done)),
         on_verifying : &|| progress::emit(app, span.verifying()),
-        fetch        : &|start| fetch_http(model.url, start),
+        fetch        : &|start| fetch_model(model, start),
     })?;
 
     Ok(match end {

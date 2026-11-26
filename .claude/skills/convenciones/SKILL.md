@@ -91,7 +91,8 @@ lado. Si dos reglas parecen chocar, se pregunta.
       para programas como FFmpeg).
     - **Desde una URL fija a una versión exacta** (nunca «la última») y **verificada con su
       SHA-256** al terminar; si no coincide se borra y se avisa. La URL y el hash viven en una
-      constante, para poder moverlos a una copia propia en los Releases del repo.
+      constante. Los modelos se piden primero a la copia propia (release `models-v1` del repo, con
+      su licencia y su origen) y, si no está, a su origen fijo; FFmpeg, solo a su origen.
     - La descarga es una tarea con progreso y Cancelar, y se reanuda si se corta.
     - En Ajustes › «Lo que aprendí» se ve cuánto ocupa y se puede borrar.
     - Su licencia también cumple la regla 12 y va en `THIRD_PARTY_NOTICES.md`.

@@ -3,6 +3,12 @@
 Glup es MIT. Aquí van las piezas de otros que usa y que merecen un aviso aparte, además de las
 dependencias de Rust y de JavaScript (cada una con su licencia en su paquete).
 
+**Las copias de los modelos.** Glup descarga los modelos de «Quitar fondo», «Mejorar calidad» y «Pasar
+audio a texto» primero de su propia copia, el release [`models-v1`](https://github.com/rody-huancas/glup/releases/tag/models-v1) de este repositorio, y si
+no está, de su origen (el que se indica en cada uno). Son los mismos archivos, byte por byte: Glup
+comprueba el SHA-256 de cada uno. Junto a cada copia van su licencia original y un README con su origen
+exacto (repositorio, revisión y autor). FFmpeg no se copia (ver «Videos»).
+
 ## Quitar fondo
 
 ### BiRefNet_lite (el modelo)
@@ -16,6 +22,9 @@ dependencias de Rust y de JavaScript (cada una con su licencia en su paquete).
   [onnx-community/BiRefNet_lite-ONNX](https://huggingface.co/onnx-community/BiRefNet_lite-ONNX),
   fijada a la revisión `de15b22ba131738a16dff04aab8bdf8dc32e3ac1` y verificada con su SHA-256
   (`apps/desktop/src-tauri/src/services/background/model.rs`).
+- **Copia en Glup**: `birefnet-lite-fp16.onnx` en [`models-v1`](https://github.com/rody-huancas/glup/releases/tag/models-v1), con `birefnet-LICENSE.txt`
+  (de [ZhengPeng7/BiRefNet@2713d12](https://github.com/ZhengPeng7/BiRefNet/blob/2713d1293ce8a923d5878f1f30177b78770bf24c/LICENSE))
+  y `birefnet-README.md`.
 - **Licencia**: MIT.
 
 ```text
@@ -104,6 +113,9 @@ SOFTWARE.
   (`apps/desktop/src-tauri/src/services/upscale/model.rs`):
   - «Rápido»: `realesr-general-x4v3.onnx` (SRVGGNetCompact, 4,9 MB).
   - «Más detalle»: `realesrgan-x4plus.onnx` (RRDBNet, 67 MB).
+- **Copia en Glup**: los dos archivos, con el mismo nombre, en [`models-v1`](https://github.com/rody-huancas/glup/releases/tag/models-v1), con
+  `realesrgan-LICENSE.txt` (de [xinntao/Real-ESRGAN@0573f32](https://github.com/xinntao/Real-ESRGAN/blob/0573f32dd04a6ff9dbafff67df23f808dffc8811/LICENSE))
+  y `realesrgan-README.md`.
 - **Licencia**: BSD-3-Clause.
 
 ```text
@@ -188,6 +200,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) y en el `LICENSE.txt` del paquete.
 - **Reemplazarlo**: como es un programa aparte, cualquiera puede cambiar ese `ffmpeg.exe` por otra
   compilación de FFmpeg; Glup solo lo ejecuta.
+- **Sin copia propia**: a diferencia de los modelos, FFmpeg se sigue bajando de BtbN/FFmpeg-Builds. Si
+  Glup lo publicara, pasaría a distribuirlo y tendría que ofrecer, junto al binario, el código fuente
+  completo de esa compilación: el de FFmpeg y el de cada biblioteca LGPL que lleva dentro (por ejemplo
+  LAME y FriBidi), y los scripts con que se armó. Los autobuilds de fin de mes de BtbN se mantienen
+  publicados unos dos años; antes de que este desaparezca, Glup pasará a una compilación más nueva o a
+  una propia publicada con todo su código fuente.
 - **Texto de la licencia**: [GNU Lesser General Public License v3](https://www.gnu.org/licenses/lgpl-3.0.html).
 
 ## Pasar audio a texto
@@ -251,6 +269,10 @@ SOFTWARE.
   conversión ggml cuantizada es de [ggerganov/whisper.cpp en Hugging Face](https://huggingface.co/ggerganov/whisper.cpp)
   (MIT), fijada a la revisión `5359861c739e955e79d9a303bcbc70fb988958b1` y verificada con su SHA-256
   (`apps/desktop/src-tauri/src/services/transcribe/model.rs`).
+- **Copia en Glup**: `whisper-small-q5_1.bin` y `whisper-medium-q5_0.bin` en [`models-v1`](https://github.com/rody-huancas/glup/releases/tag/models-v1), con
+  `whisper-LICENSE.txt` (de [openai/whisper@6e3be77](https://github.com/openai/whisper/blob/6e3be77e1a105e59086e3e21ff5f609fd6fa89a5/LICENSE)),
+  `whisper.cpp-LICENSE.txt` (de [ggml-org/whisper.cpp@0e219eb](https://github.com/ggml-org/whisper.cpp/blob/0e219ebf89382291f495cdc32f2c83575bf8d21f/LICENSE))
+  y `whisper-README.md`.
 - **Licencia**: MIT, Copyright (c) 2022 OpenAI.
 
 ### FFmpeg

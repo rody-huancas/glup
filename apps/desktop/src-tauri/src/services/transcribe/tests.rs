@@ -90,7 +90,7 @@ fn each_level_has_its_pinned_model() {
     assert_eq!(Level::Precise.model().name, PRECISE_MODEL.name);
     assert!(FAST_MODEL.size < PRECISE_MODEL.size);
     for model in [FAST_MODEL, PRECISE_MODEL] {
-        assert!(model.url.contains("/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/"));
+        assert!(model.fallback.is_some_and(|origin| origin.contains("/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/")));
         assert_eq!(model.sha256.len(), 64);
     }
 }
