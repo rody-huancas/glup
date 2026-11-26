@@ -130,14 +130,15 @@ cd apps/desktop && npx vite --config vite.demo.config.ts
 
 Cada pantalla y estado se abre por la dirección: `?screen=home|tools|history|clipboard|space|duplicates|
 settings|position|subtitles|scan|task|result`, `?screen=family&id=pdf`, `?island=collapsed|notice|open` y
-`?scene=desktop` (la isla sobre un escritorio). Si una pantalla pide un dato que el demo no tiene, la
+`?scene=desktop` (la isla sobre un escritorio) y `?scene=mascot` (Glup solo, para el logo). Si una pantalla pide un dato que el demo no tiene, la
 consola dice `[glup:demo] sin datos para …`.
 
 `pnpm docs:shots` vuelve a sacar todas las imágenes de `docs/images` con esa interfaz: maneja el Edge que
 trae Windows con `playwright-core` (sin descargar navegadores) y usa el FFmpeg que Glup descargó para los
 videos (o el de `GLUP_FFMPEG`). Deja WebP para las capturas y GIF y MP4 para el clip, y no deja nada
 corriendo ni archivos temporales.
-Con nombres, rehace solo esas: `pnpm docs:shots inicio isla-abierta glup` (`glup` es el GIF y el MP4). El
+Con nombres, rehace solo esas: `pnpm docs:shots inicio isla-abierta glup logo` (`glup` es el GIF y el MP4;
+`logo`, el Glup del README, armado por la app con sus capas: cuerpo, ojos, boca, brazos y patitas). El
 reloj del demo marca siempre las 16:30 de hoy (`src/demo/clock.ts`), así las imágenes no cambian según la
 hora en que se saquen.
 
