@@ -78,7 +78,9 @@ fn every_file_has_its_kind() {
     assert_eq!(progress_line(120000, 84 * 1024 * 1024 * 1024), "Revisé 120.000 archivos · 84 GB");
 }
 
-fn analyze(root: &Path) -> Analysis {
+// The folders that count as «Sistema y apps» are given: never where the temporary folder happens to be
+// (inside AppData on one machine, with a short 8.3 name that does not match it on another).
+fn analyze(root: &Path, system: &[PathBuf]) -> Analysis {
     let analysis = Analysis {
         root      : root.to_path_buf(),
         tree      : Mutex::new(Tree::with_root("raíz")),
@@ -87,7 +89,7 @@ fn analyze(root: &Path) -> Analysis {
         cancelled : AtomicBool::new(false),
         started   : std::time::Instant::now(),
     };
-    walk(WalkParams { root, tree: &analysis.tree, counters: &analysis.counters, threads: 3, cancel: &AtomicBool::new(false) });
+    walk(WalkParams { root, tree: &analysis.tree, counters: &analysis.counters, threads: 3, cancel: &AtomicBool::new(false), system });
     analysis.done.store(true, Ordering::SeqCst);
     analysis
 }
@@ -117,22 +119,26 @@ fn links_junctions_and_cloud_files_are_not_counted_twice_nor_followed() {
     // A file only in the cloud: told apart, never opened.
     fs::write(root.join("Otra/en-la-nube.mp4"), vec![2u8; 50_000]).unwrap();
     mark_cloud_only(&root.join("Otra/en-la-nube.mp4"));
+    // A folder given as Windows' or a program's: whatever is inside is «Sistema y apps».
+    fs::create_dir_all(root.join("Sistema")).unwrap();
+    fs::write(root.join("Sistema/motor.dll"), vec![3u8; 20_000]).unwrap();
 
-    let analysis = analyze(&root);
+    let analysis = analyze(&root, &[root.join("Sistema")]);
     let view     = view_of(&analysis, 0).unwrap();
-    assert_eq!(view.totals.files, 2, "{:?}", view.totals);
+    assert_eq!(view.totals.files, 3, "{:?}", view.totals);
     assert_eq!((view.totals.hard_links, view.totals.links, view.totals.cloud_files), (1, 1, 1));
     assert_eq!(view.totals.cloud_bytes, 50_000);
     // On disk: at least what they hold, rounded to clusters (never the 300 KB twice).
-    assert!(view.folder.size >= 400_000 && view.folder.size < 700_000, "{}", view.folder.size);
+    assert!(view.folder.size >= 420_000 && view.folder.size < 720_000, "{}", view.folder.size);
     // The photo counts once, under whichever of its two names was found first.
     let mut names: Vec<&str> = view.children.iter().map(|item| item.name.as_str()).collect();
     names.sort();
-    assert_eq!(names, vec!["Fotos", "Otra"]);
+    assert_eq!(names, vec!["Fotos", "Otra", "Sistema"]);
     assert!(["playa.jpg", "playa-enlace.jpg"].contains(&view.biggest[0].name.as_str()));
-    assert_eq!(view.biggest.len(), 2);
-    // The temporary folder of the tests is inside AppData: what is there is «Sistema y apps».
-    assert_eq!(view.kinds.iter().map(|total| total.kind).collect::<Vec<_>>(), vec![Kind::System]);
+    assert_eq!(view.biggest.len(), 3);
+    // By what each file is (the photo once, whatever its name), and «Sistema y apps» only inside the
+    // folder given as such: the same on every machine.
+    assert_eq!(view.kinds.iter().map(|total| total.kind).collect::<Vec<_>>(), vec![Kind::Photos, Kind::Programs, Kind::System]);
 
     let _ = fs::remove_dir(root.join("Atajo"));
     let _ = fs::remove_dir_all(&root);
@@ -231,7 +237,7 @@ fn a_folder_with_a_project_or_a_program_anywhere_inside_stays_out_of_the_bin() {
 #[ignore]
 fn real_space_of_the_home_folder() {
     let home = PathBuf::from(std::env::var("USERPROFILE").unwrap());
-    let analysis = analyze(&home);
+    let analysis = analyze(&home, &crate::services::duplicates::walk::protected_roots());
     let view = view_of(&analysis, 0).unwrap();
     println!(
         "{}: {:.1} s · {} archivos · {} en disco · nube {} ({}) · sin permiso {} · enlaces {} · enlaces duros {}",
