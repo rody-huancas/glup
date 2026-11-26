@@ -1,3 +1,4 @@
+import { logNav } from '@/modules/island/utils/islandLog';
 import { BackLink } from '@/modules/main-window/components/BackLink';
 import { PanelControls } from '@/modules/main-window/components/PanelControls';
 import { PAGES, SELF_SCROLLING } from '@/modules/main-window/constants/pages';
@@ -10,7 +11,7 @@ import { TaskToastBar } from '@/modules/notices/components/TaskToastBar';
 import { PanelStripContext } from '@/shared/contexts/panelStrip';
 import { useBackNavigation } from '@/shared/hooks/useBackNavigation';
 import { cx } from '@/shared/utils/classNames';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface PageContentProps extends PageProps {
   page     : PageId;
@@ -29,6 +30,11 @@ export const PageContent = ({ page, files, onNavigate, controls }: PageContentPr
   const [strip, setStrip] = useState<HTMLElement | null>(null);
 
   useBackNavigation({ enabled: back !== null, onBack: () => back && onNavigate(back) });
+
+  useEffect(() => {
+    logNav(`pantalla montada: ${page}`);
+    return () => logNav(`pantalla desmontada: ${page}`);
+  }, [page]);
 
   return (
     <main className="relative my-3 mr-3 flex min-w-0 flex-1 flex-col rounded-[18px] border border-line bg-surface">
