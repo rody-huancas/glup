@@ -4,7 +4,7 @@ import type { IslandPlacement } from '@/modules/dock/interfaces/islandPlacement'
 import { dockRegion, regionShape } from '@/modules/dock/utils/dockLayout';
 import { ISLAND_WATCHDOG_INTERVAL } from '@/modules/island/constants/island';
 import type { IslandEvent, IslandMachine } from '@/modules/island/interfaces/islandMachine';
-import { logIsland } from '@/modules/island/utils/islandLog';
+import { logIsland, logNav } from '@/modules/island/utils/islandLog';
 import { areaKindFor, isSettledPhase } from '@/modules/island/utils/islandMachine';
 import { isStuckDrag, isUnresponsive, STUCK_DRAG_CHECKS } from '@/modules/island/utils/responsiveness';
 import { getIslandStatus, setIslandArea } from '@/modules/island/utils/islandWindow';
@@ -99,6 +99,7 @@ export const useIslandWatchdog = ({ machine, send, isMoving, placementRef, asked
 
       if (!same) {
         logIsland(`vigilante: región ${actual.width}x${actual.height} en ${actual.x},${actual.y} (${now.phase}), corrijo a ${expected.width}x${expected.height} en ${expected.x},${expected.y}`);
+        logNav(`set_island_area (vigilante) → ${kind}`);
         await setIslandArea(expected, regionShape(placementRef.current, kind));
       }
     };
