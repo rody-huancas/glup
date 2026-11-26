@@ -2,7 +2,8 @@ import { revealFile } from '@/modules/actions/services/files';
 import type { HistoryEntry } from '@/modules/history/interfaces/historyEntry';
 import { useOpenEntry } from '@/modules/history/hooks/useOpenEntry';
 import { getHistoryDetail } from '@/modules/history/utils/historyEntry';
-import { DASHBOARD_TEXTS } from '@/modules/home/constants/dashboard';
+import { DASHBOARD_TEXTS, RECENT_NAME } from '@/modules/home/constants/dashboard';
+import { middleEllipsis } from '@/modules/home/utils/middleEllipsis';
 import { toolOfEntry } from '@/modules/home/utils/quickTools';
 import { ToolIcon } from '@/modules/tools/components/ToolIcon';
 import { TOOLS } from '@/modules/tools/constants/tools';
@@ -15,8 +16,8 @@ interface HomeRecentProps {
   onSeeAll : () => void;
 }
 
-// "Lo último": the last three things done, with their result; a click opens the file and the folder
-// button («Abrir carpeta») shows it in its folder.
+// «Seguir donde quedamos»: the last things done, each with its family's icon, its name (cut in the middle
+// when long), what was done and when; a click opens the file and the folder button shows it in its folder.
 export const HomeRecent = ({ entries, now, onSeeAll }: HomeRecentProps) => {
   const { open, missingId } = useOpenEntry();
 
@@ -45,7 +46,7 @@ export const HomeRecent = ({ entries, now, onSeeAll }: HomeRecentProps) => {
                 >
                   {tool && <span className="scale-[0.8]"><ToolIcon icon={tool.icon} family={tool.family} /></span>}
                   <span className="flex min-w-0 flex-col">
-                    <span className="truncate text-[12px] font-semibold text-text">{entry.name}</span>
+                    <span title={entry.name} className="truncate text-[12px] font-semibold text-text">{middleEllipsis(entry.name, RECENT_NAME)}</span>
                     <span className="truncate text-[11px] text-muted">{missingId === entry.id ? DASHBOARD_TEXTS.missing : getHistoryDetail(entry, now)}</span>
                   </span>
                 </button>
