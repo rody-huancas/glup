@@ -16,11 +16,18 @@ export const SUGGESTION_LIMITS = {
   remembered     : 12,
 };
 
-// Accesos rápidos: favorites first; without them, the most used.
-export const QUICK_LIMIT = 4;
+// Atajos: the favorites, then the most used, then these (by id of tools.json).
+export const SHORTCUT_COUNT = 4;
+export const POPULAR_TOOLS  = ['compress-image', 'convert-image', 'transcribe', 'merge-pdf'];
 
-// Lo último.
+// «Seguir donde quedamos».
 export const RECENT_COUNT = 3;
+// The longest a file name is shown before it is cut in the middle.
+export const RECENT_NAME = 34;
+
+// «Esta semana hicimos»: how many numbers, and over this the memory is shown in coral.
+export const WEEK_STATS   = 2;
+export const MEMORY_ALERT = 80;
 
 // Descargas is read again at most this often while Inicio comes and goes.
 export const DOWNLOADS_TTL = 5 * 60 * 1000;
@@ -30,10 +37,14 @@ export const DASHBOARD_TEXTS = {
   saved       : 'ahorrados',
   audio       : 'de audio a texto',
   screenTexts : (count: number) => (count === 1 ? 'texto copiado de la pantalla' : 'textos copiados de la pantalla'),
-  quick       : 'Accesos rápidos',
-  quickUsed   : 'Lo que más usas',
-  quickEmpty  : 'Marca con ★ tus herramientas favoritas en Habilidades y aparecerán aquí.',
-  recent      : 'Lo último',
+  shortcuts   : 'Atajos',
+  recent      : 'Seguir donde quedamos',
+  week        : 'Esta semana hicimos',
+  weekEmpty   : 'Todavía no hicimos nada esta semana',
+  weekOpen    : 'Ver lo que hicimos, con el gráfico grande',
+  weekDetail  : 'Lo que hicimos',
+  closeDetail : 'Cerrar',
+  minutes     : (seconds: number) => (Math.round(seconds / 60) === 1 ? 'minuto de audio a texto' : 'minutos de audio a texto'),
   recentEmpty : 'Todavía no hice nada. Lo que hagamos aparecerá aquí.',
   seeAll      : 'Ver todo',
   openFolder  : 'Abrir carpeta',
