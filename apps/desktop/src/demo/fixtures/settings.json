@@ -1,0 +1,14 @@
+{
+  "userName": "Ana",
+  "welcomeSeen": true,
+  "hiddenIntroSeen": true,
+  "favoriteTools": [
+    "compress-image",
+    "merge-pdf",
+    "transcribe",
+    "remove-background"
+  ],
+  "historySeenAt": null,
+  "clipboardOn": true,
+  "keepLocation": false
+}

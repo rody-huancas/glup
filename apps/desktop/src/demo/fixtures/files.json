@@ -1,0 +1,86 @@
+[
+  {
+    "path": "C:\\Users\\Ana\\Downloads\\Vacaciones Cusco 014.heic",
+    "name": "Vacaciones Cusco 014.heic",
+    "extension": "heic",
+    "size": 3412000,
+    "kind": "image",
+    "pages": null,
+    "protected": false,
+    "duration": null,
+    "width": 4032,
+    "height": 3024
+  },
+  {
+    "path": "C:\\Users\\Ana\\Downloads\\Contrato alquiler.pdf",
+    "name": "Contrato alquiler.pdf",
+    "extension": "pdf",
+    "size": 4820000,
+    "kind": "pdf",
+    "pages": 6,
+    "protected": false,
+    "duration": null,
+    "width": null,
+    "height": null
+  },
+  {
+    "path": "C:\\Users\\Ana\\Downloads\\Nota de voz.ogg",
+    "name": "Nota de voz.ogg",
+    "extension": "ogg",
+    "size": 1204000,
+    "kind": "audio",
+    "pages": null,
+    "protected": false,
+    "duration": 192,
+    "width": null,
+    "height": null
+  },
+  {
+    "path": "C:\\Users\\Ana\\Videos\\Clase de finanzas.mp4",
+    "name": "Clase de finanzas.mp4",
+    "extension": "mp4",
+    "size": 2613709,
+    "kind": "video",
+    "pages": null,
+    "protected": false,
+    "duration": 24,
+    "width": 1280,
+    "height": 720
+  },
+  {
+    "path": "C:\\Users\\Ana\\Pictures\\Hoja 1.jpg",
+    "name": "Hoja 1.jpg",
+    "extension": "jpg",
+    "size": 2190000,
+    "kind": "image",
+    "pages": null,
+    "protected": false,
+    "duration": null,
+    "width": 1600,
+    "height": 1200
+  },
+  {
+    "path": "C:\\Users\\Ana\\Pictures\\Hoja 2.jpg",
+    "name": "Hoja 2.jpg",
+    "extension": "jpg",
+    "size": 2280000,
+    "kind": "image",
+    "pages": null,
+    "protected": false,
+    "duration": null,
+    "width": 1600,
+    "height": 1200
+  },
+  {
+    "path": "C:\\Users\\Ana\\Pictures\\Hoja 3.jpg",
+    "name": "Hoja 3.jpg",
+    "extension": "jpg",
+    "size": 2370000,
+    "kind": "image",
+    "pages": null,
+    "protected": false,
+    "duration": null,
+    "width": 1600,
+    "height": 1200
+  }
+]
