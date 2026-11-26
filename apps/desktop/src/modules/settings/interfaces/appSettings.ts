@@ -56,6 +56,8 @@ export interface AppSettings {
   // "Mostrar Glup en el clic derecho" and "En Enviar a" (Ajustes › General), on unless turned off.
   explorerMenuOff       : boolean;
   sendToOff             : boolean;
+  // «¿Cómo te llamo?» (null: the name of the Windows account).
+  userName              : string | null;
 }
 
 export interface SettingsView extends AppSettings {

@@ -1,3 +1,4 @@
+pub mod account;
 pub mod actions;
 pub mod archive;
 pub mod auto_folders;

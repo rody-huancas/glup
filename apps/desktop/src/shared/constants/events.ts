@@ -162,6 +162,7 @@ export const SAVE_SUBTITLES           = 'save_subtitles';
 export const CLEANUP_CATEGORY_EVENT   = 'cleanup-category';
 export const TASK_FINISHED_EVENT      = 'task-finished';
 export const GET_SETTINGS             = 'get_settings';
+export const GET_ACCOUNT_NAME         = 'get_account_name';
 export const UPDATE_SETTINGS          = 'update_settings';
 export const SETTINGS_CHANGED_EVENT   = 'settings-changed';
 export const GET_LAUNCH_INFO          = 'get_launch_info';
