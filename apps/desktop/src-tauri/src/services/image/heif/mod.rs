@@ -66,8 +66,14 @@ pub fn is_heif(path: &Path) -> bool {
     container::has_heif_extension(path)
 }
 
-fn missing(info: &HeifInfo) -> String {
-    if info.codec == Some(Codec::Av1) { AVIF_MISSING } else { HEIC_MISSING }.to_string()
+// What the person reads when Windows could not and there is no FFmpeg: what to install (an AVIF needs
+// the AV1 extension, a HEIC the HEIF and HEVC ones), or that this file could not be read.
+pub fn failure(windows: WicError, codec: Option<Codec>) -> String {
+    match (windows, codec) {
+        (WicError::Missing, Some(Codec::Av1)) => AVIF_MISSING.to_string(),
+        (WicError::Missing, _)                => HEIC_MISSING.to_string(),
+        (WicError::Broken, _)                 => READ_ERROR.to_string(),
+    }
 }
 
 // Who decodes: Windows, or FFmpeg (and which one).
@@ -112,8 +118,7 @@ fn decode_rgba(path: &Path, fit: Option<u32>) -> ImageResult<RgbaImage> {
         Ok(image)               => Ok(image),
         Err(windows)            => match ffmpeg() {
             Some(ffmpeg) => decode_via(&params(Via::Ffmpeg(&ffmpeg))).map_err(|_| READ_ERROR.to_string()),
-            None if windows == WicError::Missing => Err(missing(&info)),
-            None                 => Err(READ_ERROR.to_string()),
+            None         => Err(failure(windows, info.codec)),
         },
     }
 }

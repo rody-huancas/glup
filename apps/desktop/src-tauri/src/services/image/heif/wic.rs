@@ -12,6 +12,31 @@ pub enum WicError {
     Broken,
 }
 
+// What Windows answers when it has no decoder for the format, or one that cannot start: the extension is
+// not installed (or only half: the HEIF one without HEVC, the AVIF one without AV1). Seen on machines
+// without them, a GitHub runner among them. The file itself was already read by Glup's own parser, so an
+// unknown format here means Windows does not know it, not that the file is broken.
+pub const NO_DECODER: [(u32, &str); 5] = [
+    (0x8898_2F50, "WINCODEC_ERR_COMPONENTNOTFOUND"),
+    (0x8898_2F07, "WINCODEC_ERR_UNKNOWNIMAGEFORMAT"),
+    (0x8898_2F8B, "WINCODEC_ERR_COMPONENTINITIALIZEFAILURE"),
+    (0x8898_2F8A, "WINCODEC_ERR_INVALIDREGISTRATION"),
+    (0x8004_0154, "REGDB_E_CLASSNOTREG"),
+];
+
+// The HEIF decoder without the HEVC one fails later, when the pixels are asked for, with a Media
+// Foundation error (0xC00D....).
+const MEDIA_FOUNDATION: u32 = 0xC00D_0000;
+
+// A failure of Windows: a decoder is missing, or the file is broken. Pure, to be tested on any machine.
+pub fn classify(code: u32) -> WicError {
+    if NO_DECODER.iter().any(|(missing, _)| *missing == code) || code & 0xFFFF_0000 == MEDIA_FOUNDATION {
+        WicError::Missing
+    } else {
+        WicError::Broken
+    }
+}
+
 #[cfg(windows)]
 mod engine {
     use image::RgbaImage;
@@ -23,21 +48,7 @@ mod engine {
         Win32::System::WinRT::{RoInitialize, RO_INIT_MULTITHREADED},
     };
 
-    use super::WicError;
-
-    // WINCODEC_ERR_COMPONENTNOTFOUND: no decoder for this file. The HEIF decoder without the HEVC one
-    // fails later, when the pixels are asked for, with a Media Foundation error (0xC00D....).
-    const COMPONENT_NOT_FOUND: i32 = 0x8898_2F50_u32 as i32;
-    const MEDIA_FOUNDATION: u32    = 0xC00D_0000;
-
-    fn classify(error: &windows::core::Error) -> WicError {
-        let code = error.code().0;
-        if code == COMPONENT_NOT_FOUND || (code as u32) & 0xFFFF_0000 == MEDIA_FOUNDATION {
-            WicError::Missing
-        } else {
-            WicError::Broken
-        }
-    }
+    use super::{classify, WicError};
 
     // The longest side fits `fit` (for previews), keeping the proportion.
     fn scaled(width: u32, height: u32, fit: Option<u32>) -> (u32, u32) {
@@ -85,7 +96,7 @@ mod engine {
             Ok(None)        => Err(WicError::Broken),
             Err(error)      => {
                 eprintln!("[glup:heif] Windows no pudo leerla: {:#010x}", error.code().0);
-                Err(classify(&error))
+                Err(classify(error.code().0 as u32))
             }
         }
     }
