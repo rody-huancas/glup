@@ -129,7 +129,11 @@ mismo: suelta, Glup come, elige, Glup trabaja, resultado.
   dibujada con pdf.js, la zona de la pantalla (`screen_text::start_for(CaptureMode::Codes)`; en el modo
   de texto también se ofrecen los códigos de la zona) y la imagen copiada. `parse.rs` dice qué es y avisa
   de enlaces sospechosos; nada se abre solo. «Leer QR» del clic derecho es una página con `actionId`.
-- **Descargas** (`background/download.rs`, para todos los modelos y FFmpeg): se conecta primero solo
+- **Descargas** (`background/download.rs`, para todos los modelos y FFmpeg): cada modelo se pide
+  primero a la copia de Glup (release `models-v1` del repo, `ModelFile.url`) y, si no está, a su origen
+  en una revisión fija (`fallback`); `fetch_first` decide el orden y el SHA-256 comprueba los mismos
+  bytes. Las copias se publican con `scripts/publish-models.ps1` (ver CONTRIBUTING.md). FFmpeg no tiene
+  copia propia (sería distribuirlo, con todo su código fuente). Se conecta primero solo
   por IPv4 (`FAMILIES`) y después por todas las direcciones, porque donde IPv6 está configurado pero no
   sale, cada dirección IPv6 espera hasta agotar el tiempo; un corte a mitad se reanuda solo
   (`ATTEMPTS`) y un servidor que responde 200 al reanudar empieza de cero. En desarrollo deja en la
