@@ -203,16 +203,65 @@ const DESKTOPS = [
   { name: 'isla-abierta', query: 'island=open&screen=home', ms: 2200 },
 ];
 
-// The family Glups and the logo, as they are in the app.
+// The family Glups, as they are in the app.
 const copyArt = () => {
   const families = join(images, 'familias');
   mkdirSync(families, { recursive: true });
   const assets = join(desktop, 'src', 'modules', 'families', 'assets');
   readdirSync(assets).filter((file) => file.endsWith('-128.webp')).forEach((file) => copyFileSync(join(assets, file), join(families, file.replace('-128', ''))));
-  copyFileSync(join(desktop, 'src-tauri', 'icons', '128x128@2x.png'), join(images, 'logo.png'));
 };
 
-// `pnpm docs:shots inicio glup` makes only those (glup: the GIF and the MP4); with no names, all of them.
+// The logo: Glup drawn by the app itself from its layers (never the app icon, which is the body alone),
+// at rest (no motion), cut to what is drawn with the same margin on every side, at 2x of its 112 px.
+const LOGO_WIDTH  = 112;
+const LOGO_MARGIN = 0.06;
+
+const logo = async (browser) => {
+  const context = await browser.newContext({ viewport: { width: 400, height: 400 }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+  const page    = await context.newPage();
+  await page.goto(`${BASE}?scene=mascot`);
+  await settle(page, 800);
+  const shot    = await page.locator('#mascot').screenshot({ omitBackground: true });
+  const trimmed = await page.evaluate(async ({ data, width, margin }) => {
+    const image = new Image();
+    image.src   = `data:image/png;base64,${data}`;
+    await image.decode();
+    const source  = document.createElement('canvas');
+    source.width  = image.width;
+    source.height = image.height;
+    const reading = source.getContext('2d', { willReadFrequently: true });
+    reading.drawImage(image, 0, 0);
+    const { data: pixels } = reading.getImageData(0, 0, image.width, image.height);
+    let [left, top, right, bottom] = [image.width, image.height, -1, -1];
+    for (let y = 0; y < image.height; y += 1) {
+      for (let x = 0; x < image.width; x += 1) {
+        if (pixels[(y * image.width + x) * 4 + 3] > 8) {
+          left   = Math.min(left, x);
+          right  = Math.max(right, x);
+          top    = Math.min(top, y);
+          bottom = Math.max(bottom, y);
+        }
+      }
+    }
+    // What is drawn, scaled to 2x of the logo's width, with the same margin around it.
+    const drawn   = { width: right - left + 1, height: bottom - top + 1 };
+    const scale   = (width * 2 * (1 - 2 * margin)) / drawn.width;
+    const pad     = Math.round(width * 2 * margin);
+    const out     = document.createElement('canvas');
+    out.width     = width * 2;
+    out.height    = Math.round(drawn.height * scale) + pad * 2;
+    const writing = out.getContext('2d');
+    writing.imageSmoothingQuality = 'high';
+    writing.drawImage(source, left, top, drawn.width, drawn.height, pad, pad, out.width - pad * 2, out.height - pad * 2);
+    return out.toDataURL('image/png').split(',')[1];
+  }, { data: shot.toString('base64'), width: LOGO_WIDTH, margin: LOGO_MARGIN });
+  await context.close();
+  const file = join(images, 'logo.png');
+  writeFileSync(file, Buffer.from(trimmed, 'base64'));
+  return file;
+};
+
+// `pnpm docs:shots inicio glup logo` makes only those (glup: the GIF and the MP4); with no names, all of them.
 const only   = process.argv.slice(2);
 const wanted = (name) => only.length === 0 || only.includes(name);
 
@@ -226,6 +275,7 @@ const main = async () => {
     for (const shot of PANELS.filter((item) => wanted(item.name))) made.push(await panelShot(browser, shot));
     for (const shot of DESKTOPS.filter((item) => wanted(item.name))) made.push(await desktopShot(browser, shot));
     if (wanted('glup')) made.push(...encodeClip(await clip(browser)));
+    if (wanted('logo')) made.push(await logo(browser));
     if (only.length === 0) copyArt();
   } finally {
     await browser.close();
