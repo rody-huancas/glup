@@ -8,6 +8,7 @@ use std::{
 use walkdir::{DirEntry, WalkDir};
 
 use crate::services::parallel::{run_parallel, worker_count, ParallelParams};
+use crate::services::paths;
 
 // Windows file attributes (values from the Windows SDK).
 const FILE_ATTRIBUTE_HIDDEN: u32                = 0x2;
@@ -166,7 +167,7 @@ pub fn distinct_roots(roots: Vec<PathBuf>) -> Vec<PathBuf> {
     sorted.sort_by_key(|root| root.components().count());
 
     for root in sorted {
-        if !kept.iter().any(|parent| root.starts_with(parent)) {
+        if !kept.iter().any(|parent| paths::is_inside(&root, parent)) {
             kept.push(root);
         }
     }
