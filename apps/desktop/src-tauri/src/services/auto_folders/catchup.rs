@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::services::auto_folders::rules::{takes, tool_takes, AutoTool, Filter};
+use crate::services::paths;
 
 // More than this waiting at start-up: asked first.
 pub const ASK_ABOVE: usize = 10;
@@ -58,7 +59,7 @@ pub fn catch_up(count: usize) -> CatchUp {
 }
 
 fn key(path: &Path) -> String {
-    path.to_string_lossy().to_lowercase()
+    paths::normalized(path)
 }
 
 // What Glup made (results in the watched folders), so a rule never takes its own work and loops.
