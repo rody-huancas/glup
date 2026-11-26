@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
 use crate::services::{
+    paths,
     actions::{self, ActionOptions, ActionRequest, RunWithParams},
     auto_folders::rules::{tool, Rule, SORT_TOOL, TRANSCRIBE_TOOL},
     background::model as background_model,
@@ -228,10 +229,6 @@ pub fn trash_original(params: TrashParams) -> bool {
     true
 }
 
-fn same_path(a: &Path, b: &Path) -> bool {
-    a.to_string_lossy().to_lowercase() == b.to_string_lossy().to_lowercase()
-}
-
 // «Deshacer» in the Historial: the original back to its place, if its place is still free.
 #[cfg(any(windows, all(unix, not(target_os = "macos"))))]
 pub fn restore(undo: &TrashUndo) -> Result<(), String> {
@@ -241,7 +238,7 @@ pub fn restore(undo: &TrashUndo) -> Result<(), String> {
     let items = trash::os_limited::list().map_err(|_| RESTORE_ERROR.to_string())?;
     let item  = items
         .into_iter()
-        .filter(|item| same_path(&item.original_path(), &undo.path))
+        .filter(|item| paths::same_path(&item.original_path(), &undo.path))
         .min_by_key(|item| (item.time_deleted * 1000 - undo.at).abs())
         .ok_or_else(|| GONE_ERROR.to_string())?;
     trash::os_limited::restore_all([item]).map_err(|_| RESTORE_ERROR.to_string())
