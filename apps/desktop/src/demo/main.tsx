@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@/App';
 import { islandFrame } from '@/demo/frame';
 import { demoControls, play, scene } from '@/demo/scene';
+import { Mascot } from '@/modules/mascot/components/Mascot';
 import '@/index.css';
 
 declare global {
@@ -30,9 +31,20 @@ const Desktop = () => {
   );
 };
 
+// Glup alone for the logo of the README: the same layers as in the app (body, open eyes, happy mouth,
+// arms and feet at rest), on nothing.
+const MascotScene = () => (
+  <div id="mascot" className="p-6" style={{ width: 160 }}>
+    <Mascot reactToDrops={false} />
+  </div>
+);
+
+const scenes: Record<string, () => React.JSX.Element> = { desktop: Desktop, mascot: MascotScene };
+const Scene = (scene && scenes[scene]) || App;
+
 const root = document.getElementById('root');
 
 if (root) {
-  createRoot(root).render(<StrictMode>{scene === 'desktop' ? <Desktop /> : <App />}</StrictMode>);
-  void play();
+  createRoot(root).render(<StrictMode><Scene /></StrictMode>);
+  if (scene !== 'mascot') void play();
 }
