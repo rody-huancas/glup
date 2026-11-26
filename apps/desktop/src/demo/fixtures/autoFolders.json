@@ -1,0 +1,66 @@
+{
+  "pausedAll": false,
+  "attention": false,
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Fotos de iPhone a JPG",
+      "folder": "C:\\Users\\Ana\\Downloads",
+      "folderName": "Descargas",
+      "filter": {
+        "group": "iphone",
+        "extensions": [],
+        "minMb": null
+      },
+      "action": {
+        "tool": "iphone-to-jpg",
+        "options": {
+          "jpg": "normal"
+        }
+      },
+      "original": "keep",
+      "destination": {
+        "mode": "same",
+        "folder": null
+      },
+      "enabled": true,
+      "processed": 46,
+      "lastRun": null,
+      "seenUntil": 0,
+      "needs": null,
+      "held": [],
+      "waiting": 0,
+      "asking": null
+    },
+    {
+      "id": "r2",
+      "name": "Ordenar Descargas",
+      "folder": "C:\\Users\\Ana\\Downloads",
+      "folderName": "Descargas",
+      "filter": {
+        "group": "any",
+        "extensions": [],
+        "minMb": null
+      },
+      "action": {
+        "tool": "folder-sort",
+        "options": {
+          "mode": "type"
+        }
+      },
+      "original": "keep",
+      "destination": {
+        "mode": "same",
+        "folder": null
+      },
+      "enabled": true,
+      "processed": 212,
+      "lastRun": null,
+      "seenUntil": 0,
+      "needs": null,
+      "held": [],
+      "waiting": 0,
+      "asking": null
+    }
+  ]
+}
