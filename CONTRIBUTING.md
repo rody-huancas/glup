@@ -138,7 +138,11 @@ trae Windows con `playwright-core` (sin descargar navegadores) y usa el FFmpeg q
 videos (o el de `GLUP_FFMPEG`). Deja WebP para las capturas y GIF y MP4 para el clip, y no deja nada
 corriendo ni archivos temporales.
 Con nombres, rehace solo esas: `pnpm docs:shots inicio isla-abierta glup logo` (`glup` es el GIF y el MP4;
-`logo`, el Glup del README, armado por la app con sus capas: cuerpo, ojos, boca, brazos y patitas). El
+`logo`, el Glup del README, armado por la app con sus capas: cuerpo, ojos, boca, brazos y patitas;
+`icono`, el ícono de la app desde ese mismo Glup, con `tauri icon`; `insignias`, las del README).
+
+Las insignias del README son SVG propios (`docs/images/badges`, sin servicios de afuera), hechos por
+`scripts/badges.mjs` con la versión de `Cargo.toml`: `pnpm version:set` las vuelve a escribir solo. El
 reloj del demo marca siempre las 16:30 de hoy (`src/demo/clock.ts`), así las imágenes no cambian según la
 hora en que se saquen.
 
