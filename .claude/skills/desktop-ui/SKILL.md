@@ -41,10 +41,12 @@ enteras con espacio al final; las de `SELF_SCROLLING` llenan la caja. Una pantal
 (una familia → Habilidades; Limpieza, Ordenar, Rendimiento → Tu PC; Portapapeles → su familia,
 `backTarget`) lleva «← …» arriba y vuelve también con Esc, Alt+← y el botón de atrás del mouse
 (`useBackNavigation`). Cada herramienta tiene su propio ícono, nombrado en `tools.json` (`icon`) y
-dibujado con el set de trazo de `shared/icons`. Inicio: la franja menta, «Lo
-que hicimos» —4 cifras y un gráfico de cápsulas apiladas por familia en SVG propio, sin librerías,
-con tabla oculta para lectores de pantalla y barras de ejemplo rayadas sin datos— y una fila con
-Accesos rápidos, Lo último y Tu PC; todo del historial local), `home`, `actions`, `tasks`, `pdf`, `sign`, `organize`, `cleanup`,
+dibujado con el set de trazo de `shared/icons`. Inicio, sin scroll con
+la isla arriba: la tarjeta menta (zona para soltar, Glup grande y el saludo por hora con el nombre de
+Ajustes › «¿Cómo te llamo?» o el primer nombre de la cuenta de Windows) junto a «Esta semana hicimos»
+(las 2 cifras más importantes que no son cero y 7 cápsulas por día apiladas por familia; abre el
+gráfico grande con su período), «Atajos» (favoritos, luego lo más usado, luego 4 populares), la
+sugerencia como línea fina, y «Seguir donde quedamos» con «Tu PC»; todo del historial local), `home`, `actions`, `tasks`, `pdf`, `sign`, `organize`, `cleanup`,
 `history`, `settings`, `text`, `screen-text`, `shortcuts`, `clipboard`, `tools`, `updates`, `video`, `notices`, `id-photo`, `transcribe`, `folder-sort`, `photos`, `performance`, `families`, `media`, `subtitles`, `photo-tools`, `social`, `photo-mark`, `upscale`, `qr`, `space`, `rename`, `auto-folders`. Se crean **solo las subcarpetas que se usan**.
 
 ## Reglas obligatorias
