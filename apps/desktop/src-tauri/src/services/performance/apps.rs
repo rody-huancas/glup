@@ -1,9 +1,11 @@
 // What is using the PC, by app and not by loose process: each process joins the app that started it
 // (Chrome's dozens of helpers are one Chrome), as the "Aplicaciones" of the Task Manager. And what can
 // never be closed from Glup: Windows itself, the services of other sessions and Glup.
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 use serde::Serialize;
+
+use crate::services::paths;
 
 // One process, as read now.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -71,9 +73,9 @@ fn lower(text: &str) -> String {
 // Part of Windows: its kernel (no path), its own folder, a name of the list, or another session (services).
 pub fn is_system(process: &ProcessFacts, context: &Context) -> bool {
     let Some(exe) = &process.exe else { return true };
-    let windows   = format!("{}\\", context.windows_dir.trim_end_matches('\\'));
+    let windows   = Path::new(context.windows_dir);
 
-    process.pid <= 4 || process.session != context.own_session || lower(exe).starts_with(&windows) || SYSTEM_NAMES.contains(&process.name.to_lowercase().as_str())
+    process.pid <= 4 || process.session != context.own_session || paths::is_inside(Path::new(exe), windows) || SYSTEM_NAMES.contains(&process.name.to_lowercase().as_str())
 }
 
 // Never closed from Glup: Windows, and Glup itself.

@@ -111,7 +111,7 @@ pub fn analyze(app: &AppHandle, request: AnalyzeRequest) -> Result<TaskSummary, 
                 thread::sleep(REPORT_EVERY);
             }
         });
-        walk(WalkParams { root: &root, tree: &analysis.tree, counters: &analysis.counters, threads: worker_count(), cancel: &control.cancelled });
+        walk(WalkParams { root: &root, tree: &analysis.tree, counters: &analysis.counters, threads: worker_count(), cancel: &control.cancelled, system: &protected_roots() });
         finished.store(true, Ordering::Relaxed);
     });
 

@@ -15,16 +15,21 @@ if (!SEMVER.test(version)) {
   process.exit(1);
 }
 
-const replaceOnce = (file, pattern, replacement) => {
+// Where the version is in each file (with Windows line ends too: git may check them out as \r\n). Only
+// the [package] version of Cargo.toml, keeping the aligned columns.
+const CHANGES = [
+  { file: CARGO_TOML, pattern: /^(\[package\][\s\S]*?\r?\nversion\s*=\s*)"[^"]*"/m },
+  { file: CARGO_LOCK, pattern: /(\r?\nname = "glup"\r?\nversion = )"[^"]*"/ },
+  { file: PACKAGE_JSON, pattern: /("version"\s*:\s*)"[^"]*"/ },
+];
+
+// All three found before any is written: never half a version.
+const texts = CHANGES.map(({ file, pattern }) => {
   const text = readFileSync(file, 'utf8');
   if (!pattern.test(text)) throw new Error(`No encontré la versión en ${file}`);
-  writeFileSync(file, text.replace(pattern, replacement));
-};
-
-// Only the [package] version, keeping the aligned columns.
-replaceOnce(CARGO_TOML, /^(\[package\][\s\S]*?\nversion\s*=\s*)"[^"]*"/m, `$1"${version}"`);
-replaceOnce(CARGO_LOCK, /(\nname = "glup"\nversion = )"[^"]*"/, `$1"${version}"`);
-replaceOnce(PACKAGE_JSON, /("version"\s*:\s*)"[^"]*"/, `$1"${version}"`);
+  return text;
+});
+CHANGES.forEach(({ file, pattern }, index) => writeFileSync(file, texts[index].replace(pattern, `$1"${version}"`)));
 
 // The version badge of the README follows.
 writeBadges();

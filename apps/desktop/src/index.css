@@ -3,6 +3,10 @@
 @import "@fontsource/plus-jakarta-sans/600.css";
 @import "@fontsource/plus-jakarta-sans/700.css";
 @import "tailwindcss";
+/* Only the interface: never the demo (development only) nor the Rust code, whose texts would become
+   rules. */
+@source not "./demo";
+@source not "../src-tauri";
 
 /* static: the island reads these tokens from JS to animate its colors. */
 @theme static {

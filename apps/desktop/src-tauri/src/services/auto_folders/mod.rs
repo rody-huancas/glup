@@ -30,6 +30,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::services::{
+    paths,
     auto_folders::{
         catchup::{catch_up, missed, CatchUp, Loose, MissedParams, Produced},
         queue::{Job, JobQueue, BATCH},
@@ -120,8 +121,9 @@ pub fn arrival(metadata: &fs::Metadata) -> i64 {
     if created > 0 { created } else { millis(metadata.modified()) }
 }
 
+// The same folder however it is written (services/paths.rs).
 pub fn key(path: &Path) -> String {
-    path.to_string_lossy().trim_end_matches(['\\', '/']).to_lowercase()
+    paths::normalized(path)
 }
 
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {

@@ -20,8 +20,8 @@ const Desktop = () => {
   const frame = useSyncExternalStore(islandFrame.subscribe, islandFrame.frame);
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ background: 'radial-gradient(120% 90% at 30% 10%, #2b2f4a 0%, #191a2b 45%, #0e0f18 100%)' }}>
-      <div className="absolute inset-x-0 bottom-0 flex h-12 items-center justify-center gap-2 bg-[#1c1d2a]/90 backdrop-blur">
-        {Array.from({ length: 6 }, (_, index) => <span key={index} className="size-7 rounded-md bg-white/10" />)}
+      <div className="absolute inset-x-0 bottom-0 flex h-12 items-center justify-center gap-2" style={{ background: '#1c1d2ae6' }}>
+        {Array.from({ length: 6 }, (_, index) => <span key={index} className="size-7 rounded-md" style={{ background: '#ffffff1a' }} />)}
       </div>
       {/* Drawn at once: the island says where its window goes once it is drawn. */}
       <div className="absolute" style={frame ? { left: frame.x, top: frame.y, width: frame.width, height: frame.height } : { left: 0, top: 0, width: '100%', height: '100%', visibility: 'hidden' }}>

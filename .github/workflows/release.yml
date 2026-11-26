@@ -1,6 +1,7 @@
-# Builds Glup for Windows when a v*.*.* tag is pushed and leaves a draft Release with the NSIS
-# installer (the only one: it writes and removes the Explorer's entries) and the signed latest.json for
-# the updater. The draft is published by hand.
+# Builds Glup for Windows when a v*.*.* tag is pushed and leaves a draft Release with the NSIS installer
+# (the only one: it writes and removes the Explorer's entries), its .sig and the signed latest.json for
+# the updater. The notes come from .github/release-notes.md. The draft is reviewed and published by
+# hand, marked as the latest release (CONTRIBUTING.md, «Publicar una versión»).
 name: Release
 
 on:
@@ -10,29 +11,37 @@ on:
 permissions:
   contents: write
 
+# One release at a time: a second tag waits instead of fighting for the same draft.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
-      # The tag message holds the notes: they go to the Release and to latest.json (what Glup shows).
-      - name: Notes and version check
-        id: tag
+      # The tag must be the version of Cargo.toml (pnpm version:set). The notes: the editable text with
+      # its version; they go to the Release and to latest.json (what Glup shows in Ajustes).
+      - name: Version and notes
+        id: notes
         shell: bash
         run: |
-          git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
           version=$(sed -n 's/^version *= *"\(.*\)"/\1/p' apps/desktop/src-tauri/Cargo.toml | head -n 1)
           if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
             echo "::error::El tag ${GITHUB_REF_NAME} no coincide con la versión de Cargo.toml (${version}). Usa pnpm version:set."
             exit 1
           fi
           {
-            echo 'notes<<GLUP_NOTES'
-            git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" | sed '/^-----BEGIN PGP SIGNATURE-----/,$d'
+            echo "version=${version}"
+            echo 'body<<GLUP_NOTES'
+            sed "s/{version}/${version}/g" .github/release-notes.md
             echo 'GLUP_NOTES'
           } >> "$GITHUB_OUTPUT"
 
+      # pnpm's version comes from "packageManager" in package.json.
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -42,14 +51,18 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      # Its own cache (release profile): the one of CI is the debug profile and would not help here.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri -> target
+          shared-key: release
+          cache-on-failure: true
 
       - run: pnpm install --frozen-lockfile
 
       # The Vulkan SDK (headers, glslc, vulkan-1.lib) to build glup-voz.exe: the LunarG installer, pinned
-      # and checked, with its silent install. Only the base components (~1 min).
+      # and checked, with its silent install. Only the base components (~1 min); the installer (300 MB)
+      # is removed afterwards.
       - name: Vulkan SDK
         shell: pwsh
         run: |
@@ -62,13 +75,23 @@ jobs:
           # A windowed installer: Start-Process -Wait, or PowerShell would go on before it ends.
           $setup = Start-Process $file -ArgumentList '--root', "C:\VulkanSDK\$version", '--accept-licenses', '--default-answer', '--confirm-command', 'install' -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw 'Vulkan SDK: no se pudo instalar' }
+          Remove-Item $file
           "VULKAN_SDK=C:\VulkanSDK\$version" | Out-File -FilePath $env:GITHUB_ENV -Append
           "C:\VulkanSDK\$version\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      # glup-voz.exe ("Pasar audio a texto" on the graphics card), built apart and copied where Tauri
-      # takes its sidecars (tauri.release.conf.json, externalBin).
+      # glup-voz.exe ("Pasar audio a texto" on the graphics card), built apart BEFORE Glup and copied
+      # where Tauri takes its sidecars (tauri.release.conf.json, externalBin): it is installed next to
+      # glup.exe, with the name the code looks for (transcribe/gpu.rs, WORKER_NAME).
       - name: glup-voz
         run: pnpm voz:build -Release
+
+      # whisper (twice: CPU in Glup, Vulkan in glup-voz), ort and the SDK take room: the shader project
+      # of glup-voz is not needed any more, and the free space is shown for the record.
+      - name: Room on the disk
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force apps/desktop/src-tauri/target/vk -ErrorAction SilentlyContinue
+          Get-PSDrive C | Format-Table Name, @{ n = 'Libre (GB)'; e = { [math]::Round($_.Free / 1GB, 1) } }
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -82,7 +105,27 @@ jobs:
           args: --config src-tauri/tauri.release.conf.json --bundles nsis
           tagName: ${{ github.ref_name }}
           releaseName: Glup ${{ github.ref_name }}
-          releaseBody: ${{ steps.tag.outputs.notes }}
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
+
+      # The draft must have the installer, its signature and a latest.json that points at this version's
+      # installer: otherwise the installed copies would never see it.
+      - name: Check the draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.notes.outputs.version }}
+        run: |
+          installer="Glup_${VERSION}_x64-setup.exe"
+          assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')
+          echo "$assets"
+          for name in "$installer" "$installer.sig" latest.json; do
+            grep -qxF "$name" <<< "$assets" || { echo "::error::Falta $name en el borrador"; exit 1; }
+          done
+          gh release download "$GITHUB_REF_NAME" --pattern latest.json --dir "$RUNNER_TEMP" --clobber
+          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${installer}"
+          grep -qF "\"version\":\"${VERSION}\"" <(tr -d ' \n' < "$RUNNER_TEMP/latest.json") || { echo "::error::latest.json no dice la versión ${VERSION}"; exit 1; }
+          grep -qF "$url" "$RUNNER_TEMP/latest.json" || { echo "::error::latest.json no apunta a $url"; cat "$RUNNER_TEMP/latest.json"; exit 1; }
+          echo "latest.json apunta a $url"

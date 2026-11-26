@@ -1,5 +1,7 @@
-# Checks every PR and every push to master: types, Vitest, cargo check and cargo test (without the ignored ones),
-# and that glup-voz (the graphics card's program, built apart) still compiles.
+# Checks every PR and every push to master: types, Vitest, cargo check and cargo test (without the ignored
+# ones), and that everything the Release builds still builds: glup-voz (the graphics card's program,
+# built apart) and the NSIS installer with it inside, the frontend of production (no demo) included.
+# Unsigned and in debug: only the Release has the updater's key, and only it builds in release.
 name: CI
 
 on:
@@ -14,6 +16,7 @@ concurrency:
 jobs:
   check:
     runs-on: windows-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +33,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri -> target
+          cache-on-failure: true
 
       - run: pnpm install --frozen-lockfile
 
@@ -61,12 +65,16 @@ jobs:
           # A windowed installer: Start-Process -Wait, or PowerShell would go on before it ends.
           $setup = Start-Process $file -ArgumentList '--root', "C:\VulkanSDK\$version", '--accept-licenses', '--default-answer', '--confirm-command', 'install' -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw 'Vulkan SDK: no se pudo instalar' }
+          Remove-Item $file
           "VULKAN_SDK=C:\VulkanSDK\$version" | Out-File -FilePath $env:GITHUB_ENV -Append
           "C:\VulkanSDK\$version\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: cargo check glup-voz
-        shell: pwsh
-        working-directory: apps/desktop/src-tauri
-        run: |
-          $env:CMAKE_PROJECT_INCLUDE = "$PWD/voz/short-paths.cmake" -replace '\\', '/'
-          cargo check --locked -p glup-voz
+      # glup-voz built (not only checked) and put where Tauri takes its sidecars, as the Release does.
+      - name: glup-voz
+        run: pnpm voz:build -Sidecar
+
+      # The installer as the Release makes it (its config, the sidecar, the Explorer's hooks, Spanish),
+      # without the updater's signature (tauri.ci.conf.json). Nothing is uploaded.
+      - name: Installer (debug, unsigned)
+        working-directory: apps/desktop
+        run: pnpm tauri build --debug --bundles nsis --config src-tauri/tauri.release.conf.json --config src-tauri/tauri.ci.conf.json

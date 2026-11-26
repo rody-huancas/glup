@@ -7,6 +7,7 @@ use std::{
 };
 
 use crate::services::folder_sort::classify::{is_downloading, table};
+use crate::services::paths;
 
 // Unchanged this long, it arrived.
 pub const SETTLE_MS: i64 = 3000;
@@ -28,7 +29,7 @@ pub fn is_partial(name: &str) -> bool {
 }
 
 fn key(path: &Path) -> String {
-    path.to_string_lossy().to_lowercase()
+    paths::normalized(path)
 }
 
 // The files a watched folder already had: a change to one of them is the person editing it, not
@@ -55,7 +56,7 @@ impl Known {
 
     // The folder is not watched any more.
     pub fn forget_folder(&mut self, folder: &Path) {
-        let prefix = format!("{}{}", key(folder).trim_end_matches(['\\', '/']), std::path::MAIN_SEPARATOR);
+        let prefix = format!("{}\\", key(folder));
         self.paths.retain(|path| !path.starts_with(&prefix));
     }
 }

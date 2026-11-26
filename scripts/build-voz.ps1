@@ -3,11 +3,12 @@
 # whisper-rs's features and Glup would link Vulkan too).
 #
 #   pnpm voz:build             target/debug/glup-voz.exe, next to the glup.exe of `pnpm dev`
+#   pnpm voz:build -Sidecar    the same, also copied where Tauri bundles it (binaries/): CI's installer
 #   pnpm voz:build -Release    target/release/glup-voz.exe, and the copy Tauri bundles (binaries/)
 #
 # Needs CMake and the Vulkan SDK (VULKAN_SDK set, glslc in its Bin). Without them Glup still builds
 # and runs: it just listens on the processor.
-param([switch]$Release)
+param([switch]$Release, [switch]$Sidecar)
 
 $ErrorActionPreference = 'Stop'
 $tauri = Join-Path $PSScriptRoot '..\apps\desktop\src-tauri' | Resolve-Path
@@ -23,16 +24,14 @@ $env:CMAKE_PROJECT_INCLUDE = (Join-Path $tauri 'voz\short-paths.cmake') -replace
 
 Push-Location $tauri
 try {
-    if ($Release) {
-        cargo build --locked --release -p glup-voz
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $build = if ($Release) { 'release' } else { 'debug' }
+    if ($Release) { cargo build --locked --release -p glup-voz } else { cargo build --locked -p glup-voz }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    if ($Release -or $Sidecar) {
         # Tauri's sidecars carry the target triple in their name (tauri.release.conf.json, externalBin).
         $triple = (rustc -vV | Select-String '^host: (.+)$').Matches[0].Groups[1].Value
         New-Item -ItemType Directory -Force binaries | Out-Null
-        Copy-Item target\release\glup-voz.exe "binaries\glup-voz-$triple.exe" -Force
-    } else {
-        cargo build -p glup-voz
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        Copy-Item "target\$build\glup-voz.exe" "binaries\glup-voz-$triple.exe" -Force
     }
 } finally {
     Pop-Location

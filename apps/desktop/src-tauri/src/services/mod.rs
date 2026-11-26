@@ -23,6 +23,7 @@ pub mod media;
 pub mod naming;
 pub mod notify;
 pub mod parallel;
+pub mod paths;
 pub mod performance;
 pub mod photo_mark;
 pub mod pdf;

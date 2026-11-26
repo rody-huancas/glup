@@ -19,7 +19,7 @@ use serde::Deserialize;
 
 use crate::services::{
     cleanup::walk::is_cloud_only,
-    duplicates::walk::{is_protected, protected_roots, skip_rules, SkipRules},
+    duplicates::walk::{is_protected, skip_rules, SkipRules},
     space::{
         known::{find, known},
         tree::{FileFound, FolderFound, Kind, Read, Tree, PROGRAM, PROJECT},
@@ -174,6 +174,9 @@ pub struct WalkParams<'a> {
     pub counters : &'a Counters,
     pub threads  : usize,
     pub cancel   : &'a AtomicBool,
+    // What counts as «Sistema y apps»: Windows, the programs and their data (protected_roots), given
+    // from outside so the result never depends on where the walk happens to be.
+    pub system   : &'a [PathBuf],
 }
 
 // The work left: folders to read, and how many are being read right now.
@@ -210,12 +213,6 @@ impl Queue {
     }
 }
 
-// Windows, the programs and their data (AppData, ProgramData, Program Files): looked up once.
-fn system_roots() -> &'static [PathBuf] {
-    static ROOTS: OnceLock<Vec<PathBuf>> = OnceLock::new();
-    ROOTS.get_or_init(protected_roots)
-}
-
 // The kind of a file: «Sistema y apps» inside those folders (whatever it is), otherwise by its extension.
 pub fn kind_in(name: &str, system: bool) -> Kind {
     if system { Kind::System } else { kind_of(name) }
@@ -250,7 +247,7 @@ fn read_folder(path: &Path, id: u32, params: &WalkParams, seen: &Mutex<HashSet<i
     let text          = path.to_string_lossy();
     let file_names: Vec<&str>   = entries.iter().filter(|entry| entry.kind == EntryKind::File || entry.kind == EntryKind::Cloud).map(|entry| entry.name.as_str()).collect();
     let folder_names: Vec<&str> = entries.iter().filter(|entry| entry.kind == EntryKind::Folder).map(|entry| entry.name.as_str()).collect();
-    let system = is_protected(path, system_roots());
+    let system = is_protected(path, params.system);
     let own = folder_marks(&path.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default(), &file_names, &folder_names, skip_rules());
 
     for entry in entries {

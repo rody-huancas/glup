@@ -12,7 +12,7 @@ use image::{Rgba, RgbaImage};
 
 use super::{
     container::{self, Codec, Colour, Transform},
-    decode_via, wic, DecodeParams, Via,
+    decode_via, failure, wic, DecodeParams, Via, AVIF_MISSING, HEIC_MISSING,
 };
 use crate::services::image::{
     convert::encode_jpeg,
@@ -203,5 +203,27 @@ fn a_heic_becomes_a_jpg_with_its_date_and_without_its_place() {
             assert_eq!(!read.gps.is_empty(), keep, "{who}");
             assert_eq!(image::load_from_memory(&out).unwrap().width(), 48, "{who}");
         }
+    }
+}
+
+// Whatever this machine has installed: each answer of Windows that means «no decoder here» says what to
+// install (AV1 for an AVIF, HEIF and HEVC for a HEIC); a broken file says it could not be read.
+#[test]
+fn every_no_decoder_answer_of_windows_says_which_extension_is_missing() {
+    use wic::{classify, WicError, NO_DECODER};
+
+    for (code, name) in NO_DECODER {
+        assert_eq!(classify(code), WicError::Missing, "{name} ({code:#010x})");
+        assert_eq!(failure(classify(code), Some(Codec::Av1)), AVIF_MISSING, "{name}");
+        assert_eq!(failure(classify(code), Some(Codec::Hevc)), HEIC_MISSING, "{name}");
+    }
+    // The ones the runner and the HEIF extension without HEVC give.
+    assert_eq!(classify(0x8898_2F8B), WicError::Missing);
+    assert_eq!(classify(0xC00D_36B5), WicError::Missing);
+
+    // A broken file (bad picture, bad header, bad data) or any other failure: «No pude leer la imagen».
+    for code in [0x8898_2F60, 0x8898_2F61, 0x8898_2F70, 0x8000_4005] {
+        assert_eq!(classify(code), WicError::Broken, "{code:#010x}");
+        assert_eq!(failure(classify(code), Some(Codec::Av1)), crate::services::image::READ_ERROR);
     }
 }

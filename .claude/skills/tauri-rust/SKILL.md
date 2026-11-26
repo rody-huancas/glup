@@ -61,6 +61,10 @@ src-tauri/
    escritura. Los resultados van a la carpeta de destino elegida (`services/destination.rs`) con el
    nombre de `services/naming.rs`, que nunca sobrescribe (agrega « (2)», « (3)»). Los intermedios van
    a una carpeta temporal que se borra al terminar.
+   **Comparar rutas** (una carpeta protegida, Descargas, la carpeta de una regla) siempre con
+   `services/paths.rs` (`same_path`, `is_inside`, `normalized`): forma larga (`GetLongPathNameW`, un nombre
+   8.3 como `RUNNER~1` es la misma carpeta), sin `\\?\`, con `\`, sin barra final y sin distinguir
+   mayúsculas. Nunca `==` ni `starts_with` sobre el texto.
 10. **Recompresión con red de seguridad.** Toda salida con pérdida (JPEG, imágenes dentro de un PDF)
     se compara con la original antes de reemplazarla; si difiere más del umbral o no se puede
     decodificar con seguridad, se conserva la original. Un resultado que no pesa menos no se guarda.
