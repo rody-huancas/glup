@@ -16,7 +16,7 @@ import { useLaunchOpen } from '@/modules/island/hooks/useLaunchOpen';
 import type { IslandNotice } from '@/modules/island/interfaces/islandNotice';
 import type { HoldReason } from '@/modules/island/types/holdReason';
 import { createIslandElements } from '@/modules/island/utils/elements';
-import { logBubble, logPosition } from '@/modules/island/utils/islandLog';
+import { logBubble, logNav, logPosition } from '@/modules/island/utils/islandLog';
 import { closesOnLeave, closesOnOutside, hoverEnabled, hoverOpens, toIslandState } from '@/modules/island/utils/islandMachine';
 import { askedToOpen } from '@/modules/island/utils/responsiveness';
 import { useMainWindow } from '@/modules/main-window/hooks/useMainWindow';
@@ -73,6 +73,7 @@ export const useIsland = () => {
 
     placementRef.current = dock.placement;
     logPosition('redibujo la isla en su lugar nuevo');
+    logNav(`isla redibujada (placement nuevo, fase ${phaseRef.current})`);
     relayout();
   }, [dock.placement, relayout, send]);
 
@@ -263,6 +264,10 @@ export const useIsland = () => {
     phaseRef.current  = machine.phase;
     insideRef.current = machine.inside;
   }, [machine.phase, machine.inside]);
+
+  useEffect(() => {
+    logNav(`fase de la isla: ${machine.phase}`);
+  }, [machine.phase]);
 
   // The end of a task is told once: a toast in the panel or a Windows notification.
   const notices = useTaskNotices({ phaseRef, insideRef, onNavigate: panel.navigate });
