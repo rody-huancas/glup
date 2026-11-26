@@ -17,6 +17,7 @@ use serde::Deserialize;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::services::{
+    paths,
     cleanup::walk::{attributes, enterable, file_entry, is_cloud_only, FileEntry},
     parallel::{run_parallel, ParallelParams},
 };
@@ -94,15 +95,11 @@ pub fn protected_roots() -> Vec<PathBuf> {
         .collect()
 }
 
-fn lower(path: &Path) -> String {
-    path.to_string_lossy().to_lowercase().replace('/', "\\").trim_end_matches('\\').to_string()
-}
-
-// Inside (or the same as) one of the protected folders, or a recycle bin anywhere.
+// Inside (or the same as) one of the protected folders, or a recycle bin anywhere. Compared as Windows
+// sees them (services/paths.rs): a short 8.3 name, other capitals or a final \ are the same folder.
 pub fn is_protected(path: &Path, protected: &[PathBuf]) -> bool {
-    let text = lower(path);
-    let bin  = text.split('\\').any(|part| part == "$recycle.bin");
-    bin || protected.iter().map(|root| lower(root)).any(|root| !root.is_empty() && (text == root || text.starts_with(&format!("{root}\\"))))
+    let bin = paths::normalized(path).split('\\').any(|part| part == "$recycle.bin");
+    bin || protected.iter().any(|root| paths::is_inside(path, root))
 }
 
 // Why a folder cannot be looked in, or None.
