@@ -3,7 +3,7 @@ import { StrictMode, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from '@/App';
 import { islandFrame } from '@/demo/frame';
-import { demoControls, play, scene } from '@/demo/scene';
+import { demoControls, params, play, scene } from '@/demo/scene';
 import { Mascot } from '@/modules/mascot/components/Mascot';
 import '@/index.css';
 
@@ -31,10 +31,10 @@ const Desktop = () => {
   );
 };
 
-// Glup alone for the logo of the README: the same layers as in the app (body, open eyes, happy mouth,
-// arms and feet at rest), on nothing.
+// Glup alone for the logo of the README and the icon of the app: the same layers as in the app (body,
+// open eyes, happy mouth, arms and feet at rest), on nothing, as wide as ?size= says.
 const MascotScene = () => (
-  <div id="mascot" className="p-6" style={{ width: 160 }}>
+  <div id="mascot" className="p-6" style={{ width: Number(params.get('size') ?? 160) }}>
     <Mascot reactToDrops={false} />
   </div>
 );

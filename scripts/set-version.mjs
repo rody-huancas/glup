@@ -1,6 +1,7 @@
 // Sets Glup's version. Cargo.toml is the source (tauri.conf.json has no version, so Tauri reads it);
-// package.json and Cargo.lock follow. Usage: pnpm version:set 0.2.0
+// package.json, Cargo.lock and the version badge of the README follow. Usage: pnpm version:set 0.2.0
 import { readFileSync, writeFileSync } from 'node:fs';
+import { writeBadges } from './badges.mjs';
 
 const CARGO_TOML   = 'apps/desktop/src-tauri/Cargo.toml';
 const CARGO_LOCK   = 'apps/desktop/src-tauri/Cargo.lock';
@@ -25,4 +26,7 @@ replaceOnce(CARGO_TOML, /^(\[package\][\s\S]*?\nversion\s*=\s*)"[^"]*"/m, `$1"${
 replaceOnce(CARGO_LOCK, /(\nname = "glup"\nversion = )"[^"]*"/, `$1"${version}"`);
 replaceOnce(PACKAGE_JSON, /("version"\s*:\s*)"[^"]*"/, `$1"${version}"`);
 
-console.log(`Versión ${version} en Cargo.toml, Cargo.lock y package.json.`);
+// The version badge of the README follows.
+writeBadges();
+
+console.log(`Versión ${version} en Cargo.toml, Cargo.lock, package.json y la insignia del README.`);
