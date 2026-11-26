@@ -18,7 +18,7 @@ use tauri::{AppHandle, Manager};
 use crate::services::{
     actions::{ActionControl, ActionProgress},
     background::{
-        download::{fetch_http, DownloadEnd, DownloadParams},
+        download::{fetch_model, DownloadEnd, DownloadParams},
         mask::{apply_mask, mask_from_logits, on_white, preprocess, resize_mask, MODEL_SIDE},
         model::{model_path, models_folder, BACKGROUND_MODEL},
         session::BackgroundSession,
@@ -124,7 +124,7 @@ pub fn download_model(app: &AppHandle, task: &Option<String>) -> Result<TaskSumm
         cancel       : &control.cancelled,
         on_progress  : &|done| progress::emit(app, span.downloading(done)),
         on_verifying : &|| progress::emit(app, span.verifying()),
-        fetch        : &|start| fetch_http(BACKGROUND_MODEL.url, start),
+        fetch        : &|start| fetch_model(&BACKGROUND_MODEL, start),
     })?;
 
     Ok(match end {
