@@ -30,7 +30,7 @@ fn read(own: u8, files: Vec<FileFound>, folders: &[&str]) -> Read {
 
 #[test]
 fn the_tree_adds_up_every_folder_and_keeps_the_biggest_files() {
-    let mut tree = Tree::with_root("Rody");
+    let mut tree = Tree::with_root("Ana");
     let folders  = tree.add_folder(0, read(0, vec![file("nota.txt", 100, Kind::Documents)], &["Videos", "Fotos"]));
     let (videos, photos) = (folders[0], folders[1]);
     tree.add_folder(videos, read(0, vec![file("viaje.mp4", 5000, Kind::Videos), file("boda.mov", 3000, Kind::Videos)], &[]));
@@ -167,21 +167,21 @@ fn known_files_and_folders_are_explained() {
     let list = known();
     let note = |name: &str, path: &str, dir: bool| find(list, name, path, dir).map(|index| (list[index].keep, list[index].note.as_str()));
 
-    let disk = note("ext4.vhdx", r"C:\Users\Rody\AppData\Local\Docker\wsl\data\ext4.vhdx", false).unwrap();
+    let disk = note("ext4.vhdx", r"C:\Users\Ana\AppData\Local\Docker\wsl\data\ext4.vhdx", false).unwrap();
     assert!(disk.0 && disk.1.starts_with("Disco virtual de Docker o de Linux"));
     assert!(note("pagefile.sys", r"C:\pagefile.sys", false).unwrap().0);
     assert!(note("hiberfil.sys", r"C:\hiberfil.sys", false).unwrap().1.contains("hibernación"));
-    assert!(note("userdata-qemu.img", r"C:\Users\Rody\.android\avd\Pixel.avd\userdata-qemu.img", false).is_some());
-    assert!(note("Pixel_7.avd", r"C:\Users\Rody\.android\avd\Pixel_7.avd", true).unwrap().0);
+    assert!(note("userdata-qemu.img", r"C:\Users\Ana\.android\avd\Pixel.avd\userdata-qemu.img", false).is_some());
+    assert!(note("Pixel_7.avd", r"C:\Users\Ana\.android\avd\Pixel_7.avd", true).unwrap().0);
     assert!(note("steamapps", r"D:\Steam\steamapps", true).unwrap().0);
     assert!(note("Epic Games", r"C:\Program Files\Epic Games", true).is_some());
-    assert!(note("Backup", r"C:\Users\Rody\AppData\Roaming\Apple Computer\MobileSync\Backup", true).unwrap().1.contains("iPhone"));
+    assert!(note("Backup", r"C:\Users\Ana\AppData\Roaming\Apple Computer\MobileSync\Backup", true).unwrap().1.contains("iPhone"));
     // A browser cache can be emptied (with Limpieza): told, not kept.
-    let cache = note("Cache", r"C:\Users\Rody\AppData\Local\Google\Chrome\User Data\Default\Cache", true).unwrap();
+    let cache = note("Cache", r"C:\Users\Ana\AppData\Local\Google\Chrome\User Data\Default\Cache", true).unwrap();
     assert!(!cache.0 && cache.1.contains("Limpieza"));
     // The same names somewhere else are nothing special.
-    assert!(note("Cache", r"C:\Users\Rody\Documentos\Cache", true).is_none());
-    assert!(note("Backup", r"C:\Users\Rody\Documentos\Backup", true).is_none());
+    assert!(note("Cache", r"C:\Users\Ana\Documentos\Cache", true).is_none());
+    assert!(note("Backup", r"C:\Users\Ana\Documentos\Backup", true).is_none());
     assert!(note("pagefile.sys", r"C:\x", true).is_none());
     assert!(note("viaje.mp4", r"C:\viaje.mp4", false).is_none());
 }
@@ -198,7 +198,7 @@ fn a_folder_with_a_project_or_a_program_anywhere_inside_stays_out_of_the_bin() {
     assert_eq!(folder_marks("Fotos", &["a.jpg", "setup.exe"], &[], rules), 0);
 
     // Documentos › Trabajo › Viejo › app (a project, three levels down) and Documentos › Fotos.
-    let mut tree = Tree::with_root("Rody");
+    let mut tree = Tree::with_root("Ana");
     let documents = tree.add_folder(0, read(0, Vec::new(), &["Documentos"]))[0];
     let level     = tree.add_folder(documents, read(0, Vec::new(), &["Trabajo", "Fotos"]));
     let (work, photos) = (level[0], level[1]);
@@ -227,8 +227,8 @@ fn a_folder_with_a_project_or_a_program_anywhere_inside_stays_out_of_the_bin() {
     assert_eq!(tree.trash_block(keep_folder), Some("No se debe borrar desde aquí"));
 
     // Windows and the programs, by where they are.
-    let root = PathBuf::from(r"C:\Users\Rody");
-    assert_eq!(trash_block(&tree, photos, &root.join("Documentos\\Fotos"), &[PathBuf::from(r"C:\Users\Rody\Documentos")]), Some("Es de Windows o de un programa"));
+    let root = PathBuf::from(r"C:\Users\Ana");
+    assert_eq!(trash_block(&tree, photos, &root.join("Documentos\\Fotos"), &[PathBuf::from(r"C:\Users\Ana\Documentos")]), Some("Es de Windows o de un programa"));
     assert_eq!(trash_block(&tree, photos, &root.join("Documentos\\Fotos"), &[]), None);
 }
 
