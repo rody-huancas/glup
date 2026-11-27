@@ -5,6 +5,7 @@ use tauri::{
 use serde::Deserialize;
 
 use crate::services::text::{self, FinishTextRequest, SaveTextRequest, TextReport, TextSupport, READ_ERROR};
+use crate::services::platform::{require, Feature};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,6 +22,7 @@ pub async fn get_text_support() -> Result<TextSupport, String> {
 // The text of one image file (OCR, off the main thread).
 #[tauri::command]
 pub async fn read_image_text(request: ImageTextRequest) -> Result<String, String> {
+    require(Feature::ReadText)?;
     tauri::async_runtime::spawn_blocking(move || text::read_image(std::path::Path::new(&request.path)))
         .await
         .map_err(|error| error.to_string())
@@ -30,6 +32,7 @@ pub async fn read_image_text(request: ImageTextRequest) -> Result<String, String
 // A scanned PDF page rendered by pdf.js, sent as raw PNG bytes (no JSON).
 #[tauri::command]
 pub async fn read_page_text(request: Request<'_>) -> Result<String, String> {
+    require(Feature::ReadText)?;
     let InvokeBody::Raw(bytes) = request.body() else {
         return Err(READ_ERROR.to_string());
     };

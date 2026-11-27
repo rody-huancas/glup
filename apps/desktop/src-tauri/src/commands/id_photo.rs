@@ -3,12 +3,14 @@ use tauri::{ipc::Response, AppHandle};
 use crate::services::{
     actions::{self, ActionReport, IdPhotoSaveRequest},
     id_photo::{self, PrepareReport, PrepareRequest},
+    platform::{require, Feature},
     tasks,
 };
 
 // Removes the background and finds the head (the model can take a few seconds): off the main thread.
 #[tauri::command]
 pub async fn prepare_id_photo(app: AppHandle, request: PrepareRequest) -> Result<PrepareReport, String> {
+    require(Feature::FaceDetection)?;
     tauri::async_runtime::spawn_blocking(move || id_photo::prepare(&app, request)).await.map_err(|error| error.to_string()).and_then(|result| result)
 }
 

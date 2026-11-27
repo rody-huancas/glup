@@ -3,6 +3,7 @@ use tauri::AppHandle;
 use crate::services::{
     explorer::{self, ExplorerChange, ExplorerRequest},
     island_window,
+    platform::{require, Feature},
 };
 
 // What came from the Explorer and is ready (gathered), taken once.
@@ -14,12 +15,14 @@ pub fn take_explorer_requests(app: AppHandle) -> Vec<ExplorerRequest> {
 // Ajustes › General: "Mostrar Glup en el clic derecho".
 #[tauri::command]
 pub async fn set_explorer_menu(app: AppHandle, enabled: bool) -> Result<(), String> {
+    require(Feature::ExplorerMenu)?;
     tauri::async_runtime::spawn_blocking(move || explorer::change(&app, ExplorerChange { menu: Some(enabled), send_to: None })).await.map_err(|error| error.to_string())?
 }
 
 // Ajustes › General: "En Enviar a".
 #[tauri::command]
 pub async fn set_send_to(app: AppHandle, enabled: bool) -> Result<(), String> {
+    require(Feature::ExplorerMenu)?;
     tauri::async_runtime::spawn_blocking(move || explorer::change(&app, ExplorerChange { menu: None, send_to: Some(enabled) })).await.map_err(|error| error.to_string())?
 }
 

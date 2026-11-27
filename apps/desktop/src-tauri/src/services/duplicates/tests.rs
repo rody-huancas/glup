@@ -76,6 +76,8 @@ fn only_files_equal_byte_by_byte_go_together() {
     let _ = fs::remove_dir_all(&root);
 }
 
+// Telling a hard link apart (same::identity) is only there on Windows so far.
+#[cfg(windows)]
 #[test]
 fn hard_links_are_one_file_not_copies() {
     let root = temp_folder("repetidos-enlaces");
@@ -110,14 +112,14 @@ fn keeps_the_one_whose_name_is_not_a_copy() {
     }
 
     // The copy is older, but its name says it is one.
-    let files = [entry(r"C:\Fotos\foto (1).jpg", 1), entry(r"C:\Fotos\foto.jpg", 5)];
+    let files = [entry("C:/Fotos/foto (1).jpg", 1), entry("C:/Fotos/foto.jpg", 5)];
     assert_eq!(keeper(&files, None), 1);
 
     // On a tie, the one outside Descargas; then the oldest.
-    let downloads = Path::new(r"C:\Users\Ana\Downloads");
-    let files     = [entry(r"C:\Users\Ana\Downloads\foto.jpg", 1), entry(r"C:\Users\Ana\Pictures\foto.jpg", 9)];
+    let downloads = Path::new("C:/Users/Ana/Downloads");
+    let files     = [entry("C:/Users/Ana/Downloads/foto.jpg", 1), entry("C:/Users/Ana/Pictures/foto.jpg", 9)];
     assert_eq!(keeper(&files, Some(downloads)), 1);
-    let files = [entry(r"C:\Fotos\b\foto.jpg", 9), entry(r"C:\Fotos\a\foto.jpg", 3)];
+    let files = [entry("C:/Fotos/b/foto.jpg", 9), entry("C:/Fotos/a/foto.jpg", 3)];
     assert_eq!(keeper(&files, Some(downloads)), 1);
 }
 
@@ -357,26 +359,26 @@ fn never_enters_projects_programs_builds_or_hidden_folders() {
 
 #[test]
 fn marks_only_the_clear_copies_and_leaves_the_rest_to_review() {
-    let downloads = Path::new(r"C:\Users\Ana\Downloads");
+    let downloads = Path::new("C:/Users/Ana/Downloads");
 
     // In Descargas: that one goes.
-    let files = [entry(r"C:\Users\Ana\Pictures\viaje.jpg", 5), entry(r"C:\Users\Ana\Downloads\viaje.jpg", 1)];
+    let files = [entry("C:/Users/Ana/Pictures/viaje.jpg", 5), entry("C:/Users/Ana/Downloads/viaje.jpg", 1)];
     assert_eq!(preselect(&files, Some(downloads)).quit, vec![1]);
 
     // With the name of a copy: that one goes.
-    let files = [entry(r"C:\Users\Ana\Documents\informe.pdf", 1), entry(r"C:\Users\Ana\Documents\informe (1).pdf", 2)];
+    let files = [entry("C:/Users/Ana/Documents/informe.pdf", 1), entry("C:/Users/Ana/Documents/informe (1).pdf", 2)];
     assert_eq!(preselect(&files, Some(downloads)).quit, vec![1]);
 
     // Two folders of its own, plain names: nothing marked, the person decides.
-    let files = [entry(r"C:\Users\Ana\Pictures\viaje.jpg", 1), entry(r"C:\Users\Ana\Documents\Respaldo\viaje.jpg", 2)];
+    let files = [entry("C:/Users/Ana/Pictures/viaje.jpg", 1), entry("C:/Users/Ana/Documents/Respaldo/viaje.jpg", 2)];
     assert!(preselect(&files, Some(downloads)).quit.is_empty());
 
     // Two plain ones and a copy: only the copy.
-    let files = [entry(r"C:\A\viaje.jpg", 1), entry(r"C:\B\viaje.jpg", 2), entry(r"C:\B\viaje - copia.jpg", 3)];
+    let files = [entry("C:/A/viaje.jpg", 1), entry("C:/B/viaje.jpg", 2), entry("C:/B/viaje - copia.jpg", 3)];
     assert_eq!(preselect(&files, Some(downloads)).quit, vec![2]);
 
     // Every one a copy (all in Descargas): all but one.
-    let files = [entry(r"C:\Users\Ana\Downloads\a.zip", 1), entry(r"C:\Users\Ana\Downloads\a (1).zip", 2), entry(r"C:\Users\Ana\Downloads\a (2).zip", 3)];
+    let files = [entry("C:/Users/Ana/Downloads/a.zip", 1), entry("C:/Users/Ana/Downloads/a (1).zip", 2), entry("C:/Users/Ana/Downloads/a (2).zip", 3)];
     let chosen = preselect(&files, Some(downloads));
     assert_eq!(chosen.keep, 0);
     assert_eq!(chosen.quit, vec![1, 2]);

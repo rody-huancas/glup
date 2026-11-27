@@ -4,11 +4,9 @@ use std::{
 };
 
 use super::{
-    check::{name_problem, Problem},
     journal::{apply, spots, undo, unfinished, ApplyParams, RenameItem, RenameJournal, Spot},
-    natural_key, plan,
+    natural_key,
     rules::{apply as rule, format_date, new_name, parse_exif_date, split_name, Case, Moment, NameParams, Rule, Side},
-    Order, PlanParams, RenameRequest,
 };
 
 const DAY: Moment = Moment { year: 2026, month: 11, day: 25, hour: 14, minute: 30 };
@@ -63,8 +61,12 @@ fn rules_combine_in_order_and_the_extension_is_never_touched() {
     assert!(natural_key("foto2") < natural_key("foto10"));
 }
 
+// Windows rules (reserved names, MAX_PATH) on Windows paths.
+#[cfg(windows)]
 #[test]
 fn problems_are_told_per_file() {
+    use super::{check::{name_problem, Problem}, plan, Order, PlanParams, RenameRequest};
+
     let folder = Path::new(r"C:\Fotos");
     assert_eq!(name_problem("a:b.jpg", folder), Some(Problem::Forbidden));
     assert_eq!(name_problem("nota.", folder), Some(Problem::Forbidden));

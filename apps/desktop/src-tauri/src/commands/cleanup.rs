@@ -2,6 +2,7 @@ use tauri::AppHandle;
 
 use crate::services::{
     cleanup::{self, disk, CleanReport, CleanRequest, CleanupScan, ScanRequest, CLEAN_ACTION_ID, SCAN_ACTION_ID},
+    platform::{require, Feature},
     tasks,
 };
 
@@ -9,12 +10,14 @@ pub const DISK_ERROR: &str = "No pude leer el espacio del disco";
 
 #[tauri::command]
 pub fn get_disk_space() -> Result<disk::DiskSpace, String> {
+    require(Feature::Cleanup)?;
     disk::system_disk().ok_or_else(|| DISK_ERROR.to_string())
 }
 
 // "Revisar mi PC": a task like the actions, on a worker thread; nothing is deleted.
 #[tauri::command]
 pub async fn scan_cleanup(app: AppHandle, request: ScanRequest) -> Result<CleanupScan, String> {
+    require(Feature::Cleanup)?;
     let task = request.task_id.clone();
 
     if let Some(task) = &task {
@@ -35,6 +38,7 @@ pub async fn scan_cleanup(app: AppHandle, request: ScanRequest) -> Result<Cleanu
 // "Liberar": only what the last scan found and the person marked.
 #[tauri::command]
 pub async fn clean_up(app: AppHandle, request: CleanRequest) -> Result<CleanReport, String> {
+    require(Feature::Cleanup)?;
     let task = request.task_id.clone();
 
     if let Some(task) = &task {

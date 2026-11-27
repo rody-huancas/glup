@@ -8,7 +8,8 @@ pub mod recycle_bin;
 pub mod temp;
 pub mod walk;
 
-#[cfg(test)]
+// Measured on this Windows PC (its folders and its recycle bin).
+#[cfg(all(test, windows))]
 mod bench;
 
 use std::{

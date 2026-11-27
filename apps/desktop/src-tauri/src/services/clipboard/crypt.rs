@@ -1,5 +1,6 @@
 // What Glup keeps of the clipboard is encrypted with the Windows protection of the person's account
 // (DPAPI): only they, signed in on this PC, can read it back. The key never passes through Glup.
+#[cfg_attr(not(windows), allow(dead_code))]
 pub const CRYPT_ERROR: &str = "No pude proteger lo copiado";
 
 // Extra entropy, so another program of the same user cannot unprotect these files by accident.
@@ -57,12 +58,12 @@ pub use dpapi::{protect, unprotect};
 // Other systems have no DPAPI: nothing is kept rather than kept in the clear.
 #[cfg(not(windows))]
 pub fn protect(_data: &[u8]) -> Result<Vec<u8>, String> {
-    Err(CRYPT_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::Clipboard))
 }
 
 #[cfg(not(windows))]
 pub fn unprotect(_data: &[u8]) -> Result<Vec<u8>, String> {
-    Err(CRYPT_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::Clipboard))
 }
 
 #[cfg(all(test, windows))]

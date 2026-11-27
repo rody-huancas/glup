@@ -1,6 +1,7 @@
 use tauri::{ipc::Response, AppHandle, WebviewWindow};
 
 use crate::services::screen_text::{self, ReadZoneRequest};
+use crate::services::platform::{require, Feature};
 
 // Habilidades › "Copiar texto de la pantalla" (the shortcut and the tray start it from Rust).
 #[tauri::command]
@@ -40,5 +41,6 @@ pub fn cancel_screen_text(app: AppHandle) {
 // "Copiar de nuevo": a text from the history back to the clipboard.
 #[tauri::command]
 pub fn copy_screen_text(app: AppHandle, text: String) -> Result<(), String> {
+    require(Feature::Clipboard)?;
     screen_text::copy_again(&app, &text)
 }

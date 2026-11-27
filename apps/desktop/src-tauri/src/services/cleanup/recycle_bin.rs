@@ -23,6 +23,7 @@ pub fn size() -> Option<BinSize> {
 }
 
 // Its items, to show them (original place, size, date it was deleted). Emptying is all or nothing.
+#[cfg(windows)]
 pub fn items() -> Vec<FileEntry> {
     let Ok(list) = trash::os_limited::list() else { return Vec::new() };
 
@@ -45,6 +46,12 @@ pub fn empty() -> bool {
     use windows_sys::Win32::UI::Shell::{SHEmptyRecycleBinW, SHERB_NOCONFIRMATION, SHERB_NOPROGRESSUI, SHERB_NOSOUND};
 
     unsafe { SHEmptyRecycleBinW(std::ptr::null_mut(), std::ptr::null(), SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND) == 0 }
+}
+
+// Liberar espacio is not there yet off Windows (see platform.rs); macOS has no list of the bin in trash.
+#[cfg(not(windows))]
+pub fn items() -> Vec<FileEntry> {
+    Vec::new()
 }
 
 #[cfg(not(windows))]

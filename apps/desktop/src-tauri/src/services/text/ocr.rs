@@ -3,8 +3,6 @@ use image::{imageops::FilterType, DynamicImage, RgbaImage};
 
 pub const NO_LANGUAGE: &str = "Tu Windows no tiene instalado el reconocimiento de texto. Agrégalo en Configuración › Hora e idioma › Idioma, en las opciones del español.";
 pub const OCR_ERROR: &str   = "No pude leer el texto de esta imagen";
-#[cfg(not(windows))]
-pub const UNSUPPORTED: &str = "Sacar texto solo funciona en Windows por ahora";
 
 // One word read and where it is, as shares (0 to 1) of the image: for the hidden text of a scan.
 #[derive(Clone, Debug, PartialEq)]
@@ -148,10 +146,10 @@ pub fn language() -> Option<String> {
 
 #[cfg(not(windows))]
 pub fn recognize(_image: RgbaImage) -> Result<String, String> {
-    Err(UNSUPPORTED.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::ReadText))
 }
 
 #[cfg(not(windows))]
 pub fn recognize_words(_image: RgbaImage) -> Result<Vec<WordBox>, String> {
-    Err(UNSUPPORTED.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::ReadText))
 }

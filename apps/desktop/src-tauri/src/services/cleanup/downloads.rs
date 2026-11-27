@@ -50,6 +50,8 @@ mod tests {
     use super::*;
     use crate::services::cleanup::tests::{age_file, now, temp_folder, write_file, DAY_MS};
 
+    // They back-date the creation time too (age_file), which only Windows lets a test do.
+    #[cfg(windows)]
     #[test]
     fn finds_old_installers_on_the_first_level_only() {
         let folder = temp_folder("downloads-installers");
@@ -68,6 +70,8 @@ mod tests {
         let _ = fs::remove_dir_all(&folder);
     }
 
+    // They back-date the creation time too (age_file), which only Windows lets a test do.
+    #[cfg(windows)]
     #[test]
     fn finds_archives_already_opened_or_old() {
         let folder = temp_folder("downloads-archives");

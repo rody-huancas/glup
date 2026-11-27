@@ -19,6 +19,7 @@ use tauri::{AppHandle, Manager};
 use crate::services::{
     actions::ActionControl,
     background::download::{self, DownloadEnd, DownloadParams},
+    platform::{self, Feature},
     progress::{self as task_progress, DownloadSpan},
     tasks::TaskSummary,
     video::{
@@ -45,6 +46,8 @@ pub fn download_tool(app: &AppHandle, task: &Option<String>) -> Result<TaskSumma
 
 // The same download as part of a bigger one (FFmpeg and then the Whisper model, shown as one).
 pub fn download_tool_as(app: &AppHandle, span: &DownloadSpan) -> Result<TaskSummary, String> {
+    // The FFmpeg it downloads is Windows' (ffmpeg.exe).
+    platform::require(Feature::VideoTool)?;
     let control = app.state::<ActionControl>();
     control.begin(&span.task);
 

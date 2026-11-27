@@ -62,6 +62,8 @@ mod tests {
         assert!(!is_private(PrivacyMarks { history: Some(1), cloud: Some(1), exclude: false }));
     }
 
+    // Program paths of Windows (C:\…\x.exe): their file name splits on \ only there.
+    #[cfg(windows)]
     #[test]
     fn only_what_is_not_private_excluded_or_glups_own_is_kept() {
         let excluded = vec!["banco.exe".to_string()];
@@ -76,6 +78,8 @@ mod tests {
         assert!(keep(KeepParams { marks: PrivacyMarks::default(), pid: None, path: None, own: 7, excluded: &excluded }));
     }
 
+    // Program paths of Windows (C:\…\x.exe): their file name splits on \ only there.
+    #[cfg(windows)]
     #[test]
     fn excluded_programs_match_by_file_name_whatever_the_capitals() {
         let excluded = vec!["Banco.exe".to_string()];

@@ -8,11 +8,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[cfg(windows)]
+use ort::ep::directml::{DirectML, PerformancePreference};
 use ort::{
-    ep::{
-        directml::{DirectML, PerformancePreference},
-        CPU,
-    },
+    ep::CPU,
     environment::Environment,
     session::Session,
     value::Tensor,
@@ -96,12 +95,16 @@ fn build(environment: &Environment, path: &Path, device: Device) -> Result<Sessi
 
     let mut builder = match device {
         // DirectML needs sequential execution and no memory pattern.
+        #[cfg(windows)]
         Device::Gpu => builder
             .with_parallel_execution(false)
             .and_then(|builder| builder.with_memory_pattern(false))
             // Without a preference DirectML may pick Windows' software adapter, slower than the CPU.
             .and_then(|builder| builder.with_execution_providers([DirectML::default().with_performance_preference(PerformancePreference::HighPerformance).build().error_on_failure()]))
             .map_err(|error| fail(error.to_string()))?,
+        // Off Windows there is no DirectML yet: the processor (from then on, as when DirectML fails).
+        #[cfg(not(windows))]
+        Device::Gpu => return Err(fail(crate::services::platform::unavailable(crate::services::platform::Feature::GraphicsCard))),
         Device::Cpu => builder.with_execution_providers([CPU::default().build()]).map_err(|error| fail(error.to_string()))?,
     };
 
