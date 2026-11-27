@@ -60,7 +60,7 @@ pub fn capture(monitor: &MonitorFrame) -> Result<RgbaImage, String> {
 
 #[cfg(not(windows))]
 pub fn capture(_monitor: &MonitorFrame) -> Result<RgbaImage, String> {
-    Err(CAPTURE_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::ScreenCapture))
 }
 
 #[cfg(test)]
