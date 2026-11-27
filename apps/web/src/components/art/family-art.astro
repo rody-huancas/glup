@@ -1,0 +1,82 @@
+---
+import type { FamilyId } from '@/types/content.types';
+
+interface IFamilyArtProps {
+  family : FamilyId;
+  class? : string;
+}
+
+type Props = IFamilyArtProps;
+
+const { family, class: className } = Astro.props;
+---
+
+<svg class={className} viewBox="0 0 200 120" aria-hidden="true" focusable="false">
+  {family === 'images' && (
+    <g>
+      <rect class="art-stroke stroke-ink fill-lilac-deep" x="58" y="22" width="84" height="70" rx="8" transform="rotate(-8 100 57)" />
+      <rect class="art-stroke stroke-ink fill-white" x="66" y="18" width="84" height="70" rx="8" transform="rotate(6 108 53)" />
+      <rect class="art-stroke stroke-ink fill-lilac" x="54" y="30" width="84" height="70" rx="8" />
+      <rect class="art-thin stroke-ink fill-white" x="62" y="38" width="68" height="54" rx="4" />
+      <circle class="art-thin stroke-ink fill-yellow" cx="114" cy="52" r="7" />
+      <path class="art-thin stroke-ink fill-lilac-deep" d="M64 90 L84 64 L98 80 L106 72 L128 90 Z" />
+    </g>
+  )}
+
+  {family === 'pdf' && (
+    <g>
+      <path class="art-stroke stroke-ink fill-coral-deep" d="M70 18 H118 L134 34 V106 H70 Z" transform="translate(8 6)" />
+      <path class="art-stroke stroke-ink fill-white" d="M70 18 H118 L134 34 V106 H70 Z" />
+      <path class="art-stroke stroke-ink fill-coral" d="M118 18 V34 H134 Z" />
+      <path class="art-thin stroke-ink" d="M80 36 H108 M80 48 H122 M80 60 H116" />
+      <path class="art-thin stroke-ink" d="M80 88 C86 76 92 96 98 84 C102 76 106 92 114 86" />
+      <path class="art-stroke stroke-ink fill-coral" d="M138 54 L152 40 L162 50 L148 64 Z" />
+      <path class="art-stroke stroke-ink fill-yellow" d="M138 54 L148 64 L132 72 Z" />
+    </g>
+  )}
+
+  {family === 'media' && (
+    <g>
+      <rect class="art-stroke stroke-ink fill-yellow-deep" x="44" y="24" width="88" height="64" rx="10" transform="translate(8 6)" />
+      <rect class="art-stroke stroke-ink fill-yellow" x="44" y="24" width="88" height="64" rx="10" />
+      <rect class="art-thin stroke-ink fill-white" x="54" y="34" width="68" height="44" rx="6" />
+      <path class="art-thin stroke-ink fill-coral" d="M80 44 L98 56 L80 68 Z" />
+      <path class="art-stroke stroke-ink" d="M146 46 V66 M156 38 V74 M166 48 V64" />
+    </g>
+  )}
+
+  {family === 'text' && (
+    <g>
+      <rect class="art-stroke stroke-ink fill-sky-deep" x="46" y="18" width="96" height="76" rx="10" transform="translate(8 6)" />
+      <rect class="art-stroke stroke-ink fill-sky" x="46" y="18" width="96" height="76" rx="10" />
+      <text class="fill-ink font-display" x="58" y="56" font-size="30" font-weight="800">Aa</text>
+      <path class="art-thin stroke-ink" d="M58 70 H126 M58 82 H110" />
+      <circle class="art-stroke stroke-ink fill-white" cx="146" cy="78" r="16" />
+      <path class="art-stroke stroke-ink" d="M158 90 L172 104" />
+    </g>
+  )}
+
+  {family === 'clipboard' && (
+    <g>
+      <rect class="art-stroke stroke-ink fill-mint-deep" x="66" y="20" width="72" height="90" rx="10" transform="translate(8 4)" />
+      <rect class="art-stroke stroke-ink fill-mint" x="66" y="20" width="72" height="90" rx="10" />
+      <rect class="art-stroke stroke-ink fill-white" x="86" y="12" width="32" height="16" rx="5" />
+      <rect class="art-thin stroke-ink fill-white" x="76" y="38" width="52" height="24" rx="4" />
+      <rect class="art-thin stroke-ink fill-white" x="76" y="70" width="52" height="24" rx="4" />
+      <path class="art-thin stroke-ink" d="M84 50 H118 M84 82 H108" />
+    </g>
+  )}
+
+  {family === 'pc' && (
+    <g>
+      <rect class="art-stroke stroke-ink fill-silver-deep" x="42" y="14" width="104" height="70" rx="10" transform="translate(8 6)" />
+      <rect class="art-stroke stroke-ink fill-silver" x="42" y="14" width="104" height="70" rx="10" />
+      <rect class="art-thin stroke-ink fill-white" x="52" y="24" width="84" height="50" rx="5" />
+      <rect class="art-thin stroke-ink fill-coral" x="62" y="50" width="12" height="18" rx="2" />
+      <rect class="art-thin stroke-ink fill-yellow" x="80" y="38" width="12" height="30" rx="2" />
+      <rect class="art-thin stroke-ink fill-mint" x="98" y="44" width="12" height="24" rx="2" />
+      <rect class="art-thin stroke-ink fill-lilac" x="116" y="32" width="12" height="36" rx="2" />
+      <path class="art-stroke stroke-ink fill-silver-deep" d="M84 84 L80 100 H112 L108 84 Z" />
+    </g>
+  )}
+</svg>
