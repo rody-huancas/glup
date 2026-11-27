@@ -63,5 +63,5 @@ pub fn detect(image: &RgbImage) -> Result<Vec<FaceBox>, String> {
 
 #[cfg(not(windows))]
 pub fn detect(_image: &RgbImage) -> Result<Vec<FaceBox>, String> {
-    Err(super::FACE_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::FaceDetection))
 }
