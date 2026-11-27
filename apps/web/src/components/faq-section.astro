@@ -1,0 +1,28 @@
+---
+import SectionHeading from '@/components/section-heading.astro';
+import { FAQ, FAQ_HEADING } from '@/content/faq';
+---
+
+<section id="preguntas" aria-labelledby="preguntas-title" class="paper-grid border-b-3 border-ink" data-section>
+  <div class="mx-auto grid max-w-page gap-12 px-4 py-20 md:px-8 md:py-28 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <SectionHeading heading={FAQ_HEADING} id="preguntas-title" accent="coral" />
+    </div>
+
+    <div class="flex flex-col gap-4 lg:col-span-8">
+      {FAQ.map((item) => (
+        <details class="faq-item window">
+          <summary class="flex cursor-pointer items-center justify-between gap-4 px-5 py-4 text-xl font-bold md:text-2xl">
+            {item.question}
+            <span class="faq-sign grid size-9 shrink-0 place-items-center rounded-full border-3 border-ink bg-coral" aria-hidden="true">
+              <svg class="size-4" viewBox="0 0 16 16" focusable="false">
+                <path class="art-thin fill-none stroke-ink" d="M8 2 V14 M2 8 H14" />
+              </svg>
+            </span>
+          </summary>
+          <p class="border-t-3 border-ink px-5 py-4 text-lg text-ink-soft">{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
