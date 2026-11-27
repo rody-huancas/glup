@@ -1,6 +1,7 @@
 use tauri::AppHandle;
 
 use crate::services::auto_folders::{self, runner, AutoFoldersView, RuleInput, RulePreview, SaveRuleRequest};
+use crate::services::platform::{require, Feature};
 
 async fn blocking<T: Send + 'static>(work: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
     tauri::async_runtime::spawn_blocking(work).await.map_err(|error| error.to_string())?
@@ -14,6 +15,7 @@ pub fn get_auto_folders(app: AppHandle) -> AutoFoldersView {
 // Saves a new or edited rule; with «también lo que ya está», what is in the folder goes to the queue.
 #[tauri::command]
 pub async fn save_auto_rule(app: AppHandle, request: SaveRuleRequest) -> Result<AutoFoldersView, String> {
+    require(Feature::AutoFolders)?;
     blocking(move || auto_folders::save_rule(&app, request)).await
 }
 
@@ -29,6 +31,7 @@ pub fn duplicate_auto_rule(app: AppHandle, id: String) -> Result<AutoFoldersView
 
 #[tauri::command]
 pub fn set_auto_rule_enabled(app: AppHandle, id: String, enabled: bool) -> Result<AutoFoldersView, String> {
+    require(Feature::AutoFolders)?;
     auto_folders::set_enabled(&app, &id, enabled)
 }
 
