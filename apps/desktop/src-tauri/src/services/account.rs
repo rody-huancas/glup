@@ -1,4 +1,4 @@
-// The name the Windows account shows ("Rody Huancas"), for the greeting of Inicio when the person did not
+// The name the Windows account shows ("Ana Torres"), for the greeting of Inicio when the person did not
 // say how to call them. Never sent anywhere.
 // The account's own name (a domain one), or the one Windows shows for the person (a Microsoft account).
 #[cfg(windows)]
