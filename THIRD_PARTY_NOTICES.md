@@ -299,3 +299,12 @@ pantalla y el portapapeles usan las funciones de Windows. Nada se descarga ni se
 - **Autor**: Tauri Programme within The Commons Conservancy —
   [tauri-apps/global-hotkey](https://github.com/tauri-apps/global-hotkey).
 - **Licencia**: Apache-2.0 o MIT, a elección.
+
+## La página de descarga (apps/web)
+
+### Las letras
+
+- [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) (Mathieu Triay) y
+  [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains), con la licencia SIL Open
+  Font License 1.1 (OFL). Van dentro de la página, servidas desde el mismo sitio (los paquetes
+  `@fontsource-variable`, que traen la licencia de cada una).

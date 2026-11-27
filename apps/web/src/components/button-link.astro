@@ -1,0 +1,24 @@
+---
+interface IButtonLinkProps {
+  href     : string;
+  variant? : 'primary' | 'secondary';
+  size?    : 'normal' | 'large';
+  class?   : string;
+}
+
+type Props = IButtonLinkProps;
+
+const { href, variant = 'primary', size = 'normal', class: className } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'button-hard inline-flex items-center justify-center gap-2 rounded-xl border-3 border-ink font-display font-bold text-ink',
+    variant === 'primary' ? 'bg-brand' : 'bg-white',
+    size === 'large' ? 'px-8 py-5 text-xl md:text-2xl' : 'px-5 py-3 text-lg',
+    className,
+  ]}
+>
+  <slot />
+</a>

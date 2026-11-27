@@ -1,0 +1,46 @@
+@layer components {
+  .window {
+    border        : 3px solid var(--color-ink);
+    border-radius : var(--radius-window);
+    background    : var(--color-white);
+    box-shadow    : var(--shadow-hard);
+    overflow      : hidden;
+  }
+
+  .on-navy .window {
+    box-shadow : var(--shadow-hard-light);
+  }
+
+  .window-bar {
+    display       : flex;
+    align-items   : center;
+    gap           : 0.75rem;
+    padding       : 0.5rem 0.85rem;
+    border-bottom : 3px solid var(--color-ink);
+    background    : var(--color-paper-deep);
+    color         : var(--color-ink);
+  }
+
+  .window-dot {
+    width         : 0.8rem;
+    height        : 0.8rem;
+    border        : 2px solid var(--color-ink);
+    border-radius : 999px;
+  }
+
+  .window-bar--lilac  { background : var(--color-lilac); }
+  .window-bar--coral  { background : var(--color-coral); }
+  .window-bar--yellow { background : var(--color-yellow); }
+  .window-bar--sky    { background : var(--color-sky); }
+  .window-bar--mint   { background : var(--color-mint); }
+  .window-bar--silver { background : var(--color-silver); }
+  .window-bar--brand  { background : var(--color-brand); }
+  .window-bar--paper  { background : var(--color-paper-deep); }
+
+  .window-art--lilac  { background : color-mix(in srgb, var(--color-lilac) 30%, var(--color-white)); }
+  .window-art--coral  { background : color-mix(in srgb, var(--color-coral) 26%, var(--color-white)); }
+  .window-art--yellow { background : color-mix(in srgb, var(--color-yellow) 32%, var(--color-white)); }
+  .window-art--sky    { background : color-mix(in srgb, var(--color-sky) 30%, var(--color-white)); }
+  .window-art--mint   { background : color-mix(in srgb, var(--color-mint) 30%, var(--color-white)); }
+  .window-art--silver { background : color-mix(in srgb, var(--color-silver) 40%, var(--color-white)); }
+}

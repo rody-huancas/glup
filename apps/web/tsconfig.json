@@ -1,0 +1,15 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["src/*"],
+      "@docs/*": ["../../docs/images/*"],
+      "@mascot/*": ["../desktop/src/modules/mascot/assets/*"],
+      "@tools/*": ["../desktop/src/modules/tools/constants/*"]
+    }
+  }
+}

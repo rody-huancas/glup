@@ -1,0 +1,51 @@
+---
+import RetroWindow from '@/components/retro-window.astro';
+import SectionHeading from '@/components/section-heading.astro';
+import { PRIVACY_DOWNLOADS, PRIVACY_HEADING, PRIVACY_PROMISES, PRIVACY_ROWS, PRIVACY_UPDATES } from '@/content/privacy';
+
+const MARKS = ['bg-sky', 'bg-mint', 'bg-lilac'];
+---
+
+<section id="privacidad" aria-labelledby="privacidad-title" class="navy-grid on-navy border-b-3 border-ink text-on-navy" data-section>
+  <div class="mx-auto max-w-page px-4 py-20 md:px-8 md:py-28">
+    <SectionHeading heading={PRIVACY_HEADING} id="privacidad-title" accent="sky" dark />
+
+    <ul class="mt-12 grid gap-6 md:grid-cols-3">
+      {PRIVACY_PROMISES.map((promise, index) => (
+        <li class="rounded-window border-3 border-on-navy p-6">
+          <span class:list={['block size-5 rounded-full border-3 border-ink', MARKS[index % MARKS.length]]} aria-hidden="true"></span>
+          <h3 class="mt-4 text-3xl font-extrabold">{promise.title}</h3>
+          <p class="mt-2 text-on-navy-soft">{promise.body}</p>
+        </li>
+      ))}
+    </ul>
+
+    <RetroWindow title={PRIVACY_DOWNLOADS.window} accent="sky" class="mt-14 text-ink">
+      <div class="p-5 md:p-8">
+        <h3 class="text-3xl font-extrabold md:text-4xl">{PRIVACY_DOWNLOADS.title}</h3>
+        <p class="mt-3 max-w-3xl text-ink-soft">{PRIVACY_DOWNLOADS.body}</p>
+        <div class="mt-6 overflow-x-auto">
+          <table class="w-full min-w-xl border-collapse text-left">
+            <thead>
+              <tr class="border-b-3 border-ink font-mono text-xs tracking-widest uppercase">
+                <th scope="col" class="py-3 pr-4">{PRIVACY_DOWNLOADS.columns.what}</th>
+                <th scope="col" class="py-3 pr-4">{PRIVACY_DOWNLOADS.columns.forUse}</th>
+                <th scope="col" class="py-3 text-right">{PRIVACY_DOWNLOADS.columns.weight}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PRIVACY_ROWS.map((row) => (
+                <tr class="border-b-2 border-dashed border-paper-deep">
+                  <th scope="row" class="py-3 pr-4 font-semibold">{row.what}</th>
+                  <td class="py-3 pr-4 text-ink-soft">{row.forUse}</td>
+                  <td class="py-3 text-right font-mono text-sm font-semibold whitespace-nowrap">{row.weight}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-6 text-ink-soft">{PRIVACY_UPDATES}</p>
+      </div>
+    </RetroWindow>
+  </div>
+</section>

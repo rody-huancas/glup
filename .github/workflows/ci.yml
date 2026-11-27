@@ -1,6 +1,7 @@
-# Checks every PR and every push to master: types, Vitest, cargo check and cargo test (without the ignored
-# ones), and that everything the Release builds still builds: glup-voz (the graphics card's program,
-# built apart) and the NSIS installer with it inside, the frontend of production (no demo) included.
+# Checks every PR and every push to master: types, Vitest, the download page (apps/web: astro check,
+# its tests and its build), cargo check and cargo test (without the ignored ones), and that everything
+# the Release builds still builds: glup-voz (the graphics card's program, built apart) and the NSIS
+# installer with it inside, the frontend of production (no demo) included.
 # Unsigned and in debug: only the Release has the updater's key, and only it builds in release.
 name: CI
 
@@ -42,6 +43,16 @@ jobs:
 
       - name: Vitest
         run: pnpm --filter desktop test
+
+      # The download page (apps/web): its types (astro check), its tests and its static build.
+      - name: Web typecheck
+        run: pnpm --filter web typecheck
+
+      - name: Web tests
+        run: pnpm --filter web test
+
+      - name: Web build
+        run: pnpm web:build
 
       - name: cargo check
         working-directory: apps/desktop/src-tauri

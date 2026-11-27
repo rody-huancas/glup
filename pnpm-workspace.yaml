@@ -1,2 +1,10 @@
 packages:
   - "apps/*"
+
+# astro check (@astrojs/astro2tsx) loads @napi-rs/wasm-runtime, which imports these two without declaring
+# them; pnpm keeps them out of its reach.
+packageExtensions:
+  "@napi-rs/wasm-runtime@1":
+    dependencies:
+      "@emnapi/core": "^1.11.3"
+      "@emnapi/runtime": "^1.11.3"

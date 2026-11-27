@@ -1,0 +1,26 @@
+---
+import type { Accent } from '@/types/content.types';
+
+interface IRetroWindowProps {
+  title   : string;
+  accent? : Accent | 'paper';
+  class?  : string;
+}
+
+type Props = IRetroWindowProps;
+
+const { title, accent = 'paper', class: className } = Astro.props;
+
+// Always the same three dots: the window's look, not its family.
+const DOTS = ['bg-coral', 'bg-yellow', 'bg-mint'];
+---
+
+<div class:list={['window', className]}>
+  <div class:list={['window-bar', `window-bar--${accent}`]}>
+    <span class="flex gap-1.5" aria-hidden="true">
+      {DOTS.map((dot) => <span class:list={['window-dot', dot]} />)}
+    </span>
+    <span class="font-mono text-xs font-semibold tracking-wide lowercase">{title}</span>
+  </div>
+  <slot />
+</div>

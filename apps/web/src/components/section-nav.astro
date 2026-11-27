@@ -1,0 +1,49 @@
+---
+import { SECTIONS } from '@/config/sections';
+import { SITE } from '@/content/site';
+
+const first = SECTIONS[0];
+---
+
+<nav aria-label={SITE.navLabel} class="nav-bar on-navy fixed inset-x-0 bottom-0 z-50 border-t-3 border-ink bg-navy text-on-navy" data-nav>
+  <div class="relative mx-auto flex h-full max-w-page">
+    <button
+      type="button"
+      class:list={['nav-link nav-toggle w-full items-center justify-between gap-3 px-5 font-mono text-sm font-semibold md:hidden', `nav-link--${first.accent}`]}
+      aria-expanded="false"
+      aria-controls="nav-list"
+      data-nav-toggle
+    >
+      <span class="flex items-center gap-3">
+        <span class="size-3 bg-white rounded-full border-2 border-ink" aria-hidden="true"></span>
+        <span><span class="sr-only">{SITE.navNow} </span><span data-nav-current>{first.label}</span></span>
+      </span>
+      <span class="flex items-center gap-2">
+        <span class="sr-only">{SITE.navMenu}</span>
+        <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="art-thin fill-none stroke-current" d="M5 15 L12 8 L19 15" />
+        </svg>
+      </span>
+    </button>
+
+    <ul id="nav-list" class="nav-list grid-cols-1 bg-navy md:grid md:flex-1 md:grid-cols-6 md:rounded-none md:border-0 md:shadow-none" data-nav-list>
+      {SECTIONS.map((section, index) => (
+        <li class="border-on-navy-soft/30 not-first:border-t md:not-first:border-t-0 md:not-first:border-l">
+          <a
+            href={`#${section.id}`}
+            class:list={['nav-link flex h-full items-center gap-2 px-4 py-3 font-mono text-sm font-semibold md:justify-center md:py-0', `nav-link--${section.accent}`]}
+            data-nav-link={section.id}
+            data-accent={section.accent}
+          >
+            <span class="text-xs opacity-70" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            {section.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</nav>
+
+<script>
+  import '@/scripts/section-nav';
+</script>

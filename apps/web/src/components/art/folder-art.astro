@@ -1,0 +1,19 @@
+---
+interface IFolderArtProps {
+  class? : string;
+}
+
+type Props = IFolderArtProps;
+
+const { class: className } = Astro.props;
+const back                 = 'M8 22 Q8 14 16 14 H50 L60 26 H112 Q120 26 120 34 V96 Q120 104 112 104 H16 Q8 104 8 96 Z';
+const front                = 'M8 44 Q8 38 14 38 H114 Q120 38 120 44 V96 Q120 104 112 104 H16 Q8 104 8 96 Z';
+---
+
+<svg class={className} viewBox="0 0 140 120" aria-hidden="true" focusable="false">
+  <path class="art-stroke stroke-ink fill-mint-deep" d={back} transform="translate(10 10)" />
+  <path class="art-stroke stroke-ink fill-mint-deep" d={back} />
+  <rect class="art-thin stroke-ink fill-white" x="22" y="24" width="70" height="40" rx="4" transform="rotate(-6 57 44)" />
+  <path class="art-stroke stroke-ink fill-mint" d={front} />
+  <path class="art-thin stroke-ink" d="M48 70 H80" />
+</svg>
