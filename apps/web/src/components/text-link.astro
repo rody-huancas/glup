@@ -1,0 +1,18 @@
+---
+import { SITE } from '@/content/site';
+import { isExternal, newTabAttributes } from '@/lib/links';
+
+interface ITextLinkProps {
+  href   : string;
+  class? : string;
+}
+
+type Props = ITextLinkProps;
+
+const { href, class: className } = Astro.props;
+---
+
+<a href={href} {...newTabAttributes(href)} class:list={['underline decoration-2 underline-offset-4', className]}>
+  <slot />
+  {isExternal(href) && <span class="sr-only">{SITE.newTab}</span>}
+</a>
