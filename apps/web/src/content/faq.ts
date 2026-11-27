@@ -20,7 +20,7 @@ export const FAQ: IQuestion[] = [
   },
   {
     question : '¿Hay versión para Mac o Linux?',
-    answer   : 'Por ahora no: Glup es para Windows 10 y 11.',
+    answer   : 'Todavía no, pero ya estamos trabajando en ellas. Por ahora Glup funciona en Windows 10 y 11.',
   },
   {
     question : '¿Cómo lo desinstalo?',
