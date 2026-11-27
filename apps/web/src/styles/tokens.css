@@ -1,0 +1,52 @@
+@theme {
+  --color-paper        : #F4F1EA;
+  --color-paper-deep   : #E9E3D6;
+  --color-navy         : #0C1230;
+  --color-navy-soft    : #17204A;
+  --color-grid-paper   : #C3CEEA99;
+  --color-grid-navy    : #2A3A7A80;
+
+  --color-ink          : #14162B;
+  --color-ink-soft     : #44475E;
+  --color-on-navy      : #F4F1EA;
+  --color-on-navy-soft : #BCC1D8;
+
+  --color-lilac        : #B9A8F5;
+  --color-lilac-deep   : #8A74DE;
+  --color-coral        : #F2777A;
+  --color-coral-deep   : #CC4E55;
+  --color-yellow       : #F6C36B;
+  --color-yellow-deep  : #D39A3C;
+  --color-sky          : #7CC4F2;
+  --color-sky-deep     : #4A99CE;
+  --color-mint         : #7DE3B8;
+  --color-mint-deep    : #46B98A;
+  --color-silver       : #C9CDD6;
+  --color-silver-deep  : #9399A8;
+  --color-brand        : #7EE0BC;
+  --color-brand-deep   : #3FB389;
+  --color-white        : #FFFFFF;
+
+  --font-display       : 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono          : 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-sans          : 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --text-mega                  : clamp(5.5rem, 19vw, 15rem);
+  --text-mega--line-height     : 0.8;
+  --text-mega--letter-spacing  : -0.065em;
+  --text-giant                 : clamp(2.6rem, 6.4vw, 5.5rem);
+  --text-giant--line-height    : 0.92;
+  --text-giant--letter-spacing : -0.05em;
+  --text-lead                  : clamp(1.15rem, 1.6vw, 1.4rem);
+  --text-lead--line-height     : 1.4;
+
+  --shadow-hard        : 6px 6px 0 0 var(--color-ink);
+  --shadow-hard-sm     : 4px 4px 0 0 var(--color-ink);
+  --shadow-hard-light  : 6px 6px 0 0 var(--color-on-navy);
+
+  --radius-window      : 0.9rem;
+  --spacing-nav        : 4.25rem;
+  --spacing-top        : 2.75rem;
+  --spacing-grid       : 28px;
+  --container-page     : 76rem;
+}
