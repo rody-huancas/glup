@@ -1,0 +1,80 @@
+@layer components {
+  .nav-bar {
+    height : var(--spacing-nav);
+  }
+
+  .nav-link {
+    --accent   : var(--color-paper);
+    transition : background-color 160ms ease, color 160ms ease;
+  }
+
+  .nav-link--brand  { --accent : var(--color-brand); }
+  .nav-link--lilac  { --accent : var(--color-lilac); }
+  .nav-link--yellow { --accent : var(--color-yellow); }
+  .nav-link--sky    { --accent : var(--color-sky); }
+  .nav-link--coral  { --accent : var(--color-coral); }
+  .nav-link--silver { --accent : var(--color-silver); }
+
+  .nav-link:hover,
+  .nav-link[aria-current='true'] {
+    background-color : var(--accent);
+    color            : var(--color-ink);
+  }
+
+  /* Phones: the compact button always wears the current section's color. */
+  .nav-toggle {
+    background-color : var(--accent);
+    color            : var(--color-ink);
+  }
+
+  .nav-swatch {
+    background-color : var(--accent);
+  }
+
+  /* Phones without JavaScript: the sections in a row that slides sideways. */
+  @media (width < 48rem) {
+    .nav-toggle {
+      display : none;
+    }
+
+    .nav-list {
+      display    : flex;
+      width      : 100%;
+      overflow-x : auto;
+    }
+
+    .nav-list > li {
+      flex-shrink : 0;
+    }
+  }
+
+  /* Phones with JavaScript: one button with the current section opens the list upwards. */
+  @media (width < 48rem) {
+    .js .nav-toggle {
+      display : flex;
+    }
+
+    .js .nav-list {
+      position      : absolute;
+      right         : 0.75rem;
+      bottom        : calc(100% + 0.5rem);
+      left          : 0.75rem;
+      display       : none;
+      width         : auto;
+      overflow      : hidden;
+      border        : 3px solid var(--color-ink);
+      border-radius : var(--radius-window);
+      box-shadow    : var(--shadow-hard-light);
+    }
+
+    .js .nav-list[data-open='true'] {
+      display : grid;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link {
+      transition : none;
+    }
+  }
+}
