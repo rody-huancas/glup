@@ -1,0 +1,27 @@
+/* Glup built from the desktop app's pieces, at the same spots (percent of the body), as in
+   apps/desktop/src/modules/mascot/constants/layout.ts. */
+@layer components {
+  .glup {
+    position     : relative;
+    aspect-ratio : 1312 / 1199;
+  }
+
+  .glup-piece {
+    position       : absolute;
+    display        : block;
+    height         : auto;
+    max-width      : none;
+    pointer-events : none;
+    user-select    : none;
+  }
+
+  .glup-body        { position : relative; z-index : 1; width : 100%; }
+  .glup-eye-left    { z-index : 2; left : 35.137%; top : 40.24%;  width : 11.28%; }
+  .glup-eye-right   { z-index : 2; left : 59.832%; top : 40.256%; width : 11.28%; }
+  .glup-mouth-smile { z-index : 2; left : 47.866%; top : 51.535%; width : 10.595%; }
+  .glup-mouth-open  { z-index : 2; left : 46.792%; top : 50.918%; width : 12.742%; opacity : 0; }
+  .glup-arm-left    { z-index : 0; left : 8.537%;  top : 62.135%; width : 14.014%; transform-origin : 88% 35%; }
+  .glup-arm-right   { z-index : 0; left : 77.439%; top : 62.135%; width : 13.97%;  transform-origin : 12% 35%; }
+  .glup-foot-left   { z-index : 0; left : 26.829%; top : 83.403%; width : 16.902%; }
+  .glup-foot-right  { z-index : 0; left : 55.869%; top : 83.403%; width : 16.817%; }
+}

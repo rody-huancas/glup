@@ -1,0 +1,38 @@
+---
+import { Image } from 'astro:assets';
+import body from '@mascot/body.png';
+import armLeft from '@mascot/arm-left.png';
+import armRight from '@mascot/arm-right.png';
+import footLeft from '@mascot/foot-left.png';
+import footRight from '@mascot/foot-right.png';
+import eyeLeft from '@mascot/eye-left.png';
+import eyeRight from '@mascot/eye-right.png';
+import mouthSmile from '@mascot/mouth-smile.png';
+import mouthOpen from '@mascot/mouth-open.png';
+
+interface IGlupFigureProps {
+  width   : number;
+  eager?  : boolean;
+  class?  : string;
+}
+
+type Props = IGlupFigureProps;
+
+const { width, eager = false, class: className } = Astro.props;
+
+// Each piece at the size it is shown (twice, for sharp screens), never bigger than its picture.
+const sized   = (share: number, intrinsic: number): number => Math.min(intrinsic, Math.round(width * share * 2));
+const loading = eager ? 'eager' : 'lazy';
+---
+
+<div class:list={['glup', className]} data-eat-body>
+  <Image class="glup-piece glup-arm-left" src={armLeft} width={sized(0.14, armLeft.width)} alt="" loading={loading} data-glup-arm="left" />
+  <Image class="glup-piece glup-arm-right" src={armRight} width={sized(0.14, armRight.width)} alt="" loading={loading} data-glup-arm="right" />
+  <Image class="glup-piece glup-foot-left" src={footLeft} width={sized(0.17, footLeft.width)} alt="" loading={loading} />
+  <Image class="glup-piece glup-foot-right" src={footRight} width={sized(0.17, footRight.width)} alt="" loading={loading} />
+  <Image class="glup-piece glup-body" src={body} width={sized(1, body.width)} alt="" loading={loading} fetchpriority={eager ? 'high' : 'auto'} />
+  <Image class="glup-piece glup-eye-left" src={eyeLeft} width={sized(0.12, eyeLeft.width)} alt="" loading={loading} data-glup-eye />
+  <Image class="glup-piece glup-eye-right" src={eyeRight} width={sized(0.12, eyeRight.width)} alt="" loading={loading} data-glup-eye />
+  <Image class="glup-piece glup-mouth-smile" src={mouthSmile} width={sized(0.11, mouthSmile.width)} alt="" loading={loading} data-eat-mouth="smile" />
+  <Image class="glup-piece glup-mouth-open" src={mouthOpen} width={sized(0.13, mouthOpen.width)} alt="" loading={loading} data-eat-mouth="open" />
+</div>
