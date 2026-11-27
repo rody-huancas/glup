@@ -1,4 +1,9 @@
 @layer base {
+  /* Lets heights animate to and from `auto` (the questions' answers). */
+  :root {
+    interpolate-size : allow-keywords;
+  }
+
   html {
     scroll-behavior        : smooth;
     scroll-padding-top     : calc(var(--spacing-top) + 1rem);
@@ -41,6 +46,11 @@
     outline-color : var(--color-yellow);
   }
 
+  /* A section that takes the focus after a jump (anchors.ts) is not a control: no ring around it. */
+  [tabindex='-1']:focus {
+    outline : none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior : auto;
@@ -73,8 +83,10 @@
     transform : translateY(-300%);
   }
 
+  /* Only for the keyboard: a click or a focus set by a script never shows it. */
   .skip-link:focus-visible {
     transform : none;
+    outline   : none;
   }
 
   .button-hard {
@@ -105,8 +117,22 @@
     display : none;
   }
 
+  /* The answer opens and closes growing in height and fading in; the + turns into an ×. Browsers
+     without ::details-content open it at once, as always. */
+  .faq-item::details-content {
+    block-size : 0;
+    opacity    : 0;
+    overflow-y : clip;
+    transition : block-size 300ms ease, opacity 300ms ease, content-visibility 300ms allow-discrete;
+  }
+
+  .faq-item[open]::details-content {
+    block-size : auto;
+    opacity    : 1;
+  }
+
   .faq-sign {
-    transition : transform 160ms ease;
+    transition : transform 300ms ease;
   }
 
   .faq-item[open] .faq-sign {
@@ -115,7 +141,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .button-hard,
-    .faq-sign {
+    .faq-sign,
+    .faq-item::details-content {
       transition : none;
     }
   }
