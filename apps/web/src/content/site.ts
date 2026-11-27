@@ -5,4 +5,5 @@ export const SITE = {
   navLabel  : 'Secciones de la página',
   navMenu   : 'Ir a otra sección',
   navNow    : 'Estás en',
+  newTab    : ' (se abre en una pestaña nueva)',
 };

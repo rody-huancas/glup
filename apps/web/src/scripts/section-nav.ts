@@ -1,5 +1,6 @@
 // The bottom bar: paints the section being read with its color, and on phones opens and closes the
-// list of sections. Reads the DOM only through data-* attributes.
+// list of sections (and the scrim behind it: Esc or a click outside closes it). Going to a section is
+// anchors.ts. Reads the DOM only through data-* attributes.
 import { activeSection } from '@/lib/active-section';
 import type { SectionId } from '@/types/section.types';
 
@@ -8,11 +9,12 @@ const READING_LINE = 0.4;
 const nav     = document.querySelector<HTMLElement>('[data-nav]');
 const toggle  = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
 const list    = document.querySelector<HTMLElement>('[data-nav-list]');
+const scrim   = document.querySelector<HTMLElement>('[data-nav-scrim]');
 const current = document.querySelector<HTMLElement>('[data-nav-current]');
 const links   = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]')];
 const ids     = links.map((link) => link.dataset.navLink as SectionId);
 
-let shown: SectionId | null = null;
+let shown = (links.find((link) => link.hasAttribute('aria-current'))?.dataset.navLink ?? null) as SectionId | null;
 
 const show = (id: SectionId): void => {
   if (id === shown) return;
@@ -57,6 +59,7 @@ const setOpen = (open: boolean): void => {
   if (!toggle || !list) return;
   toggle.setAttribute('aria-expanded', String(open));
   list.dataset.open = String(open);
+  if (scrim) scrim.dataset.open = String(open);
 };
 
 toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
@@ -74,4 +77,7 @@ document.addEventListener('click', (event) => {
 
 window.addEventListener('scroll', schedule, { passive: true });
 window.addEventListener('resize', schedule);
-update();
+
+// At the top the HTML already marks «Inicio»: measuring the sections now would only delay the first
+// paint. Opened further down (a link with #), it is measured after the first frame.
+if (window.scrollY > 0 || location.hash) schedule();

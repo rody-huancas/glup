@@ -29,8 +29,8 @@ apps/web/
     ├── lib/                  Lógica pura con su .test.ts al lado
     ├── scripts/              Lo que corre en el navegador: motion.ts (carga tarde motion-scenes.ts,
     │                         con GSAP), section-nav.ts
-    ├── styles/               globals.css (entrada), tokens.css (@theme), base.css y una hoja por
-    │                         familia de componentes (window.css, nav.css, glup.css, art.css)
+    ├── styles/               globals.css (entrada), tokens.css (@theme), base.css, motion.css (las
+    │                         entradas) y una hoja por familia (window.css, nav.css, glup.css, art.css)
     └── types/                content.types.ts, section.types.ts
 ```
 

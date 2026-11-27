@@ -48,7 +48,13 @@
     }
   }
 
-  /* Phones with JavaScript: one button with the current section opens the list upwards. */
+  /* Phones with JavaScript: one button with the current section opens the list upwards. It slides up
+     and fades in (the options a little after one another) over a scrim that darkens the page; closing
+     plays it backwards. */
+  .nav-scrim {
+    display : none;
+  }
+
   @media (width < 48rem) {
     .js .nav-toggle {
       display : flex;
@@ -65,15 +71,70 @@
       border        : 3px solid var(--color-ink);
       border-radius : var(--radius-window);
       box-shadow    : var(--shadow-hard-light);
+      opacity       : 0;
+      transform     : translateY(12px);
+      transition    : opacity 250ms ease, transform 250ms ease, display 250ms allow-discrete;
     }
 
     .js .nav-list[data-open='true'] {
-      display : grid;
+      display   : grid;
+      opacity   : 1;
+      transform : none;
+    }
+
+    .js .nav-list > li {
+      opacity    : 0;
+      transform  : translateY(8px);
+      transition : opacity 200ms ease, transform 200ms ease;
+    }
+
+    .js .nav-list[data-open='true'] > li {
+      opacity   : 1;
+      transform : none;
+    }
+
+    .js .nav-list[data-open='true'] > li:nth-child(2) { transition-delay : 30ms; }
+    .js .nav-list[data-open='true'] > li:nth-child(3) { transition-delay : 60ms; }
+    .js .nav-list[data-open='true'] > li:nth-child(4) { transition-delay : 90ms; }
+    .js .nav-list[data-open='true'] > li:nth-child(5) { transition-delay : 120ms; }
+    .js .nav-list[data-open='true'] > li:nth-child(6) { transition-delay : 150ms; }
+
+    .js .nav-scrim {
+      position         : fixed;
+      inset            : 0;
+      z-index          : 50;
+      background-color : var(--color-scrim);
+      opacity          : 0;
+      transition       : opacity 250ms ease, display 250ms allow-discrete;
+    }
+
+    .js .nav-scrim[data-open='true'] {
+      display : block;
+      opacity : 1;
+    }
+
+    @starting-style {
+      .js .nav-list[data-open='true'] {
+        opacity   : 0;
+        transform : translateY(12px);
+      }
+
+      .js .nav-list[data-open='true'] > li {
+        opacity   : 0;
+        transform : translateY(8px);
+      }
+
+      .js .nav-scrim[data-open='true'] {
+        opacity : 0;
+      }
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nav-link {
+    .nav-link,
+    .js .nav-list,
+    .js .nav-list > li,
+    .js .nav-scrim {
       transition : none;
     }
   }

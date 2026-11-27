@@ -1,0 +1,59 @@
+/* The entrances, in CSS from the first paint, only with html.motion (base-layout.astro): nothing waits
+   for JavaScript and nothing shows, jumps away and comes back. `backwards` holds the first keyframe while
+   each one waits for its turn and leaves no style behind when it ends, so GSAP's loops (scripts/) take
+   the pieces from their place. Without html.motion (no JavaScript or reduced motion) everything is still
+   and in place. */
+@layer components {
+  /* The keys of the logotype fall one by one and squash on landing, as if pressed. */
+  @keyframes logo-fall {
+    0%   { opacity : 0; transform : translateY(-160%); }
+    55%  { opacity : 1; transform : translateY(0) scale(1, 1); animation-timing-function : ease-out; }
+    68%  { transform : translateY(0) scale(1.08, 0.86); }
+    84%  { transform : translateY(0) scale(0.97, 1.04); }
+    100% { transform : none; }
+  }
+
+  html.motion [data-logo-letter] {
+    animation : logo-fall 0.8s cubic-bezier(0.55, 0, 1, 0.45) backwards;
+  }
+
+  html.motion [data-logo-letter='G'] { animation-delay : 0.15s; }
+  html.motion [data-logo-letter='L'] { animation-delay : 0.27s; }
+  html.motion [data-logo-letter='U'] { animation-delay : 0.39s; }
+  html.motion [data-logo-letter='P'] { animation-delay : 0.51s; }
+
+  /* The hero's pieces pop into place, Glup first and the «ñam» last. */
+  @keyframes enter-pop {
+    0%   { opacity : 0; transform : translateY(18px) scale(0.85); }
+    70%  { opacity : 1; transform : translateY(-3px) scale(1.04); }
+    100% { opacity : 1; transform : none; }
+  }
+
+  html.motion [data-enter] {
+    animation : enter-pop 0.55s ease-out backwards;
+  }
+
+  html.motion [data-enter='1']  { animation-delay : 0.1s; }
+  html.motion [data-enter='2']  { animation-delay : 0.3s; }
+  html.motion [data-enter='3']  { animation-delay : 0.38s; }
+  html.motion [data-enter='4']  { animation-delay : 0.46s; }
+  html.motion [data-enter='5']  { animation-delay : 0.54s; }
+  html.motion [data-enter='6']  { animation-delay : 0.62s; }
+  html.motion [data-enter='7']  { animation-delay : 0.7s; }
+  html.motion [data-enter='8']  { animation-delay : 0.78s; }
+  html.motion [data-enter='9']  { animation-delay : 0.86s; }
+  html.motion [data-enter='10'] { animation-delay : 0.94s; }
+  html.motion [data-enter='11'] { animation-delay : 1.02s; }
+  html.motion [data-enter='12'] { animation-delay : 1.2s; }
+
+  /* «Cómo funciona»: the bubble and the sparkles start small only once GSAP has set that scene up
+     (html.motion-scroll, scripts/motion-scenes.ts), and it grows them when Glup eats. */
+  html.motion.motion-scroll [data-eat-bubble],
+  html.motion.motion-scroll [data-eat-sparkle] {
+    transform : scale(0);
+  }
+
+  [data-eat-bubble] {
+    transform-origin : 30% 100%;
+  }
+}

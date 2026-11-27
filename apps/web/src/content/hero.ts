@@ -6,4 +6,5 @@ export const HERO = {
   github   : 'Ver en GitHub',
   promises : ['Gratis', 'Sin cuentas', 'Tus archivos nunca salen de tu PC'],
   munch    : 'ñam',
+  poke     : 'Saludar a Glup',
 };

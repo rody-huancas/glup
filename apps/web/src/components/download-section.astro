@@ -2,8 +2,10 @@
 import FileTile from '@/components/art/file-tile.astro';
 import SparkleArt from '@/components/art/sparkle-art.astro';
 import ButtonLink from '@/components/button-link.astro';
+import DownloadNote from '@/components/download-note.astro';
 import RetroWindow from '@/components/retro-window.astro';
 import SectionHeading from '@/components/section-heading.astro';
+import TextLink from '@/components/text-link.astro';
 import { LINKS } from '@/config/links';
 import { DOWNLOAD, DOWNLOAD_HEADING } from '@/content/download';
 ---
@@ -19,8 +21,9 @@ import { DOWNLOAD, DOWNLOAD_HEADING } from '@/content/download';
           </svg>
           {DOWNLOAD.button}
         </ButtonLink>
-        <a href={LINKS.repository} class="font-mono text-sm font-semibold underline decoration-2 underline-offset-4 hover:decoration-yellow">{DOWNLOAD.github}</a>
+        <TextLink href={LINKS.repository} class="font-mono text-sm font-semibold hover:decoration-yellow">{DOWNLOAD.github}</TextLink>
       </div>
+      <DownloadNote class="mt-4 text-on-navy-soft" />
 
       <div class="mt-12 grid gap-8 md:grid-cols-2">
         <div>

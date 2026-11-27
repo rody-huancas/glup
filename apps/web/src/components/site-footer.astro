@@ -1,9 +1,12 @@
 ---
 import { Image } from 'astro:assets';
 import logo from '@docs/logo.png';
+import GlupLogo from '@/components/art/glup-logo.astro';
+import TextLink from '@/components/text-link.astro';
 import { LINKS } from '@/config/links';
 import { FOOTER } from '@/content/footer';
 import { SITE } from '@/content/site';
+import { sharpImage } from '@/lib/image-widths';
 
 const links = [
   { label: FOOTER.license, href: LINKS.license },
@@ -16,16 +19,16 @@ const links = [
 <footer class="border-t-3 border-ink bg-paper-deep">
   <div class="mx-auto flex max-w-page flex-col gap-8 px-4 py-12 md:flex-row md:items-end md:justify-between md:px-8">
     <div class="flex items-center gap-4">
-      <Image src={logo} width={128} alt="" class="size-16" />
+      <Image class="h-16 w-auto" {...sharpImage({ picture: logo, shown: 68 })} />
       <div>
-        <p class="font-display text-4xl font-extrabold tracking-tight">{SITE.name}</p>
+        <p><GlupLogo class="w-36" /><span class="sr-only">{SITE.name}</span></p>
         <p class="text-ink-soft">{FOOTER.tagline}</p>
       </div>
     </div>
     <div class="flex flex-col gap-3 md:items-end">
       <ul class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm font-medium">
         {links.map((link) => (
-          <li><a href={link.href} class="underline decoration-2 underline-offset-4 hover:decoration-coral-deep">{link.label}</a></li>
+          <li><TextLink href={link.href} class="hover:decoration-coral-deep">{link.label}</TextLink></li>
         ))}
       </ul>
       <p class="font-mono text-sm text-ink-soft">{FOOTER.place}</p>

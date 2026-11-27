@@ -5,6 +5,8 @@ import { SITE } from '@/content/site';
 const first = SECTIONS[0];
 ---
 
+<div class="nav-scrim" aria-hidden="true" data-nav-scrim></div>
+
 <nav aria-label={SITE.navLabel} class="nav-bar on-navy fixed inset-x-0 bottom-0 z-50 border-t-3 border-ink bg-navy text-on-navy" data-nav>
   <div class="relative mx-auto flex h-full max-w-page">
     <button
@@ -32,6 +34,7 @@ const first = SECTIONS[0];
           <a
             href={`#${section.id}`}
             class:list={['nav-link flex h-full items-center gap-2 px-4 py-3 font-mono text-sm font-semibold md:justify-center md:py-0', `nav-link--${section.accent}`]}
+            aria-current={index === 0 ? 'true' : undefined}
             data-nav-link={section.id}
             data-accent={section.accent}
           >

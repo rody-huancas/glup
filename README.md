@@ -153,8 +153,9 @@ nueva. Solo se instala cuando tocas «Actualizar ahora».
 
 ## Cómo instalarlo
 
-1. Entra a [la última versión](https://github.com/rody-huancas/glup/releases/latest) y descarga el
-   instalador: `Glup-<versión>-Windows.exe` (por ejemplo, `Glup-0.1.1-Windows.exe`).
+1. Descarga el instalador: [Glup-Windows.exe](https://github.com/rody-huancas/glup/releases/latest/download/Glup-Windows.exe)
+   (siempre la última versión). Todas las versiones, con sus novedades, están en
+   [Releases](https://github.com/rody-huancas/glup/releases).
 2. Ábrelo y sigue los pasos. Glup aparece arriba de tu pantalla y en la bandeja, junto al reloj.
 
 **Si sale una ventana azul que dice «Windows protegió tu PC»**: aparece con los programas nuevos que
@@ -230,6 +231,7 @@ edge of your screen; drop a file on it and it offers what it can do: convert and
 HEIC included), merge, split, sign, compress and scan PDFs, shrink videos, extract audio, add subtitles,
 turn speech into text, read and create QR codes, keep a clipboard history, find what takes space,
 duplicates and more. Everything runs on your computer: no file ever leaves it. Some skills need a one-time
-download (FFmpeg or a model), always asked first. Get the installer from
-[Releases](https://github.com/rody-huancas/glup/releases/latest). The interface is in Spanish for now;
+download (FFmpeg or a model), always asked first. Download the installer,
+[Glup-Windows.exe](https://github.com/rody-huancas/glup/releases/latest/download/Glup-Windows.exe) (every version
+is in [Releases](https://github.com/rody-huancas/glup/releases)). The interface is in Spanish for now;
 contributions in English are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)). MIT licensed.

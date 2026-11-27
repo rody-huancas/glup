@@ -6,12 +6,17 @@ export const DOWNLOAD_HEADING: IHeading = {
   lead  : 'Gratis, sin cuentas y sin publicidad.',
 };
 
+// The installer's size, as GitHub shows it in the Release: updated with each version.
+const INSTALLER_SIZE = '21 MB';
+
 export const DOWNLOAD = {
   button       : 'Descargar para Windows',
+  note         : (version: string) => `Versión ${version} · ${INSTALLER_SIZE} · Windows 10 y 11`,
+  allVersions  : 'Ver todas las versiones',
   github       : 'Ver el código en GitHub',
   stepsTitle   : 'Cómo instalarlo',
   steps        : [
-    'Entra a la última versión y descarga el instalador: el archivo Glup-…-Windows.exe.',
+    'Toca «Descargar para Windows»: se baja el instalador, Glup-Windows.exe.',
     'Ábrelo y sigue los pasos. Glup aparece arriba de tu pantalla y en la bandeja, junto al reloj.',
   ],
   needsTitle   : 'Requisitos',

@@ -12,11 +12,23 @@ import { SITE } from '@/content/site';
 <html lang={SEO.language}>
   <head>
     <SeoHead />
-    <script is:inline>document.documentElement.classList.add('js');</script>
+    {/* Before the first paint. html.js: there is JavaScript. html.motion: and motion is welcome, so
+        motion.css runs the entrances from their starting point from the first frame. html.motion-on: they
+        did start; if not in 2.5 s, html.motion goes away and everything shows still. */}
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        root.classList.add('js');
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        root.classList.add('motion');
+        addEventListener('animationstart', () => root.classList.add('motion-on'), { once: true, capture: true });
+        setTimeout(() => root.classList.contains('motion-on') || root.classList.remove('motion'), 2500);
+      })();
+    </script>
   </head>
 
   <body class="bg-paper text-ink">
-    <a href="#contenido" class="skip-link rounded-lg border-3 border-ink bg-yellow px-4 py-2 font-bold">{SITE.skipLink}</a>
+    <a href="#contenido" class="skip-link rounded-xl border-3 border-ink bg-brand px-4 py-2 font-display font-bold text-ink shadow-hard-sm">{SITE.skipLink}</a>
     <TopBar />
 
     <main id="contenido" tabindex="-1">
@@ -27,6 +39,7 @@ import { SITE } from '@/content/site';
     <SectionNav />
 
     <script>
+      import '@/scripts/anchors';
       import '@/scripts/motion';
     </script>
   </body>

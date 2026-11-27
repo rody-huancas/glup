@@ -1,38 +1,44 @@
 ---
+// Glup built from the app's own pieces (apps/desktop/src/modules/mascot/assets), each offered for 1x, 2x
+// and 3x screens up to its own size, lossless (lib/image-widths.ts): the soft shading stays clean.
 import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import body from '@mascot/body.png';
 import armLeft from '@mascot/arm-left.png';
 import armRight from '@mascot/arm-right.png';
+import armWave from '@mascot/arm-wave.png';
 import footLeft from '@mascot/foot-left.png';
 import footRight from '@mascot/foot-right.png';
 import eyeLeft from '@mascot/eye-left.png';
 import eyeRight from '@mascot/eye-right.png';
 import mouthSmile from '@mascot/mouth-smile.png';
 import mouthOpen from '@mascot/mouth-open.png';
+import { sharpImage } from '@/lib/image-widths';
 
 interface IGlupFigureProps {
-  width   : number;
-  eager?  : boolean;
-  class?  : string;
+  width  : number;
+  eager? : boolean;
+  wave?  : boolean;
+  class? : string;
 }
 
 type Props = IGlupFigureProps;
 
-const { width, eager = false, class: className } = Astro.props;
+const { width, eager = false, wave = false, class: className } = Astro.props;
 
-// Each piece at the size it is shown (twice, for sharp screens), never bigger than its picture.
-const sized   = (share: number, intrinsic: number): number => Math.min(intrinsic, Math.round(width * share * 2));
-const loading = eager ? 'eager' : 'lazy';
+// Each piece's share of Glup's width (glup.css) gives the size it is shown at.
+const offer = (picture: ImageMetadata, share: number) => sharpImage({ picture, shown: width * share, eager });
 ---
 
 <div class:list={['glup', className]} data-eat-body>
-  <Image class="glup-piece glup-arm-left" src={armLeft} width={sized(0.14, armLeft.width)} alt="" loading={loading} data-glup-arm="left" />
-  <Image class="glup-piece glup-arm-right" src={armRight} width={sized(0.14, armRight.width)} alt="" loading={loading} data-glup-arm="right" />
-  <Image class="glup-piece glup-foot-left" src={footLeft} width={sized(0.17, footLeft.width)} alt="" loading={loading} />
-  <Image class="glup-piece glup-foot-right" src={footRight} width={sized(0.17, footRight.width)} alt="" loading={loading} />
-  <Image class="glup-piece glup-body" src={body} width={sized(1, body.width)} alt="" loading={loading} fetchpriority={eager ? 'high' : 'auto'} />
-  <Image class="glup-piece glup-eye-left" src={eyeLeft} width={sized(0.12, eyeLeft.width)} alt="" loading={loading} data-glup-eye />
-  <Image class="glup-piece glup-eye-right" src={eyeRight} width={sized(0.12, eyeRight.width)} alt="" loading={loading} data-glup-eye />
-  <Image class="glup-piece glup-mouth-smile" src={mouthSmile} width={sized(0.11, mouthSmile.width)} alt="" loading={loading} data-eat-mouth="smile" />
-  <Image class="glup-piece glup-mouth-open" src={mouthOpen} width={sized(0.13, mouthOpen.width)} alt="" loading={loading} data-eat-mouth="open" />
+  <Image class="glup-piece glup-arm-left" {...offer(armLeft, 0.14)} data-glup-arm="left" />
+  <Image class="glup-piece glup-arm-right" {...offer(armRight, 0.14)} data-glup-arm="right" />
+  {wave && <Image class="glup-piece glup-arm-wave" {...offer(armWave, 0.177)} loading="lazy" data-glup-arm="wave" />}
+  <Image class="glup-piece glup-foot-left" {...offer(footLeft, 0.169)} />
+  <Image class="glup-piece glup-foot-right" {...offer(footRight, 0.168)} />
+  <Image class="glup-piece glup-body" {...offer(body, 1)} fetchpriority={eager ? 'high' : 'auto'} />
+  <Image class="glup-piece glup-eye-left" {...offer(eyeLeft, 0.113)} data-glup-eye />
+  <Image class="glup-piece glup-eye-right" {...offer(eyeRight, 0.113)} data-glup-eye />
+  <Image class="glup-piece glup-mouth-smile" {...offer(mouthSmile, 0.106)} data-eat-mouth="smile" />
+  <Image class="glup-piece glup-mouth-open" {...offer(mouthOpen, 0.127)} data-eat-mouth="open" />
 </div>

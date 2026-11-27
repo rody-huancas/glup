@@ -1,0 +1,42 @@
+---
+// «GLUP» as four chubby keycaps of the same size, one per family color, each with its capital letter in
+// the site's grotesque: a dark edge, a darker side below for the volume and a hard shadow. Each key is its own <svg>, so the CSS entrance (motion.css) moves whole elements the
+// graphics card can compose. `live` (the hero) adds what the animations use: the «u» key eats a little
+// file (scripts/hero-logo.ts). What is read out stays «Glup» (the h1's aria-label and hidden text). Small ones (top bar, footer) are still.
+interface IGlupLogoProps {
+  live?  : boolean;
+  class? : string;
+}
+
+type Props = IGlupLogoProps;
+
+const { live = false, class: className } = Astro.props;
+
+const KEYS = [
+  { letter: 'G', face: 'fill-lilac',  side: 'fill-lilac-deep' },
+  { letter: 'L', face: 'fill-coral',  side: 'fill-coral-deep' },
+  { letter: 'U', face: 'fill-yellow', side: 'fill-yellow-deep' },
+  { letter: 'P', face: 'fill-sky',    side: 'fill-sky-deep' },
+];
+---
+
+<span class:list={['logo-keys', className]} aria-hidden="true" data-logo={live ? '' : undefined}>
+  {KEYS.map((key) => (
+    <svg class="logo-key" viewBox="0 0 150 166" focusable="false" data-logo-letter={live ? key.letter : undefined}>
+      <rect class="fill-ink" x="15" y="30" width="130" height="130" rx="26" />
+      <rect class:list={['art-stroke stroke-ink', key.side]} x="6" y="22" width="130" height="130" rx="26" />
+      <g data-key-top>
+        <rect class:list={['art-stroke stroke-ink', key.face]} x="6" y="6" width="130" height="126" rx="26" />
+        <rect class="fill-white" x="20" y="18" width="102" height="90" rx="18" opacity="0.28" />
+        <text class="logo-key-letter fill-ink" x="71" y="98" text-anchor="middle">{key.letter}</text>
+      </g>
+    </svg>
+  ))}
+
+  {live && (
+    <svg class="logo-snack" viewBox="0 0 40 46" focusable="false" data-logo-snack>
+      <path class="art-thin stroke-ink" d="M6 4 H26 L36 14 V42 H6 Z" data-logo-snack-face />
+      <path class="art-thin fill-white stroke-ink" d="M26 4 V14 H36 Z" />
+    </svg>
+  )}
+</span>
