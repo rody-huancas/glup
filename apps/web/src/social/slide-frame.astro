@@ -1,0 +1,39 @@
+---
+// One social picture: the landing's grid paper (cream or navy) and, on the slides of the carousel, a strip
+// at the bottom with the small keys, the site and the page number.
+import GlupLogo from '@/components/art/glup-logo.astro';
+import { SOCIAL } from '@/social/slides';
+
+interface ISlideFrameProps {
+  tone?   : 'paper' | 'navy';
+  page?   : number;
+  shape?  : 'slide' | 'post' | 'link';
+  class?  : string;
+}
+
+type Props = ISlideFrameProps;
+
+const { tone = 'paper', page, shape = 'slide', class: className } = Astro.props;
+const navy = tone === 'navy';
+---
+
+<div
+  class:list={[
+    'social-slide',
+    shape === 'post' && 'social-slide--post',
+    shape === 'link' && 'social-slide--link',
+    navy ? 'navy-grid on-navy text-on-navy' : 'paper-grid text-ink',
+    className,
+  ]}
+  data-social-page
+>
+  <slot />
+
+  {page && (
+    <footer class="social-foot">
+      <GlupLogo class="w-48" />
+      <span class:list={['social-mono', navy ? 'text-on-navy-soft' : 'text-ink-soft']}>{SOCIAL.site}</span>
+      <span class:list={['social-mono', navy ? 'text-on-navy-soft' : 'text-ink-soft']}>{page}/{SOCIAL.total}</span>
+    </footer>
+  )}
+</div>
