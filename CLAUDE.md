@@ -37,6 +37,7 @@ pnpm dev                                   # tauri dev (la primera compilación 
 pnpm build                                 # instalador (release: solo si se pide)
 pnpm version:set 0.2.0                     # versión (Cargo.toml manda; package.json la sigue)
 pnpm sweep                                 # borra de target lo que no se usó en 3 días (sweep:dry solo lista)
+pnpm dev:stop                              # cierra solo lo de desarrollo (glup.exe de target, pnpm dev); -DryRun lista
 pnpm web:dev                               # la página de descarga (apps/web)
 pnpm web:build                             # apps/web/dist
 pnpm web:shots                             # capturas de la página, imagen para compartir y favicons
@@ -67,8 +68,12 @@ cd apps/desktop/src-tauri && cargo check && cargo test
 - Cuidar el disco sin perder la compilación incremental: al terminar una tarea en la que se compiló,
   se corre `pnpm sweep` (borra de `target/*/build` y `target/*/incremental` lo que no se usó en 3
   días; `pnpm sweep:dry` solo lista lo que borraría). `cargo clean` solo si quedan menos de 20 GB
-  libres en C: (antes, detener `glup.exe` y `tauri dev` si están corriendo, porque bloquean archivos
+  libres en C: (antes, `pnpm dev:stop`, porque `glup.exe` de `target` y `tauri dev` bloquean archivos
   de `target`).
+- «No dejar nada corriendo» es **solo lo de desarrollo**: `pnpm dev:stop` cierra los `glup.exe` y
+  `glup-voz.exe` que corren desde `apps/desktop/src-tauri/target/` y el `pnpm dev`/`tauri dev`/Vite
+  de este repo. Se elige **por la ruta del ejecutable**, nunca por el nombre: el Glup instalado (donde lo
+  pone el instalador, en `AppData\Local`) también es `glup.exe` y **nunca** se cierra.
   Al terminar una tarea no quedan copias del
   proyecto (worktrees, clones), carpetas de compilación extra (otro `CARGO_TARGET_DIR`) ni archivos
   temporales pesados (modelos, entornos de Python, imágenes de prueba).

@@ -203,8 +203,12 @@ pub async fn run_action(app: AppHandle, request: ActionRequest) -> Result<Action
   que no se usaron en 3 días (último acceso o escritura de sus archivos: Cargo lee la huella de cada
   crate en cada compilación) y dice cuánto liberó; `pnpm sweep:dry` solo lista. `cargo-sweep` no
   sirve: busca `debug/deps` y `.fingerprint`, que Cargo ya no usa. `cargo clean` (todo `target`) solo
-  si quedan menos de 20 GB libres en C:. Antes de limpiar se detienen `glup.exe` y `tauri dev` si
-  están corriendo, porque bloquean archivos de `target` (el script no corre mientras Cargo compila).
+  si quedan menos de 20 GB libres en C:. Antes de limpiar se corre `pnpm dev:stop`, porque el
+  `glup.exe` de `target` y `tauri dev` bloquean sus archivos (el script no corre mientras Cargo compila).
+- **Procesos: solo los de desarrollo, por ruta.** `pnpm dev:stop` (`scripts/stop-dev.ps1`) cierra los
+  `glup.exe`/`glup-voz.exe` cuyo ejecutable está en `apps/desktop/src-tauri/target/` y el `pnpm dev`
+  de este repo (`-DryRun` solo lista). Nunca se cierra un proceso por su nombre (`glup*`): el Glup
+  instalado por la persona (en `AppData\Local`, donde lo deja el instalador) se llama igual.
 - El crate es solo `rlib` (sin `staticlib` ni `cdylib`, que son para iOS y Android) y sin doctests,
   y `main.rs` no tiene binario de prueba (`test = false`): cada compilación arma solo lo que se usa.
 - Al terminar una tarea no quedan copias del proyecto (worktrees, clones), carpetas de compilación

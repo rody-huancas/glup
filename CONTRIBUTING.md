@@ -178,8 +178,10 @@ Solo Windows por ahora. La versión vive en `apps/desktop/src-tauri/Cargo.toml` 
 3. **Commit y push**: `git commit -am "chore: versión 0.2.0"` y `git push`. Espera a que el CI pase:
    arma el mismo instalador que el Release (en debug y sin firmar), con `glup-voz.exe` adentro.
 4. **Tag y push del tag**: `git tag v0.2.0` y `git push origin v0.2.0`. El workflow `Release` compila
-   `glup-voz.exe` y Glup en release y deja un **borrador** con `Glup_0.2.0_x64-setup.exe`, su `.sig` y
-   `latest.json`; al final comprueba que estén los tres y que `latest.json` apunte a ese instalador.
+   `glup-voz.exe` y Glup en release y deja un **borrador** con `Glup-0.2.0-Windows.exe`, su `.sig` y
+   `latest.json` (Tauri lo llama `Glup_0.2.0_x64-setup.exe`; el paso «Installer name» lo renombra y
+   corrige `latest.json`); al final comprueba que estén los tres, que no quede el nombre de Tauri y que
+   `latest.json` apunte a ese instalador.
    Falla si el tag no coincide con `Cargo.toml`.
 5. **Revisar el borrador** en GitHub › Releases: los tres archivos, las notas, e instalar el `.exe` y
    probarlo.

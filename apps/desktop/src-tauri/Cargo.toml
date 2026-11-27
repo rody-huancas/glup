@@ -1,6 +1,6 @@
 [package]
 name        = "glup"
-version     = "0.1.0"
+version     = "0.1.1"
 description = "Glup, una mascota de escritorio"
 authors     = ["Glup contributors"]
 license     = "MIT"

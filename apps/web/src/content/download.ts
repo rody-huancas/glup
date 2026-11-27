@@ -11,7 +11,7 @@ export const DOWNLOAD = {
   github       : 'Ver el código en GitHub',
   stepsTitle   : 'Cómo instalarlo',
   steps        : [
-    'Entra a la última versión y descarga el instalador (el archivo que termina en -setup.exe).',
+    'Entra a la última versión y descarga el instalador: el archivo Glup-…-Windows.exe.',
     'Ábrelo y sigue los pasos. Glup aparece arriba de tu pantalla y en la bandeja, junto al reloj.',
   ],
   needsTitle   : 'Requisitos',

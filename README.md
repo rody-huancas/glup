@@ -154,7 +154,7 @@ nueva. Solo se instala cuando tocas «Actualizar ahora».
 ## Cómo instalarlo
 
 1. Entra a [la última versión](https://github.com/rody-huancas/glup/releases/latest) y descarga el
-   instalador (el archivo que termina en `-setup.exe`).
+   instalador: `Glup-<versión>-Windows.exe` (por ejemplo, `Glup-0.1.1-Windows.exe`).
 2. Ábrelo y sigue los pasos. Glup aparece arriba de tu pantalla y en la bandeja, junto al reloj.
 
 **Si sale una ventana azul que dice «Windows protegió tu PC»**: aparece con los programas nuevos que

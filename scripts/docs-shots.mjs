@@ -281,10 +281,32 @@ const appIcon = async (browser) => {
   const cli  = join(desktop, 'node_modules', '@tauri-apps', 'cli', 'tauri.js');
   const made = spawnSync(process.execPath, [cli, 'icon', source, '-o', out], { cwd: desktop, encoding: 'utf8' });
   if (made.status !== 0) throw new Error(`tauri icon: ${made.stderr}`);
-  return readdirSync(icons).filter((file) => existsSync(join(out, file))).map((file) => {
+  const copied = readdirSync(icons).filter((file) => existsSync(join(out, file))).map((file) => {
     copyFileSync(join(out, file), join(icons, file));
     return join(icons, file);
   });
+  return [...copied, ...(await installerImages(browser, icons))];
+};
+
+// The pictures of the installer and the uninstaller (tauri.conf.json, bundle.windows.nsis): the same Glup
+// as the icon, in the 24-bit BMPs NSIS asks for. The header (150 x 57) on white, as NSIS draws its
+// header; the side of the first and last pages (164 x 314) on the app's dark background.
+const NSIS_IMAGES = [
+  { file: 'nsis-header.bmp',  width: 150, height: 57,  glup: 52,  top: 2,  background: 'white' },
+  { file: 'nsis-sidebar.bmp', width: 164, height: 314, glup: 132, top: 72, background: '0x141318' },
+];
+
+const installerImages = async (browser, icons) => {
+  const made = [];
+  for (const image of NSIS_IMAGES) {
+    const glup = join(scratch, `${image.file}.png`);
+    writeFileSync(glup, await drawGlup(browser, { width: image.glup, square: true, margin: 0.04 }));
+    const out  = join(icons, image.file);
+    const left = Math.round((image.width - image.glup) / 2);
+    ffmpeg(['-f', 'lavfi', '-i', `color=c=${image.background}:s=${image.width}x${image.height}`, '-i', glup, '-filter_complex', `[0][1]overlay=${left}:${image.top}`, '-frames:v', '1', '-pix_fmt', 'bgr24', out]);
+    made.push(out);
+  }
+  return made;
 };
 
 // `pnpm docs:shots inicio glup logo` makes only those (glup: the GIF and the MP4; icono: the icon of the
