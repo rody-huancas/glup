@@ -26,6 +26,8 @@ mod tests {
     use super::*;
     use crate::services::cleanup::tests::{age_file, now, temp_folder, write_file, DAY_MS};
 
+    // They back-date the creation time too (age_file), which only Windows lets a test do.
+    #[cfg(windows)]
     #[test]
     fn keeps_files_from_the_last_24_hours() {
         let root   = temp_folder("temp-age");
