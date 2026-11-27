@@ -1,0 +1,30 @@
+---
+// 4. Pictures and PDF: real captures of the panel (a finished Imágenes task and the PDF family) and a
+// short list of skills of each.
+import { Image } from 'astro:assets';
+import resultShot from '@docs/resultado.webp';
+import pdfShot from '@docs/familia-pdf.webp';
+import RetroWindow from '@/components/retro-window.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+
+const SHOTS = [resultShot, pdfShot];
+---
+
+<SlideFrame tone="navy" page={4}>
+  <h2 class="social-title">{SOCIAL.imagesPdf.title}</h2>
+
+  {/* In a cascade: the second window over the first, so both fit with the skills below. */}
+  <div class="mt-10 flex flex-col">
+    {SHOTS.map((shot, index) => (
+      <RetroWindow title={SOCIAL.imagesPdf.windows[index]} accent={index === 0 ? 'lilac' : 'coral'} class:list={['relative w-2/3 text-ink', index === 1 && '-mt-24 self-end']}>
+        <Image class="social-shot" src={shot} alt={SOCIAL.imagesPdf.alts[index]} widths={[1240]} sizes="620px" format="png" />
+      </RetroWindow>
+    ))}
+  </div>
+
+  <div class="mt-10 flex flex-col gap-4">
+    <p class="flex gap-3">{SOCIAL.imagesPdf.images.map((skill) => <span class="social-chip bg-lilac">{skill}</span>)}</p>
+    <p class="flex gap-3">{SOCIAL.imagesPdf.pdf.map((skill) => <span class="social-chip bg-coral">{skill}</span>)}</p>
+  </div>
+</SlideFrame>
