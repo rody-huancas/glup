@@ -1,6 +1,6 @@
 # Builds Glup for Windows when a v*.*.* tag is pushed and leaves a draft Release with the NSIS installer
-# (the only one: it writes and removes the Explorer's entries), its .sig and the signed latest.json for
-# the updater. The notes come from .github/release-notes.md. The draft is reviewed and published by
+# (the only one: it writes and removes the Explorer's entries) named Glup-<version>-Windows.exe, its .sig
+# and the signed latest.json for the updater. The notes come from .github/release-notes.md. The draft is reviewed and published by
 # hand, marked as the latest release (CONTRIBUTING.md, «Publicar una versión»).
 name: Release
 
@@ -110,6 +110,33 @@ jobs:
           prerelease: false
           includeUpdaterJson: true
 
+      # A clearer name than Tauri's (Glup_<version>_x64-setup.exe): Glup-<version>-Windows.exe and its
+      # .sig. The signature is of the file's bytes, not of its name, so it stays valid; latest.json is
+      # rewritten to point at the new name (and checked to carry that same signature), and the assets
+      # with the old name are removed. Done here, from the files of the build, so it does not depend on
+      # how tauri-action names its uploads.
+      - name: Installer name
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.notes.outputs.version }}
+        run: |
+          old="Glup_${VERSION}_x64-setup.exe"
+          new="Glup-${VERSION}-Windows.exe"
+          nsis="apps/desktop/src-tauri/target/release/bundle/nsis"
+          dir="${RUNNER_TEMP}/assets"
+          mkdir -p "$dir"
+          cp "$nsis/$old" "$dir/$new"
+          cp "$nsis/$old.sig" "$dir/$new.sig"
+          gh release download "$GITHUB_REF_NAME" --pattern latest.json --dir "$dir" --clobber
+          jq --arg old "$old" --arg new "$new" '.platforms |= map_values(.url |= (split($old) | join($new)))' "$dir/latest.json" > "$dir/latest.new.json"
+          mv "$dir/latest.new.json" "$dir/latest.json"
+          signature=$(cat "$dir/$new.sig")
+          jq -e --arg sig "$signature" 'all(.platforms[]; .signature == $sig)' "$dir/latest.json" > /dev/null || { echo "::error::La firma de latest.json no es la del instalador"; exit 1; }
+          gh release upload "$GITHUB_REF_NAME" "$dir/$new" "$dir/$new.sig" "$dir/latest.json" --clobber
+          gh release delete-asset "$GITHUB_REF_NAME" "$old" --yes
+          gh release delete-asset "$GITHUB_REF_NAME" "$old.sig" --yes
+
       # The draft must have the installer, its signature and a latest.json that points at this version's
       # installer: otherwise the installed copies would never see it.
       - name: Check the draft
@@ -118,12 +145,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.notes.outputs.version }}
         run: |
-          installer="Glup_${VERSION}_x64-setup.exe"
+          installer="Glup-${VERSION}-Windows.exe"
           assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')
           echo "$assets"
           for name in "$installer" "$installer.sig" latest.json; do
             grep -qxF "$name" <<< "$assets" || { echo "::error::Falta $name en el borrador"; exit 1; }
           done
+          if grep -q -- '-setup\.exe' <<< "$assets"; then echo "::error::Quedó un instalador con el nombre de Tauri"; exit 1; fi
           gh release download "$GITHUB_REF_NAME" --pattern latest.json --dir "$RUNNER_TEMP" --clobber
           url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${installer}"
           grep -qF "\"version\":\"${VERSION}\"" <(tr -d ' \n' < "$RUNNER_TEMP/latest.json") || { echo "::error::latest.json no dice la versión ${VERSION}"; exit 1; }
