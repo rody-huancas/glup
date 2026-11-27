@@ -1,0 +1,17 @@
+---
+interface IBubbleArtProps {
+  text   : string;
+  class? : string;
+}
+
+type Props = IBubbleArtProps;
+
+const { text, class: className } = Astro.props;
+const shape                      = 'M18 8 H122 Q136 8 136 22 V58 Q136 72 122 72 H56 L34 92 L38 72 H18 Q4 72 4 58 V22 Q4 8 18 8 Z';
+---
+
+<svg class={className} viewBox="0 0 150 104" aria-hidden="true" focusable="false">
+  <path class="art-stroke stroke-ink fill-ink" d={shape} transform="translate(7 7)" />
+  <path class="art-stroke stroke-ink fill-white" d={shape} />
+  <text class="fill-ink font-display" x="70" y="52" font-size="34" font-weight="800" text-anchor="middle">{text}</text>
+</svg>

@@ -1,0 +1,29 @@
+---
+import type { Accent } from '@/types/content.types';
+
+interface ISparkleArtProps {
+  accent? : Accent;
+  class?  : string;
+}
+
+type Props = ISparkleArtProps;
+
+const { accent = 'yellow', class: className } = Astro.props;
+
+const FILLS: Record<Accent, string> = {
+  brand  : 'fill-brand',
+  lilac  : 'fill-lilac',
+  coral  : 'fill-coral',
+  yellow : 'fill-yellow',
+  sky    : 'fill-sky',
+  mint   : 'fill-mint',
+  silver : 'fill-silver',
+};
+---
+
+<svg class={className} viewBox="0 0 60 60" aria-hidden="true" focusable="false">
+  <path
+    class:list={['art-stroke stroke-ink', FILLS[accent]]}
+    d="M30 4 C33 20 40 27 56 30 C40 33 33 40 30 56 C27 40 20 33 4 30 C20 27 27 20 30 4 Z"
+  />
+</svg>

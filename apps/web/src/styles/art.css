@@ -1,0 +1,20 @@
+@layer components {
+  .art-stroke {
+    stroke-width    : 4;
+    stroke-linejoin : round;
+    stroke-linecap  : round;
+  }
+
+  .art-thin {
+    stroke-width    : 3;
+    stroke-linejoin : round;
+    stroke-linecap  : round;
+  }
+
+  /* Objects that only fit on wide screens: phones get a simpler scene. */
+  @media (width < 48rem) {
+    .art-extra {
+      display : none;
+    }
+  }
+}

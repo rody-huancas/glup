@@ -1,0 +1,78 @@
+---
+import type { FileKind } from '@/types/content.types';
+
+interface IFileTileProps {
+  kind   : FileKind;
+  class? : string;
+}
+
+type Props = IFileTileProps;
+
+const { kind, class: className } = Astro.props;
+
+// Front face and the darker side that gives it volume.
+const COLORS: Record<FileKind, { face: string; deep: string }> = {
+  pdf   : { face: 'fill-coral',  deep: 'fill-coral-deep' },
+  photo : { face: 'fill-lilac',  deep: 'fill-lilac-deep' },
+  voice : { face: 'fill-yellow', deep: 'fill-yellow-deep' },
+  video : { face: 'fill-yellow', deep: 'fill-yellow-deep' },
+  text  : { face: 'fill-sky',    deep: 'fill-sky-deep' },
+  zip   : { face: 'fill-silver', deep: 'fill-silver-deep' },
+};
+
+const { face, deep } = COLORS[kind];
+const sheet          = 'M14 10 H74 L98 34 V118 H14 Z';
+---
+
+<svg class={className} viewBox="0 0 120 140" aria-hidden="true" focusable="false">
+  <path class:list={['art-stroke stroke-ink', deep]} d={sheet} transform="translate(10 12)" />
+  <path class="art-stroke stroke-ink" d="M14 118 L24 130 M98 34 L108 46 M98 118 L108 130" />
+  <path class:list={['art-stroke stroke-ink', face]} d={sheet} />
+  <path class:list={['art-stroke stroke-ink', deep]} d="M74 10 V34 H98 Z" />
+
+  {kind === 'pdf' && (
+    <g>
+      <rect class="art-thin stroke-ink fill-white" x="24" y="64" width="64" height="30" rx="6" />
+      <text class="fill-ink font-mono" x="56" y="86" font-size="19" font-weight="800" text-anchor="middle">PDF</text>
+      <path class="art-thin stroke-ink" d="M26 48 H62 M26 104 H70" />
+    </g>
+  )}
+
+  {kind === 'photo' && (
+    <g>
+      <rect class="art-thin stroke-ink fill-white" x="24" y="44" width="62" height="58" rx="6" />
+      <circle class="art-thin stroke-ink fill-yellow" cx="68" cy="60" r="7" />
+      <path class="art-thin stroke-ink fill-lilac-deep" d="M28 98 L46 72 L58 86 L66 78 L82 98 Z" />
+    </g>
+  )}
+
+  {kind === 'voice' && (
+    <g>
+      <rect class="art-thin stroke-ink fill-white" x="24" y="52" width="64" height="44" rx="22" />
+      <path class="art-thin stroke-ink" d="M38 68 V80 M46 62 V86 M54 66 V82 M62 58 V90 M70 66 V82 M76 70 V78" />
+    </g>
+  )}
+
+  {kind === 'video' && (
+    <g>
+      <rect class="art-thin stroke-ink fill-white" x="22" y="48" width="66" height="50" rx="8" />
+      <path class="art-thin stroke-ink fill-coral" d="M48 60 L68 73 L48 86 Z" />
+      <path class="art-thin stroke-ink" d="M22 106 H88" />
+    </g>
+  )}
+
+  {kind === 'text' && (
+    <g>
+      <text class="fill-ink font-display" x="24" y="66" font-size="26" font-weight="800">Aa</text>
+      <path class="art-thin stroke-ink" d="M26 80 H86 M26 92 H78 M26 104 H66" />
+    </g>
+  )}
+
+  {kind === 'zip' && (
+    <g>
+      <path class="art-thin stroke-ink" d="M50 14 H58 M58 22 H66 M50 30 H58 M58 38 H66 M50 46 H58 M58 54 H66" />
+      <rect class="art-thin stroke-ink fill-white" x="47" y="62" width="22" height="30" rx="5" />
+      <rect class="art-thin stroke-ink fill-silver-deep" x="53" y="72" width="10" height="12" rx="2" />
+    </g>
+  )}
+</svg>
