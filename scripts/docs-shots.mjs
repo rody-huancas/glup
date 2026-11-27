@@ -168,7 +168,6 @@ const encodeClip = ({ list, frame }) => {
 };
 
 const PANELS = [
-  { name: 'inicio', query: 'screen=home' },
   { name: 'habilidades', query: 'screen=tools' },
   { name: 'familia-pdf', query: 'screen=family&id=pdf' },
   { name: 'tarea-en-curso', query: 'screen=task' },

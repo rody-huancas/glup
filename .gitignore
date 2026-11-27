@@ -3,3 +3,12 @@ dist
 target
 *.log
 .DS_Store
+
+# Secrets never go in the repo; only the example.
+.env*
+!.env.example
+
+# Generated locally (pnpm social:shots, pnpm web:shots, pnpm docs:shots): not versioned.
+docs/images/social/
+docs/images/landing/
+docs/images/glup.mp4

@@ -5,7 +5,7 @@ import type { AutoRule } from '@/modules/auto-folders/interfaces/autoRule';
 import type { AutoToolId } from '@/modules/auto-folders/types/autoToolId';
 import { blankDraft, choiceOf, draftFromRule, draftFromTemplate, draftProblem, extensionsOf, folderLabel, inputFromDraft, optionsFor, sentenceOf, withTool } from '@/modules/auto-folders/utils/draft';
 
-const downloads = 'C:\\Users\\Rody\\Downloads';
+const downloads = 'C:\\Users\\Ana\\Downloads';
 
 describe('a rule as a sentence', () => {
   it('reads like a person would say it', () => {

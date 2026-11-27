@@ -18,10 +18,10 @@ export const greetingFor = (hour: number): string => {
   return GREETING_TEXTS.night;
 };
 
-// «Rody Huancas» → «Rody».
+// «Ana Torres» → «Ana».
 export const firstName = (full: string | null): string | null => full?.trim().split(/\s+/)[0] || null;
 
-// «RODY» or «rody» → «Rody» (each word); a name already mixed («McDonald», «DeLuca») stays as written.
+// «ANA» or «ana» → «Ana» (each word); a name already mixed («McDonald», «DeLuca») stays as written.
 export const tidyName = (name: string): string => {
   const same = name === name.toUpperCase() || name === name.toLowerCase();
   if (!same) return name;
@@ -34,5 +34,5 @@ export const greetingName = ({ custom, account }: GreetingNameParams): string | 
   return name ? tidyName(name) : null;
 };
 
-// «¡Buenos días, Rody!» or «¡Buenas noches!».
+// «¡Buenos días, Ana!» or «¡Buenas noches!».
 export const greetingLine = ({ hour, name }: GreetingParams): string => `¡${greetingFor(hour)}${name ? `, ${name}` : ''}!`;

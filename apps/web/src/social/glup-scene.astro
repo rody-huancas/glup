@@ -1,0 +1,38 @@
+---
+// Glup with files falling toward it, the «ñam» bubble and sparkles: the landing's hero picture, for the
+// cover, the post and the link card. `size` is Glup's width in pixels.
+import BubbleArt from '@/components/art/bubble-art.astro';
+import FileTile from '@/components/art/file-tile.astro';
+import SparkleArt from '@/components/art/sparkle-art.astro';
+import GlupFigure from '@/components/glup-figure.astro';
+import { SOCIAL } from '@/social/slides';
+import type { FileKind } from '@/types/content.types';
+
+interface IGlupSceneProps {
+  size   : number;
+  class? : string;
+}
+
+type Props = IGlupSceneProps;
+
+const { size, class: className } = Astro.props;
+
+// Along a diagonal toward Glup's mouth.
+const FILES: { kind: FileKind; place: string; tilt: string }[] = [
+  { kind: 'pdf',   place: 'top-0 left-0 w-1/5',     tilt: '-rotate-12' },
+  { kind: 'photo', place: 'top-1/6 left-1/4 w-1/5', tilt: 'rotate-6' },
+  { kind: 'voice', place: 'top-0 left-1/2 w-1/6',   tilt: 'rotate-12' },
+  { kind: 'video', place: 'top-2/5 left-0 w-1/6',   tilt: '-rotate-6' },
+  { kind: 'text',  place: 'top-1/3 left-1/2 w-1/6', tilt: '-rotate-6' },
+];
+---
+
+<div class:list={['relative aspect-square', className]} aria-hidden="true">
+  {FILES.map((file) => (
+    <div class:list={['absolute', file.place]}><FileTile kind={file.kind} class={`w-full ${file.tilt}`} /></div>
+  ))}
+  <div class="absolute top-1/3 right-0 w-1/4"><BubbleArt text={SOCIAL.cover.munch} class="w-full" /></div>
+  <div class="absolute top-3/5 left-1/4 w-1/12"><SparkleArt class="w-full" /></div>
+  <div class="absolute top-1/6 right-1/4 w-1/14"><SparkleArt accent="coral" class="w-full" /></div>
+  <GlupFigure width={size} eager class="absolute right-1/12 bottom-0 w-3/5" />
+</div>

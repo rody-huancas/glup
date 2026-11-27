@@ -1,0 +1,20 @@
+---
+// 5. Audio and video: the real capture of Subtítulos and the media skills.
+import { Image } from 'astro:assets';
+import subtitlesShot from '@docs/subtitulos.webp';
+import RetroWindow from '@/components/retro-window.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+---
+
+<SlideFrame page={5}>
+  <h2 class="social-title">{SOCIAL.media.title}</h2>
+
+  <RetroWindow title={SOCIAL.media.window} accent="yellow" class="mt-12">
+    <Image class="social-shot" src={subtitlesShot} alt={SOCIAL.media.alt} widths={[1840]} sizes="920px" format="png" />
+  </RetroWindow>
+
+  <div class="mt-12 flex flex-wrap gap-4">
+    {SOCIAL.media.skills.map((skill) => <span class="social-chip bg-yellow">{skill}</span>)}
+  </div>
+</SlideFrame>

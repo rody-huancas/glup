@@ -62,7 +62,8 @@ arrow functions, imports, comentarios, licencias. Aquí no se repite.
 14. **Pruebas**: Vitest para `lib/` (`pnpm --filter web test`); `pnpm --filter web typecheck`
     (`astro check`) y `pnpm web:build` sin errores ni avisos.
 15. **Capturas**: `pnpm web:shots` construye la página, la abre en Edge con `playwright-core` y deja
-    en `docs/images/landing/` las capturas de escritorio y de celular, y en `apps/web/public/` la
+    en `docs/images/landing/` las capturas de escritorio y de celular (solo en local: no se versionan,
+    `.gitignore`), y en `apps/web/public/` la
     imagen para compartir y los favicons. Nada queda corriendo.
 
 ## Comandos
@@ -71,6 +72,7 @@ arrow functions, imports, comentarios, licencias. Aquí no se repite.
 pnpm web:dev                    # astro dev
 pnpm web:build                  # astro build → apps/web/dist
 pnpm web:shots                  # capturas, imagen para compartir y favicons
+pnpm social:shots               # imágenes para redes en docs/images/social (src/social, solo en dev)
 pnpm --filter web typecheck     # astro check
 pnpm --filter web test          # vitest
 ```

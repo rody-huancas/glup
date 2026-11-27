@@ -1,0 +1,22 @@
+---
+// 8. Closing: free and open source, Glup waving, where to download it and the code.
+import GlupLogo from '@/components/art/glup-logo.astro';
+import SparkleArt from '@/components/art/sparkle-art.astro';
+import GlupFigure from '@/components/glup-figure.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+---
+
+<SlideFrame page={8}>
+  <h2 class="social-title text-center">{SOCIAL.close.title}</h2>
+
+  <div class="relative mx-auto mt-10 w-120" aria-hidden="true">
+    <GlupFigure width={480} eager wave class="social-waving w-full" />
+    <div class="absolute top-1/6 -left-12 w-16"><SparkleArt class="w-full" /></div>
+    <div class="absolute top-1/2 -right-14 w-12"><SparkleArt accent="lilac" class="w-full" /></div>
+  </div>
+
+  <GlupLogo class="mx-auto mt-12 w-120" />
+  <p class="social-phrase mt-12 text-center">{SOCIAL.close.download}</p>
+  <p class="social-mono mt-6 text-center text-ink-soft">{SOCIAL.repo}</p>
+</SlideFrame>

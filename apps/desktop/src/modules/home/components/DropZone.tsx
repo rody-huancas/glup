@@ -12,7 +12,7 @@ interface DropZoneProps {
   compact : boolean;
 }
 
-// The mint card of Inicio: a big Glup, the greeting of the hour («¡Buenos días, Rody!»), «Suelta algo aquí
+// The mint card of Inicio: a big Glup, the greeting of the hour («¡Buenos días, Ana!»), «Suelta algo aquí
 // o elige qué hacemos» and «Elegir archivos»; the whole card is the drop zone (its dashed border lights up
 // while a file is dragged over the window). With files chosen (or a task showing) it becomes a one-line
 // bar (small Glup, "Suelta más archivos o elige" and the button), so the task gets the room. Both layouts

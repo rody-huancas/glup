@@ -6,7 +6,7 @@ Tailwind CSS v4 y GSAP. Las reglas están en la skill `.claude/skills/landing/`.
 ```bash
 pnpm web:dev       # en la raíz del repo
 pnpm web:build     # apps/web/dist
-pnpm web:shots     # capturas en docs/images/landing, imagen para compartir y favicons
+pnpm web:shots     # capturas en docs/images/landing (solo en local), imagen para compartir y favicons
 ```
 
 - **Textos**: `src/content/`, un archivo por sección. Salen del README y de la app: si cambian allá,

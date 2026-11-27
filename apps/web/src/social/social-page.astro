@@ -1,0 +1,44 @@
+---
+// /social/<page>, only with `astro dev` or GLUP_SOCIAL=1 (astro.config.ts): one social picture per page,
+// at its exact size, for `pnpm social:shots`.
+import '@/styles/globals.css';
+import '@/social/social.css';
+import LinkCard from '@/social/link-card.astro';
+import PostSquare from '@/social/post-square.astro';
+import SlideClose from '@/social/slide-close.astro';
+import SlideCover from '@/social/slide-cover.astro';
+import SlideHow from '@/social/slide-how.astro';
+import SlideImagesPdf from '@/social/slide-images-pdf.astro';
+import SlideMedia from '@/social/slide-media.astro';
+import SlidePc from '@/social/slide-pc.astro';
+import SlidePrivacy from '@/social/slide-privacy.astro';
+import SlideProblem from '@/social/slide-problem.astro';
+import { SOCIAL_PAGES } from '@/social/slides';
+import type { SocialPage } from '@/social/slides';
+
+export const getStaticPaths = () => SOCIAL_PAGES.map((slide) => ({ params: { slide } }));
+
+const slide = Astro.params.slide as SocialPage;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Glup · {slide}</title>
+  </head>
+
+  <body class="social-body">
+    {slide === 'portada' && <SlideCover />}
+    {slide === 'problema' && <SlideProblem />}
+    {slide === 'como-funciona' && <SlideHow />}
+    {slide === 'imagenes-pdf' && <SlideImagesPdf />}
+    {slide === 'audio-video' && <SlideMedia />}
+    {slide === 'tu-pc' && <SlidePc />}
+    {slide === 'privacidad' && <SlidePrivacy />}
+    {slide === 'cierre' && <SlideClose />}
+    {slide === 'post' && <PostSquare />}
+    {slide === 'enlace' && <LinkCard />}
+  </body>
+</html>

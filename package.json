@@ -14,9 +14,11 @@
     "dev:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop-dev.ps1",
     "voz:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-voz.ps1",
     "docs:shots": "node scripts/docs-shots.mjs",
-    "web:shots": "node scripts/landing-shots.mjs"
+    "web:shots": "node scripts/landing-shots.mjs",
+    "social:shots": "node scripts/social-shots.mjs"
   },
   "devDependencies": {
-    "playwright-core": "1.65.1"
+    "playwright-core": "1.65.1",
+    "sharp": "0.35.5"
   }
 }
