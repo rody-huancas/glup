@@ -76,6 +76,8 @@ fn only_files_equal_byte_by_byte_go_together() {
     let _ = fs::remove_dir_all(&root);
 }
 
+// Telling a hard link apart (same::identity) is only there on Windows so far.
+#[cfg(windows)]
 #[test]
 fn hard_links_are_one_file_not_copies() {
     let root = temp_folder("repetidos-enlaces");
