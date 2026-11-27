@@ -1,0 +1,22 @@
+---
+// 7. Privacy: «Todo se queda en tu PC» with the landing's three promises.
+import { PRIVACY_PROMISES } from '@/content/privacy';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+
+const MARKS = ['bg-sky', 'bg-mint', 'bg-lilac'];
+---
+
+<SlideFrame tone="navy" page={7}>
+  <h2 class="social-title">{SOCIAL.privacy.title}</h2>
+
+  <ul class="mt-14 flex flex-col gap-8">
+    {PRIVACY_PROMISES.map((promise, index) => (
+      <li class="rounded-window border-3 border-on-navy p-10">
+        <span class:list={['block size-8 rounded-full border-3 border-ink', MARKS[index]]} aria-hidden="true"></span>
+        <h3 class="social-card-title mt-6">{promise.title}</h3>
+        <p class="social-card-body mt-4 text-on-navy-soft">{promise.body}</p>
+      </li>
+    ))}
+  </ul>
+</SlideFrame>
