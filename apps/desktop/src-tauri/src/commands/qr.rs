@@ -4,6 +4,7 @@ use tauri::{
 };
 
 use crate::services::{
+    platform::{require, Feature},
     qr::{self, read::ReadCode, FileCodes, QrPreview, QrRequest, SaveQrRequest, WifiRequest},
     screen_text::{self, CaptureMode},
 };
@@ -26,6 +27,7 @@ pub async fn save_qr(app: AppHandle, request: SaveQrRequest) -> Result<String, S
 
 #[tauri::command]
 pub async fn copy_qr(app: AppHandle, request: QrRequest) -> Result<(), String> {
+    require(Feature::Clipboard)?;
     blocking(move || qr::copy(&app, &request)).await
 }
 
@@ -44,6 +46,7 @@ pub async fn read_qr_bytes(request: Request<'_>) -> Result<Vec<ReadCode>, String
 
 #[tauri::command]
 pub async fn read_qr_clipboard() -> Result<Vec<ReadCode>, String> {
+    require(Feature::Clipboard)?;
     blocking(qr::read_clipboard).await
 }
 
@@ -77,5 +80,6 @@ pub fn open_qr_link(url: String) -> Result<(), String> {
 // «Conectarme» (asked first on the screen).
 #[tauri::command]
 pub async fn connect_qr_wifi(request: WifiRequest) -> Result<(), String> {
+    require(Feature::WifiConnect)?;
     blocking(move || qr::connect_wifi(&request)).await
 }

@@ -4,6 +4,7 @@ use std::path::Path;
 
 use crate::services::qr::content::WifiSecurity;
 
+#[cfg_attr(not(windows), allow(dead_code))]
 pub const CONNECT_ERROR: &str = "No pude conectarme a esa red. Revisa que esté cerca y que la contraseña sea la correcta.";
 
 fn escape_xml(value: &str) -> String {
@@ -54,5 +55,5 @@ pub fn connect(folder: &Path, ssid: &str, password: &str, security: WifiSecurity
 
 #[cfg(not(windows))]
 pub fn connect(_folder: &Path, _ssid: &str, _password: &str, _security: WifiSecurity, _hidden: bool) -> Result<(), String> {
-    Err(CONNECT_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::WifiConnect))
 }
