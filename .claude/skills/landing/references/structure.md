@@ -23,6 +23,10 @@ apps/web/
     │   ├── retro-window.astro, section-heading.astro, button-link.astro, glup-figure.astro
     │   └── art/              Ilustraciones SVG: file-tile, cursor, sparkle, bubble, folder, family-*
     ├── assets/familias/      Los Glups de familia en PNG transparente y recortado
+    ├── social/               /social/<página>, solo con astro dev: las imágenes para redes (carrusel
+    │                         de 8 diapositivas 1080 x 1350, post 1200 x 1200, enlace 1200 x 627), con
+    │                         sus textos en slides.ts; pnpm social:shots las saca a docs/images/social
+    │                         (solo en local: las imágenes no se versionan, el generador sí)
     ├── content/              Los textos, un archivo por sección (site, hero, families, steps,
     │                         privacy, faq, download, footer)
     ├── config/               links.ts (descarga, repo, autor), sections.ts (la barra), seo.ts

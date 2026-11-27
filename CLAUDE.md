@@ -41,6 +41,7 @@ pnpm dev:stop                              # cierra solo lo de desarrollo (glup.
 pnpm web:dev                               # la página de descarga (apps/web)
 pnpm web:build                             # apps/web/dist
 pnpm web:shots                             # capturas de la página, imagen para compartir y favicons
+pnpm social:shots                          # imágenes para redes (carrusel, PDF, post y enlace) en docs/images/social
 pnpm voz:build                             # glup-voz.exe, la tarjeta de video de «Pasar audio a texto» (pide el Vulkan SDK)
 
 pnpm --filter desktop typecheck            # tsc
