@@ -56,7 +56,8 @@ walkdir                      = "2.5"
 blake3                       = "1.8"
 trash                        = "5.4"
 # Background removal: ONNX Runtime (prebuilt, linked at build time), the one-time model download and its check.
-ort                          = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "download-binaries", "copy-dylibs", "tls-native", "api-31", "directml"] }
+# On the processor everywhere; the graphics card (DirectML) is added for Windows below.
+ort                          = { version = "=2.0.0-rc.15", default-features = false, features = ["std", "download-binaries", "copy-dylibs", "tls-native", "api-31"] }
 ureq                         = "3.5"
 sha2                         = "0.11"
 # Random file key for "Poner contraseña" (AES-256, done by lopdf).
@@ -76,6 +77,8 @@ windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphic
 # Windows notifications with a click handler (the notification plugin has none on desktop).
 tauri-winrt-notification = "0.8"
 windows     = { version = "0.62", features = ["Foundation", "Foundation_Collections", "Globalization", "Graphics_Imaging", "Devices_Power", "Media_FaceAnalysis", "Media_Ocr", "Storage_Streams", "System", "System_Power", "System_UserProfile", "Win32_System_Com", "Win32_System_WinRT", "Win32_UI_Shell"] }
+# Quitar fondo and Mejorar calidad on the graphics card (DirectML); its features add up with the ones above.
+ort         = { version = "=2.0.0-rc.15", default-features = false, features = ["directml"] }
 
 # Errors still show file and line, but the debug info weighs far less (target grew to tens of GB).
 [profile.dev]
