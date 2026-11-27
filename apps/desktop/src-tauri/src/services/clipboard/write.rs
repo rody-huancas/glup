@@ -3,7 +3,9 @@
 // what it writes, which is also how the watcher knows not to keep Glup's own copies.
 use tauri::AppHandle;
 
+#[cfg_attr(not(windows), allow(dead_code))]
 pub const CLIPBOARD_ERROR: &str = "No pude copiar el texto";
+#[cfg_attr(not(windows), allow(dead_code))]
 pub const IMAGE_ERROR: &str     = "No pude copiar la imagen";
 // The format that keeps transparency, for the programs that read it.
 pub const PNG_FORMAT: &str = "PNG";
@@ -106,12 +108,12 @@ pub fn copy_image(app: &AppHandle, png: &[u8]) -> Result<(), String> {
 
 #[cfg(not(windows))]
 pub fn copy_text(_app: &AppHandle, _text: &str) -> Result<(), String> {
-    Err(CLIPBOARD_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::Clipboard))
 }
 
 #[cfg(not(windows))]
 pub fn copy_image(_app: &AppHandle, _png: &[u8]) -> Result<(), String> {
-    Err(IMAGE_ERROR.to_string())
+    Err(crate::services::platform::unavailable(crate::services::platform::Feature::Clipboard))
 }
 
 #[cfg(test)]

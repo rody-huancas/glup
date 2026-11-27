@@ -1,6 +1,7 @@
 use tauri::{ipc::Response, AppHandle};
 
 use crate::services::clipboard::{self, store::ClipView, ClipboardStatus};
+use crate::services::platform::{require, Feature};
 
 #[tauri::command]
 pub fn get_clipboard_status(app: AppHandle) -> ClipboardStatus {
@@ -9,6 +10,7 @@ pub fn get_clipboard_status(app: AppHandle) -> ClipboardStatus {
 
 #[tauri::command]
 pub fn set_clipboard_enabled(app: AppHandle, enabled: bool) -> Result<ClipboardStatus, String> {
+    require(Feature::Clipboard)?;
     clipboard::set_enabled(&app, enabled)
 }
 
@@ -31,12 +33,14 @@ pub fn pause_clipboard(app: AppHandle, minutes: Option<u32>) -> ClipboardStatus 
 // Pinned on top, then the newest first; only what the search finds.
 #[tauri::command]
 pub async fn list_clips(app: AppHandle, query: String) -> Result<Vec<ClipView>, String> {
+    require(Feature::Clipboard)?;
     tauri::async_runtime::spawn_blocking(move || clipboard::list(&app, &query)).await.map_err(|error| error.to_string())
 }
 
 // An image (or its thumbnail), decrypted, as raw PNG bytes (no JSON).
 #[tauri::command]
 pub async fn get_clip_image(app: AppHandle, id: String, thumb: bool) -> Result<Response, String> {
+    require(Feature::Clipboard)?;
     tauri::async_runtime::spawn_blocking(move || clipboard::image(&app, &id, thumb))
         .await
         .map_err(|error| error.to_string())
@@ -46,6 +50,7 @@ pub async fn get_clip_image(app: AppHandle, id: String, thumb: bool) -> Result<R
 
 #[tauri::command]
 pub async fn copy_clip(app: AppHandle, id: String) -> Result<(), String> {
+    require(Feature::Clipboard)?;
     tauri::async_runtime::spawn_blocking(move || clipboard::copy(&app, &id)).await.map_err(|error| error.to_string()).and_then(|result| result)
 }
 
