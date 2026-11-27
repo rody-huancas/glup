@@ -1,0 +1,16 @@
+---
+// 1200 x 627: the picture when the link is shared.
+import GlupLogo from '@/components/art/glup-logo.astro';
+import GlupScene from '@/social/glup-scene.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+---
+
+<SlideFrame shape="link">
+  <div class="flex flex-1 flex-col">
+    <GlupLogo class="w-136" />
+    <p class="social-phrase mt-8">{SOCIAL.link.phrase}</p>
+    <p class="social-mono mt-8 text-2xl text-ink-soft">{SOCIAL.cover.bottom.join(' · ')}</p>
+  </div>
+  <GlupScene size={300} class="w-120 shrink-0" />
+</SlideFrame>

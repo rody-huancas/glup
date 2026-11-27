@@ -1,0 +1,17 @@
+---
+// 1200 x 1200: the cover for a single post.
+import GlupLogo from '@/components/art/glup-logo.astro';
+import GlupScene from '@/social/glup-scene.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+---
+
+<SlideFrame shape="post">
+  <p class="social-label self-start"><span class="size-4 rounded-full border-3 border-ink bg-brand"></span>{SOCIAL.cover.label}</p>
+  <GlupLogo class="mt-8 w-4/5" />
+  <p class="social-phrase mt-8">{SOCIAL.cover.phrase}</p>
+  <GlupScene size={420} class="mx-auto mt-6 w-120" />
+  <p class="social-mono mt-auto mb-12 flex justify-center gap-5 text-ink-soft">
+    {SOCIAL.cover.bottom.map((part, index) => <span>{index > 0 && '· '}{part}</span>)}
+  </p>
+</SlideFrame>
