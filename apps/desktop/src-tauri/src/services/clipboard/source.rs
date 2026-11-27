@@ -85,7 +85,8 @@ mod native {
 #[cfg(windows)]
 pub use native::{display_name, process_path};
 
-#[cfg(test)]
+// Program paths of Windows (C:\…\x.exe): their file name splits on \ only there.
+#[cfg(all(test, windows))]
 mod tests {
     use super::*;
 
