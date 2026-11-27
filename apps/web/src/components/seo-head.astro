@@ -1,0 +1,31 @@
+---
+import { SEO } from '@/config/seo';
+
+// Absolute addresses only with a domain (SITE_URL): without one, no canonical and a relative image.
+const site      = Astro.site;
+const canonical = site ? new URL(Astro.url.pathname, site).href : undefined;
+const image     = site ? new URL(SEO.image, site).href : SEO.image;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{SEO.title}</title>
+<meta name="description" content={SEO.description} />
+<meta name="theme-color" content="#F4F1EA" />
+{canonical && <link rel="canonical" href={canonical} />}
+<link rel="icon" type="image/png" href="/favicon.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content={SEO.title} />
+<meta property="og:description" content={SEO.description} />
+{canonical && <meta property="og:url" content={canonical} />}
+<meta property="og:image" content={image} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={SEO.imageAlt} />
+<meta property="og:locale" content={SEO.locale} />
+<meta property="og:site_name" content={SEO.title} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={SEO.title} />
+<meta name="twitter:description" content={SEO.description} />
+<meta name="twitter:image" content={image} />
