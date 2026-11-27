@@ -6,11 +6,14 @@
   "scripts": {
     "dev": "pnpm --filter desktop tauri dev",
     "build": "pnpm --filter desktop tauri build",
+    "web:dev": "pnpm --filter web dev",
+    "web:build": "pnpm --filter web build",
     "version:set": "node scripts/set-version.mjs",
     "sweep": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sweep-target.ps1",
     "sweep:dry": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sweep-target.ps1 -DryRun",
     "voz:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-voz.ps1",
-    "docs:shots": "node scripts/docs-shots.mjs"
+    "docs:shots": "node scripts/docs-shots.mjs",
+    "web:shots": "node scripts/landing-shots.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.65.1"
