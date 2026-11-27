@@ -1,0 +1,36 @@
+---
+// 3. How it works: the island on a sample desktop (a real capture of the demo mode), Glup eating a file and
+// three short steps.
+import { Image } from 'astro:assets';
+import islandShot from '@docs/isla-abierta.webp';
+import FileTile from '@/components/art/file-tile.astro';
+import GlupFigure from '@/components/glup-figure.astro';
+import RetroWindow from '@/components/retro-window.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+
+const STEP_COLORS = ['bg-lilac', 'bg-yellow', 'bg-mint'];
+---
+
+<SlideFrame page={3}>
+  <h2 class="social-title">{SOCIAL.how.title}</h2>
+
+  <RetroWindow title={SOCIAL.how.window} accent="yellow" class="mt-10">
+    <Image class="social-shot" src={islandShot} alt={SOCIAL.how.alt} widths={[1840]} sizes="920px" format="png" />
+  </RetroWindow>
+
+  <div class="mt-10 flex items-center gap-10">
+    <ol class="flex flex-1 flex-col gap-8">
+      {SOCIAL.how.steps.map((step, index) => (
+        <li class="flex items-center gap-6">
+          <span class:list={['social-step-number', STEP_COLORS[index]]}>{index + 1}</span>
+          <span class="social-step-text">{step}</span>
+        </li>
+      ))}
+    </ol>
+    <div class="relative h-96 w-80 shrink-0" aria-hidden="true">
+      <div class="absolute top-0 left-1/3 w-1/4"><FileTile kind="photo" class="w-full rotate-12" /></div>
+      <GlupFigure width={300} eager class="social-eating absolute bottom-0 left-0 w-full" />
+    </div>
+  </div>
+</SlideFrame>
