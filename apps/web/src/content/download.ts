@@ -13,6 +13,7 @@ export const DOWNLOAD = {
   button       : 'Descargar para Windows',
   note         : (version: string) => `Versión ${version} · ${INSTALLER_SIZE} · Windows 10 y 11`,
   allVersions  : 'Ver todas las versiones',
+  soon         : 'Mac y Linux muy pronto',
   github       : 'Ver el código en GitHub',
   stepsTitle   : 'Cómo instalarlo',
   steps        : [

@@ -4,5 +4,4 @@ export const FOOTER = {
   github  : 'Código en GitHub',
   notices : 'Licencias de terceros',
   author  : 'Hecho por Rody Huancas',
-  place   : 'Hecho en Chiclayo, Perú',
 };

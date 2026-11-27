@@ -25,13 +25,10 @@ const links = [
         <p class="text-ink-soft">{FOOTER.tagline}</p>
       </div>
     </div>
-    <div class="flex flex-col gap-3 md:items-end">
-      <ul class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm font-medium">
-        {links.map((link) => (
-          <li><TextLink href={link.href} class="hover:decoration-coral-deep">{link.label}</TextLink></li>
-        ))}
-      </ul>
-      <p class="font-mono text-sm text-ink-soft">{FOOTER.place}</p>
-    </div>
+    <ul class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm font-medium md:justify-end">
+      {links.map((link) => (
+        <li><TextLink href={link.href} class="hover:decoration-coral-deep">{link.label}</TextLink></li>
+      ))}
+    </ul>
   </div>
 </footer>

@@ -1,6 +1,7 @@
 // pnpm web:shots: the landing's pictures. Builds apps/web, serves dist on a local port (in this same
 // process) and opens it in Edge with playwright-core, as docs:shots does. It leaves:
 //   docs/images/landing/   escritorio.webp (first screen, moving), escritorio-completa.webp,
+//                          escritorio-ideas.webp and celular-ideas.webp (the ideas form, filled in),
 //                          celular.webp, celular-completa.webp, celular-menu.webp
 //   apps/web/public/       og.png (the picture for sharing), favicon.png, apple-touch-icon.png
 // The full pages are taken after walking down the whole page, so what animates on scroll is finished.
@@ -113,6 +114,33 @@ const walkDown = async (page, step) => {
   return page.evaluate(() => document.documentElement.scrollHeight);
 };
 
+// The ideas form (Tally) comes in its own frame once its section comes near: wait until it shows its
+// questions, at most 10 s, so the picture has it filled in.
+const formsReady = async (page) => {
+  try {
+    await page.waitForFunction(() => [...document.querySelectorAll('iframe[data-tally-src]')].every((frame) => frame.src), null, { timeout: 10000 });
+    const forms = page.frames().filter((frame) => frame.url().includes('tally.so'));
+    await Promise.all(forms.map((frame) => frame.waitForFunction(() => document.body?.innerText.trim().length > 0, null, { timeout: 10000 })));
+    // The form fades in once its text is there.
+    await wait(3000);
+  } catch {
+    // Without internet the form stays empty; the rest of the page is taken anyway.
+  }
+};
+
+// One section on its own, on screen (a frame from another site, as the ideas form, is only drawn while on
+// screen: in the whole-page pictures it stays empty), without the fixed bars over it.
+const sectionShot = async (browser, { name, selector, width, height, scale }) => {
+  const { context, page } = await open(browser, { width, height, scale, motion: false });
+  await page.addStyleTag({ content: '[data-nav], body > header, .skip-link { display: none !important; }' });
+  await page.evaluate((target) => document.querySelector(target)?.scrollIntoView({ behavior: 'instant' }), selector);
+  await formsReady(page);
+  const png = join(scratch, `${name}.png`);
+  await page.locator(selector).screenshot({ path: png });
+  toWebp(png, name);
+  await context.close();
+};
+
 // The whole page, as sharp as fits in a WebP, with the animations that played on the way down already
 // finished; the fixed bars go to their ends of the page.
 const wholePage = async (browser, { name, width, height, scale }) => {
@@ -173,6 +201,8 @@ const main = async () => {
       },
     });
     await wholePage(browser, { name: 'celular-completa', ...phone });
+    await sectionShot(browser, { name: 'escritorio-ideas', selector: '#ideas', ...desktop });
+    await sectionShot(browser, { name: 'celular-ideas', selector: '#ideas', ...phone });
     await shareCard(browser);
     copyFileSync(join(pub, 'og.png'), join(dist, 'og.png'));
   } finally {

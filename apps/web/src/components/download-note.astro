@@ -1,18 +1,33 @@
 ---
+// The small line under a download button: version, size and system, and every version. With `soon` (the
+// hero) it also says what is coming next, with a little stamp, in two lines that always fit: the version
+// on top, the stamp · every version below; on phones, one item per line (never a lone «·»).
 import TextLink from '@/components/text-link.astro';
 import { LINKS } from '@/config/links';
 import { DOWNLOAD } from '@/content/download';
 
 interface IDownloadNoteProps {
+  soon?  : boolean;
   class? : string;
 }
 
 type Props = IDownloadNoteProps;
 
-const { class: className } = Astro.props;
+const { soon = false, class: className } = Astro.props;
 ---
 
-<p class:list={['flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs font-medium', className]}>
-  <span>{DOWNLOAD.note(__GLUP_VERSION__)}</span>
-  <TextLink href={LINKS.releases}>{DOWNLOAD.allVersions}</TextLink>
-</p>
+{soon ? (
+  <p class:list={['flex flex-col items-start gap-1.5 font-mono text-xs font-medium', className]}>
+    <span>{DOWNLOAD.note(__GLUP_VERSION__)}</span>
+    <span class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+      <span class="rounded-md border-2 border-ink bg-yellow px-1.5 font-bold text-ink">{DOWNLOAD.soon}</span>
+      <span class="hidden sm:inline" aria-hidden="true">·</span>
+      <TextLink href={LINKS.releases}>{DOWNLOAD.allVersions}</TextLink>
+    </span>
+  </p>
+) : (
+  <p class:list={['flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs font-medium', className]}>
+    <span>{DOWNLOAD.note(__GLUP_VERSION__)}</span>
+    <TextLink href={LINKS.releases}>{DOWNLOAD.allVersions}</TextLink>
+  </p>
+)}
