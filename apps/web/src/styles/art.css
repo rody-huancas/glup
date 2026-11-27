@@ -11,6 +11,47 @@
     stroke-linecap  : round;
   }
 
+  /* The «Glup» logotype (glup-logo.astro): four keycaps in a row; the little file the «u» eats waits
+     above it, unseen. */
+  .logo-keys {
+    position              : relative;
+    display               : grid;
+    grid-template-columns : repeat(4, 1fr);
+    gap                   : 2.5%;
+  }
+
+  .logo-key {
+    display          : block;
+    width            : 100%;
+    height           : auto;
+    overflow         : visible;
+    transform-origin : 50% 100%;
+  }
+
+  .logo-key-letter {
+    font-family  : var(--font-display);
+    font-size    : 96px;
+    font-weight  : 800;
+    font-stretch : 78%;
+  }
+
+  /* The hero's logotype keeps a strip above the keys, inside its own box: the little file appears there,
+     right above the «u», never over the text around. */
+  .logo-keys[data-logo] {
+    padding-top : 9%;
+  }
+
+  .logo-snack {
+    position       : absolute;
+    top            : 0;
+    left           : 58.5%;
+    width          : 7%;
+    height         : auto;
+    overflow       : visible;
+    opacity        : 0;
+    pointer-events : none;
+  }
+
   /* Objects that only fit on wide screens: phones get a simpler scene. */
   @media (width < 48rem) {
     .art-extra {
