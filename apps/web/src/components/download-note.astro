@@ -1,0 +1,18 @@
+---
+import TextLink from '@/components/text-link.astro';
+import { LINKS } from '@/config/links';
+import { DOWNLOAD } from '@/content/download';
+
+interface IDownloadNoteProps {
+  class? : string;
+}
+
+type Props = IDownloadNoteProps;
+
+const { class: className } = Astro.props;
+---
+
+<p class:list={['flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs font-medium', className]}>
+  <span>{DOWNLOAD.note(__GLUP_VERSION__)}</span>
+  <TextLink href={LINKS.releases}>{DOWNLOAD.allVersions}</TextLink>
+</p>
