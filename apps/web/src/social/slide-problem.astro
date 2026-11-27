@@ -1,0 +1,29 @@
+---
+// 2. The problem: generic online converters (no real brands), each with its ad and its catch, crossed out.
+import RetroWindow from '@/components/retro-window.astro';
+import SlideFrame from '@/social/slide-frame.astro';
+import { SOCIAL } from '@/social/slides';
+---
+
+<SlideFrame tone="navy" page={2}>
+  <h2 class="social-title">{SOCIAL.problem.title}</h2>
+
+  <div class="mt-12 grid grid-cols-2 gap-8">
+    {SOCIAL.problem.windows.map((window) => (
+      <div class="relative">
+        <RetroWindow title={window.title} accent="silver" class="text-ink">
+          <div class="flex flex-col gap-4 p-6">
+            <div class="grid h-24 place-items-center rounded-lg border-3 border-dashed border-silver-deep bg-paper-deep social-mono text-ink-soft">{SOCIAL.problem.ad}</div>
+            {window.lines.map((line) => <p class="text-2xl font-semibold">{line}</p>)}
+            <div class="h-10 w-2/3 rounded-lg border-3 border-ink bg-silver"></div>
+          </div>
+        </RetroWindow>
+        <svg class="social-cross" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path class="fill-none stroke-coral" d="M10 12 L90 88 M90 12 L10 88" vector-effect="non-scaling-stroke" />
+        </svg>
+      </div>
+    ))}
+  </div>
+
+  <p class="social-phrase mt-12 mb-6 text-brand">{SOCIAL.problem.answer}</p>
+</SlideFrame>
