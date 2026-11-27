@@ -58,7 +58,10 @@ arrow functions, imports, comentarios, licencias. Aquí no se repite.
     hay canónica ni URL absoluta de la imagen para compartir).
 13. **Rendimiento**: Lighthouse 95+ en rendimiento y accesibilidad. Fuentes autoalojadas
     (`@fontsource-variable`, OFL) con `font-display: swap`, solo el peso variable; nada de
-    terceros (ni analítica, ni fuentes de Google, ni CDNs).
+    terceros (ni analítica, ni fuentes de Google, ni CDNs). Única excepción: el formulario de ideas
+    (Tally, sección «Glup sigue creciendo»), cuyo script se pide solo cuando la sección se acerca a la
+    pantalla (`scripts/ideas-form.ts`); si no carga, el iframe recibe su dirección directa. Sus URL viven
+    en `content/ideas.ts`.
 14. **Pruebas**: Vitest para `lib/` (`pnpm --filter web test`); `pnpm --filter web typecheck`
     (`astro check`) y `pnpm web:build` sin errores ni avisos.
 15. **Capturas**: `pnpm web:shots` construye la página, la abre en Edge con `playwright-core` y deja
