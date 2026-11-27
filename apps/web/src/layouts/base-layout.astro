@@ -1,0 +1,33 @@
+---
+import '@/styles/globals.css';
+import SectionNav from '@/components/section-nav.astro';
+import SeoHead from '@/components/seo-head.astro';
+import SiteFooter from '@/components/site-footer.astro';
+import TopBar from '@/components/top-bar.astro';
+import { SEO } from '@/config/seo';
+import { SITE } from '@/content/site';
+---
+
+<!doctype html>
+<html lang={SEO.language}>
+  <head>
+    <SeoHead />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+
+  <body class="bg-paper text-ink">
+    <a href="#contenido" class="skip-link rounded-lg border-3 border-ink bg-yellow px-4 py-2 font-bold">{SITE.skipLink}</a>
+    <TopBar />
+
+    <main id="contenido" tabindex="-1">
+      <slot />
+    </main>
+
+    <SiteFooter />
+    <SectionNav />
+
+    <script>
+      import '@/scripts/motion';
+    </script>
+  </body>
+</html>
