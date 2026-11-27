@@ -26,6 +26,7 @@ pub mod parallel;
 pub mod paths;
 pub mod performance;
 pub mod photo_mark;
+pub mod platform;
 pub mod pdf;
 pub mod progress;
 pub mod qr;
