@@ -1,0 +1,122 @@
+@layer base {
+  html {
+    scroll-behavior        : smooth;
+    scroll-padding-top     : calc(var(--spacing-top) + 1rem);
+    scroll-padding-bottom  : calc(var(--spacing-nav) + 1rem);
+    background-color       : var(--color-paper);
+    color                  : var(--color-ink);
+    font-family            : var(--font-sans);
+    -webkit-font-smoothing : antialiased;
+  }
+
+  body {
+    padding-top    : var(--spacing-top);
+    padding-bottom : var(--spacing-nav);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family  : var(--font-display);
+    font-stretch : 78%;
+  }
+
+  /* Balanced lines only for the big titles: balancing every heading costs time on the first paint. */
+  h1,
+  h2 {
+    text-wrap : balance;
+  }
+
+  ::selection {
+    background-color : var(--color-yellow);
+    color            : var(--color-ink);
+  }
+
+  :focus-visible {
+    outline        : 3px solid var(--color-coral-deep);
+    outline-offset : 3px;
+  }
+
+  .on-navy :focus-visible {
+    outline-color : var(--color-yellow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior : auto;
+    }
+  }
+}
+
+@layer components {
+  .paper-grid {
+    background-color : var(--color-paper);
+    background-image :
+      linear-gradient(var(--color-grid-paper) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid-paper) 1px, transparent 1px);
+    background-size  : var(--spacing-grid) var(--spacing-grid);
+  }
+
+  .navy-grid {
+    background-color : var(--color-navy);
+    background-image :
+      linear-gradient(var(--color-grid-navy) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid-navy) 1px, transparent 1px);
+    background-size  : var(--spacing-grid) var(--spacing-grid);
+  }
+
+  .skip-link {
+    position  : fixed;
+    top       : 0.5rem;
+    left      : 0.5rem;
+    z-index   : 60;
+    transform : translateY(-300%);
+  }
+
+  .skip-link:focus-visible {
+    transform : none;
+  }
+
+  .button-hard {
+    box-shadow : var(--shadow-hard-sm);
+    transition : transform 120ms ease, box-shadow 120ms ease;
+  }
+
+  .button-hard:hover,
+  .button-hard:focus-visible {
+    transform  : translate(2px, 2px);
+    box-shadow : 2px 2px 0 0 var(--color-ink);
+  }
+
+  .on-navy .button-hard {
+    box-shadow : 4px 4px 0 0 var(--color-on-navy);
+  }
+
+  .on-navy .button-hard:hover,
+  .on-navy .button-hard:focus-visible {
+    box-shadow : 2px 2px 0 0 var(--color-on-navy);
+  }
+
+  .faq-item summary {
+    list-style : none;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display : none;
+  }
+
+  .faq-sign {
+    transition : transform 160ms ease;
+  }
+
+  .faq-item[open] .faq-sign {
+    transform : rotate(45deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button-hard,
+    .faq-sign {
+      transition : none;
+    }
+  }
+}
