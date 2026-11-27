@@ -1,7 +1,7 @@
 // Loads the animations (GSAP, motion-scenes.ts) only when they cannot slow the page down, and never
-// with reduced motion; without them the page is already complete. The floating starts once the page has
-// loaded and the browser is free; what follows the scroll (parallax, Glup eating) needs to measure the
-// whole page, so it waits for the first scroll, touch or key.
+// with reduced motion; without them the page is already complete (the entrances are CSS, motion.css).
+// The loops start once the page has loaded and the browser is free; what follows the scroll (parallax,
+// Glup eating) needs to measure the whole page, so it waits for the first scroll, touch or key.
 const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
 const FIRST  = ['scroll', 'wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
 

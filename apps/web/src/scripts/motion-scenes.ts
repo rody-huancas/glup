@@ -1,7 +1,9 @@
-// Everything that moves: files floating, the hero's parallax and Glup eating a file in «Cómo
-// funciona». Loaded by motion.ts only when the page is ready and motion is welcome.
+// Everything that moves: files floating, the hero's logotype and Glup, the hero's parallax and Glup
+// eating a file in «Cómo funciona». Loaded by motion.ts only when the page is ready and motion is welcome.
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { animateLogo } from '@/scripts/hero-logo';
+import { animateMascot } from '@/scripts/hero-mascot';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,8 +37,8 @@ const parallax = (): void => {
 };
 
 // A file falls into Glup's mouth: the mouth opens, the file shrinks inside, Glup squashes and «ñam».
-// It plays once and stays finished: the bubble and the sparkles are only hidden from the moment the
-// animation is set up until it plays, never without JavaScript or with reduced motion.
+// It plays once and stays finished. The bubble and the sparkles start small only from the moment this
+// scene is set up (html.motion-scroll, motion.css), never without JavaScript or with reduced motion.
 const eat = (): void => {
   const scene = document.querySelector<HTMLElement>('[data-eat-scene]');
   if (!scene) return;
@@ -56,9 +58,6 @@ const eat = (): void => {
     return { x: to.left + to.width / 2 - (from.left + from.width / 2), y: to.top + to.height / 2 - (from.top + from.height / 2) };
   };
 
-  gsap.set(bubble, { scale: 0, transformOrigin: '30% 100%' });
-  gsap.set(sparkles, { scale: 0 });
-  gsap.set(body, { transformOrigin: '50% 100%' });
 
   const timeline = gsap.timeline({
     scrollTrigger : { trigger: scene, start: 'top 70%', once: true, invalidateOnRefresh: true },
@@ -71,23 +70,45 @@ const eat = (): void => {
     .to(file, { opacity: 0, duration: 0.08 })
     .to(open, { opacity: 0, duration: 0.1 }, '<')
     .to(smile, { opacity: 1, duration: 0.1 }, '<')
-    .to(body, { scaleY: 0.88, scaleX: 1.08, duration: 0.14, ease: 'power1.out' }, '<')
-    .to(body, { scaleY: 1, scaleX: 1, duration: 0.7, ease: 'elastic.out(1, 0.4)' })
+    .to(body, { scaleY: 0.88, scaleX: 1.08, duration: 0.14, ease: 'power1.out', transformOrigin: '50% 100%' }, '<')
+    .to(body, { scaleY: 1, scaleX: 1, duration: 0.7, ease: 'elastic.out(1, 0.4)', transformOrigin: '50% 100%' })
     .to(bubble, { scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, '<')
     .to(sparkles, { scale: 1, duration: 0.4, stagger: 0.08, ease: 'back.out(2)' }, '<0.05');
 };
 
 const QUERY = '(prefers-reduced-motion: no-preference)';
 
-// gsap.matchMedia undoes each part if reduced motion is turned on later.
+// Whether the hero is on screen: its loops (the logotype's gulp, Glup eating) wait while it is not.
+const heroOnScreen = (): (() => boolean) => {
+  const hero    = document.querySelector('[data-hero]');
+  let   visible = true;
+  if (hero) new IntersectionObserver(([entry]) => void (visible = entry.isIntersecting)).observe(hero);
+  return () => visible;
+};
+
+// gsap.matchMedia undoes each part if reduced motion is turned on later (then html.motion goes too, so
+// nothing stays at its starting point); the hero's parts also take their listeners and calls away.
 export const startFloating = (): void => {
-  gsap.matchMedia().add(QUERY, () => float());
+  const isVisible = heroOnScreen();
+
+  gsap.matchMedia().add(QUERY, () => {
+    float();
+    const stopLogo   = animateLogo(isVisible);
+    const stopMascot = animateMascot(isVisible);
+    return () => {
+      stopLogo();
+      stopMascot();
+      document.documentElement.classList.remove('motion', 'motion-on', 'motion-scroll');
+    };
+  });
 };
 
 // What follows the scroll measures the whole page: it starts with the first scroll, never before.
 export const startScrolling = (): void => {
   gsap.matchMedia().add(QUERY, () => {
+    document.documentElement.classList.add('motion-scroll');
     parallax();
     eat();
+    return () => document.documentElement.classList.remove('motion-scroll');
   });
 };
