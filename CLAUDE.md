@@ -12,7 +12,8 @@ ZIP). Todo se procesa en la computadora de la persona: nada se sube a internet.
 - `apps/desktop`: la app. Tauri 2 (Rust) + React 19 + TypeScript + Vite + Tailwind CSS v4.
   - `src/`: la interfaz (isla, panel, mascota, pantallas).
   - `src-tauri/src/`: el trabajo pesado y lo nativo (archivos, imágenes, PDFs, ventana, bandeja).
-- `apps/web`: la página de descarga (Astro, pendiente).
+- `apps/web`: la página de descarga. Astro estático + GSAP + Tailwind CSS v4, sin JavaScript salvo
+  las animaciones y la barra de secciones.
 
 ## Las reglas viven en las skills
 
@@ -26,6 +27,7 @@ de la parte que toques:
 | `.claude/skills/tauri-rust/` | Todo lo de `apps/desktop/src-tauri/`: comandos, servicios, tareas, errores, pruebas, crates |
 | `.claude/skills/acciones/` | Agregar o cambiar una acción sobre archivos, de punta a punta |
 | `.claude/skills/isla-y-mascota/` | La isla, su máquina de estados, la región de la ventana y las animaciones de Glup |
+| `.claude/skills/landing/` | Todo lo de `apps/web`: la página de descarga, su diseño, textos, ilustraciones y animaciones |
 
 ## Comandos
 
@@ -35,10 +37,15 @@ pnpm dev                                   # tauri dev (la primera compilación 
 pnpm build                                 # instalador (release: solo si se pide)
 pnpm version:set 0.2.0                     # versión (Cargo.toml manda; package.json la sigue)
 pnpm sweep                                 # borra de target lo que no se usó en 3 días (sweep:dry solo lista)
+pnpm web:dev                               # la página de descarga (apps/web)
+pnpm web:build                             # apps/web/dist
+pnpm web:shots                             # capturas de la página, imagen para compartir y favicons
 pnpm voz:build                             # glup-voz.exe, la tarjeta de video de «Pasar audio a texto» (pide el Vulkan SDK)
 
 pnpm --filter desktop typecheck            # tsc
 pnpm --filter desktop test                 # vitest
+pnpm --filter web typecheck                # astro check (si se tocó apps/web)
+pnpm --filter web test                     # vitest de apps/web
 cd apps/desktop/src-tauri && cargo check && cargo test
 ```
 
