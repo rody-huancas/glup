@@ -1,0 +1,123 @@
+---
+// The hero's Glup drawn by hand, piece by piece, so it stays sharp at any size and each part can move on its
+// own (scripts/hero-mascot.ts). Same shape and colours as the app's mascot, in the landing's style: dark
+// outline, soft gradients and a few shines. Only one per page: the gradients go by id.
+interface IGlupArtProps {
+  class? : string;
+}
+
+type Props = IGlupArtProps;
+
+const { class: className } = Astro.props;
+
+const body  = 'M323 148 C400 148 470 152 495 185 C515 212 522 280 528 340 C534 400 540 440 528 475 C515 515 470 528 400 529 H246 C176 528 131 515 118 475 C106 440 112 400 118 340 C124 280 131 212 151 185 C176 152 246 148 323 148 Z';
+const band  = 'M128 232 C140 120 230 70 330 70 C430 70 512 118 528 228';
+const star  = 'M84 260 L94 282 L118 285 L100 301 L105 325 L84 312 L63 325 L68 301 L50 285 L74 282 Z';
+const smile = 'M320 316 C330 336 368 336 378 316';
+const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 362 312 346 310 312 Z';
+---
+
+<svg class:list={['glup-art', className]} viewBox="0 0 656 600" aria-hidden="true" focusable="false" data-glup-art>
+  <defs>
+    <radialGradient id="glup-art-body" cx="0.4" cy="0.28" r="0.8">
+      <stop class="glup-stop-body-light" offset="0" />
+      <stop class="glup-stop-body" offset="0.55" />
+      <stop class="glup-stop-body-deep" offset="1" />
+    </radialGradient>
+    <radialGradient id="glup-art-shine">
+      <stop class="glup-stop-shine" offset="0" />
+      <stop class="glup-stop-shine-out" offset="1" />
+    </radialGradient>
+    <linearGradient id="glup-art-limb" x2="0" y2="1">
+      <stop class="glup-stop-body-light" offset="0" />
+      <stop class="glup-stop-body-deep" offset="1" />
+    </linearGradient>
+    <linearGradient id="glup-art-leaf-front" x1="0.2" x2="0.6" y2="1">
+      <stop class="glup-stop-leaf" offset="0" />
+      <stop class="glup-stop-leaf-deep" offset="1" />
+    </linearGradient>
+    <linearGradient id="glup-art-leaf-back" x1="0.3" x2="0.6" y2="1">
+      <stop class="glup-stop-leaf-light" offset="0" />
+      <stop class="glup-stop-leaf" offset="1" />
+    </linearGradient>
+    <linearGradient id="glup-art-phones" x2="0" y2="1">
+      <stop class="glup-stop-phones-light" offset="0" />
+      <stop class="glup-stop-phones-deep" offset="1" />
+    </linearGradient>
+    <radialGradient id="glup-art-cup" cx="0.38" cy="0.32" r="0.75">
+      <stop class="glup-stop-phones-light" offset="0" />
+      <stop class="glup-stop-phones-deep" offset="1" />
+    </radialGradient>
+    <linearGradient id="glup-art-cushion" x2="1" y2="1">
+      <stop class="glup-stop-cushion" offset="0" />
+      <stop class="glup-stop-cushion-deep" offset="1" />
+    </linearGradient>
+    <radialGradient id="glup-art-cheek">
+      <stop class="glup-stop-cheek" offset="0" />
+      <stop class="glup-stop-cheek" offset="0.86" />
+      <stop class="glup-stop-cheek-out" offset="1" />
+    </radialGradient>
+  </defs>
+
+  <g id="glup-feet">
+    <path class="glup-art-line glup-art-phones" d="M178 500 H288 L286 548 C285 570 270 581 246 581 H220 C196 581 181 570 180 548 Z" />
+    <path class="glup-art-line glup-art-phones" d="M368 500 H478 L476 548 C475 570 460 581 436 581 H410 C386 581 371 570 370 548 Z" />
+  </g>
+
+  <g id="glup-arms">
+    <path class="glup-art-line glup-art-limb" d="M132 398 C112 390 86 394 72 410 C58 426 62 452 82 462 C100 470 122 462 132 448 Z" data-glup-arm="left" />
+    <path class="glup-art-line glup-art-limb" d="M524 398 C544 390 570 394 584 410 C598 426 594 452 574 462 C556 470 534 462 524 448 Z" data-glup-arm="right" />
+    <path class="glup-art-line glup-art-limb opacity-0" d="M522 420 C536 388 556 346 574 314 C586 292 614 284 630 300 C644 316 636 340 616 350 C598 360 584 392 568 432 Z" data-glup-arm="wave" />
+  </g>
+
+  <g id="glup-headphones">
+    <path class="glup-art-band-edge" d={band} />
+    <path class="glup-art-band" d={band} />
+    <path class="glup-art-band-shine" d="M170 140 C210 100 260 86 310 84" />
+  </g>
+
+  <g id="glup-body">
+    <path class="glup-art-line glup-art-body" d={body} />
+    <ellipse class="glup-art-shine" cx="250" cy="200" rx="80" ry="26" transform="rotate(-8 250 200)" />
+  </g>
+
+  <g id="glup-leaf" data-glup-leaf>
+    <path class="glup-art-line glup-art-leaf-back" d="M350 186 C334 150 352 98 398 92 C436 88 446 132 428 166 C414 190 380 196 350 186 Z" />
+    <path class="glup-art-line glup-art-leaf-front" d="M270 190 C284 144 306 96 350 88 C390 82 402 124 386 158 C368 188 318 198 270 190 Z" />
+    <path class="glup-art-line fill-none stroke-glup-leaf-light" d="M300 176 C316 150 334 128 360 114" />
+  </g>
+
+  <g id="glup-cheeks" data-glup-cheeks>
+    <ellipse class="glup-art-cheek" cx="222" cy="338" rx="30" ry="21" />
+    <ellipse class="glup-art-cheek" cx="472" cy="338" rx="30" ry="21" />
+  </g>
+
+  <g id="glup-eye-left" data-glup-eye>
+    <ellipse class="fill-glup-eye" cx="267" cy="282" rx="37" ry="40" />
+    <circle class="fill-white" cx="277" cy="266" r="12" />
+  </g>
+
+  <g id="glup-eye-right" data-glup-eye>
+    <ellipse class="fill-glup-eye" cx="429" cy="282" rx="37" ry="40" />
+    <circle class="fill-white" cx="439" cy="266" r="12" />
+  </g>
+
+  <g id="glup-mouth">
+    <path class="glup-art-smile" d={smile} data-glup-mouth="smile" />
+    <g class="opacity-0" data-glup-mouth="open">
+      <path class="glup-art-line fill-glup-mouth" d={grin} />
+      <path class="fill-glup-tongue" d="M327 348 C337 336 361 336 371 348 C363 357 335 357 327 348 Z" />
+    </g>
+  </g>
+
+  <g id="glup-ear-left">
+    <ellipse class="glup-art-line glup-art-cushion" cx="144" cy="300" rx="42" ry="94" />
+    <ellipse class="glup-art-line glup-art-cup" cx="98" cy="300" rx="48" ry="80" />
+    <path class="glup-art-line fill-glup-star" d={star} />
+  </g>
+
+  <g id="glup-ear-right">
+    <ellipse class="glup-art-line glup-art-cup" cx="566" cy="294" rx="30" ry="78" />
+    <ellipse class="glup-art-line glup-art-cushion" cx="540" cy="292" rx="30" ry="90" />
+  </g>
+</svg>
