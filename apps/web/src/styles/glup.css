@@ -42,6 +42,12 @@
     stroke-linecap  : round;
   }
 
+  .glup-art-thin {
+    stroke          : var(--color-ink);
+    stroke-width    : 4;
+    stroke-linejoin : round;
+  }
+
   .glup-art-body       { fill : url(#glup-art-body); }
   .glup-art-limb       { fill : url(#glup-art-limb); }
   .glup-art-leaf-front { fill : url(#glup-art-leaf-front); }

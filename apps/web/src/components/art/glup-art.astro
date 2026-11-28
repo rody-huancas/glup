@@ -10,15 +10,39 @@ type Props = IGlupArtProps;
 
 const { class: className } = Astro.props;
 
-const body  = 'M323 148 C400 148 470 152 495 185 C515 212 522 280 528 340 C534 400 540 440 528 475 C515 515 470 528 400 529 H246 C176 528 131 515 118 475 C106 440 112 400 118 340 C124 280 131 212 151 185 C176 152 246 148 323 148 Z';
+const body  = 'M323 148 C400 148 470 152 495 185 C515 212 522 280 528 340 C534 400 540 440 528 475 C515 515 470 528 400 529 L246 529 C176 528 131 515 118 475 C106 440 112 400 118 340 C124 280 131 212 151 185 C176 152 246 148 323 148 Z';
 const band  = 'M128 232 C140 120 230 70 330 70 C430 70 512 118 528 228';
 const star  = 'M84 260 L94 282 L118 285 L100 301 L105 325 L84 312 L63 325 L68 301 L50 285 L74 282 Z';
 const smile = 'M320 316 C330 336 368 336 378 316';
 const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 362 312 346 310 312 Z';
+
+// The arms: a little mitten each, with a long base hidden inside the body (the body and its outline are
+// drawn over it), so when an arm turns up from its shoulder its root is always tucked behind the body.
+const armRight = 'M456 404 L524 398 C544 390 570 394 584 410 C598 426 594 452 574 462 C556 470 534 462 524 448 L456 452 C444 446 444 410 456 404 Z';
+const armLeft  = 'M200 404 L132 398 C112 390 86 394 72 410 C58 426 62 452 82 462 C100 470 122 462 132 448 L200 452 C212 446 212 410 200 404 Z';
+
+// The arms are cut where the body and its outline are (a little past the body's edge): behind the body that
+// changes nothing, and when the headphones routine brings them over the headphones (to hold them), they
+// still come out from behind the body.
+const BODY_CENTRE = { x: 323, y: 338 };
+const OUTLINE     = 1.016;
+const bodyEdge    = body.replace(/(-?\d+) (-?\d+)/g, (_, x: string, y: string) => {
+  const grow = (value: string, centre: number): number => Math.round((centre + (Number(value) - centre) * OUTLINE) * 10) / 10;
+  return `${grow(x, BODY_CENTRE.x)} ${grow(y, BODY_CENTRE.y)}`;
+});
+const outside     = `M-400 -400 H1056 V1000 H-400 Z ${bodyEdge}`;
+
+// A quaver (head, stem and flag) for the dance, drawn around its head; where each of the three starts
+// (shown 1.6 times bigger).
+const note  = 'M-11 4 C-14 -4 -6 -11 4 -9 L4 -46 L10 -46 C22 -40 30 -30 24 -16 C22 -24 17 -30 10 -32 L10 -2 C12 8 -8 14 -11 4 Z';
+const NOTES = ['585 175', '622 128', '552 112'];
 ---
 
 <svg class:list={['glup-art', className]} viewBox="0 0 656 600" aria-hidden="true" focusable="false" data-glup-art>
   <defs>
+    <clipPath id="glup-art-outside">
+      <path d={outside} clip-rule="evenodd" />
+    </clipPath>
     <radialGradient id="glup-art-body" cx="0.4" cy="0.28" r="0.8">
       <stop class="glup-stop-body-light" offset="0" />
       <stop class="glup-stop-body" offset="0.55" />
@@ -60,17 +84,16 @@ const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 3
   </defs>
 
   <g id="glup-feet">
-    <path class="glup-art-line glup-art-phones" d="M178 500 H288 L286 548 C285 570 270 581 246 581 H220 C196 581 181 570 180 548 Z" />
-    <path class="glup-art-line glup-art-phones" d="M368 500 H478 L476 548 C475 570 460 581 436 581 H410 C386 581 371 570 370 548 Z" />
+    <path class="glup-art-line glup-art-phones" d="M178 500 H288 L286 548 C285 570 270 581 246 581 H220 C196 581 181 570 180 548 Z" data-glup-foot="left" />
+    <path class="glup-art-line glup-art-phones" d="M368 500 H478 L476 548 C475 570 460 581 436 581 H410 C386 581 371 570 370 548 Z" data-glup-foot="right" />
   </g>
 
-  <g id="glup-arms">
-    <path class="glup-art-line glup-art-limb" d="M132 398 C112 390 86 394 72 410 C58 426 62 452 82 462 C100 470 122 462 132 448 Z" data-glup-arm="left" />
-    <path class="glup-art-line glup-art-limb" d="M524 398 C544 390 570 394 584 410 C598 426 594 452 574 462 C556 470 534 462 524 448 Z" data-glup-arm="right" />
-    <path class="glup-art-line glup-art-limb opacity-0" d="M522 420 C536 388 556 346 574 314 C586 292 614 284 630 300 C644 316 636 340 616 350 C598 360 584 392 568 432 Z" data-glup-arm="wave" />
+  <g id="glup-arms" clip-path="url(#glup-art-outside)" data-glup-arms>
+    <path class="glup-art-line glup-art-limb" d={armLeft} data-glup-arm="left" />
+    <path class="glup-art-line glup-art-limb" d={armRight} data-glup-arm="right" />
   </g>
 
-  <g id="glup-headphones">
+  <g id="glup-headphones" data-glup-phones>
     <path class="glup-art-band-edge" d={band} />
     <path class="glup-art-band" d={band} />
     <path class="glup-art-band-shine" d="M170 140 C210 100 260 86 310 84" />
@@ -103,21 +126,34 @@ const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 3
   </g>
 
   <g id="glup-mouth">
+    <ellipse class="glup-art-thin fill-glup-tongue opacity-0" cx="356" cy="338" rx="11" ry="9" data-glup-tongue />
     <path class="glup-art-smile" d={smile} data-glup-mouth="smile" />
     <g class="opacity-0" data-glup-mouth="open">
       <path class="glup-art-line fill-glup-mouth" d={grin} />
       <path class="fill-glup-tongue" d="M327 348 C337 336 361 336 371 348 C363 357 335 357 327 348 Z" />
     </g>
+    <g class="opacity-0" data-glup-mouth="yawn">
+      <ellipse class="glup-art-line fill-glup-mouth" cx="349" cy="334" rx="17" ry="23" />
+      <ellipse class="fill-glup-tongue" cx="349" cy="348" rx="10" ry="6" />
+    </g>
   </g>
 
-  <g id="glup-ear-left">
+  <g id="glup-ear-left" data-glup-phones>
     <ellipse class="glup-art-line glup-art-cushion" cx="144" cy="300" rx="42" ry="94" />
     <ellipse class="glup-art-line glup-art-cup" cx="98" cy="300" rx="48" ry="80" />
     <path class="glup-art-line fill-glup-star" d={star} />
   </g>
 
-  <g id="glup-ear-right">
+  <g id="glup-ear-right" data-glup-phones>
     <ellipse class="glup-art-line glup-art-cup" cx="566" cy="294" rx="30" ry="78" />
     <ellipse class="glup-art-line glup-art-cushion" cx="540" cy="292" rx="30" ry="90" />
+  </g>
+
+  <g id="glup-notes">
+    {NOTES.map((place) => (
+      <g transform={`translate(${place}) scale(1.6)`}>
+        <path class="fill-ink opacity-0" d={note} data-glup-note />
+      </g>
+    ))}
   </g>
 </svg>
