@@ -15,6 +15,11 @@ const band  = 'M128 232 C140 120 230 70 330 70 C430 70 512 118 528 228';
 const star  = 'M84 260 L94 282 L118 285 L100 301 L105 325 L84 312 L63 325 L68 301 L50 285 L74 282 Z';
 const smile = 'M320 316 C330 336 368 336 378 316';
 const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 362 312 346 310 312 Z';
+
+// A quaver (head, stem and flag) for the dance, drawn around its head; where each of the three starts
+// (shown 1.6 times bigger).
+const note  = 'M-11 4 C-14 -4 -6 -11 4 -9 L4 -46 L10 -46 C22 -40 30 -30 24 -16 C22 -24 17 -30 10 -32 L10 -2 C12 8 -8 14 -11 4 Z';
+const NOTES = ['585 175', '622 128', '552 112'];
 ---
 
 <svg class:list={['glup-art', className]} viewBox="0 0 656 600" aria-hidden="true" focusable="false" data-glup-art>
@@ -124,5 +129,13 @@ const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 3
   <g id="glup-ear-right" data-glup-phones>
     <ellipse class="glup-art-line glup-art-cup" cx="566" cy="294" rx="30" ry="78" />
     <ellipse class="glup-art-line glup-art-cushion" cx="540" cy="292" rx="30" ry="90" />
+  </g>
+
+  <g id="glup-notes">
+    {NOTES.map((place) => (
+      <g transform={`translate(${place}) scale(1.6)`}>
+        <path class="fill-ink opacity-0" d={note} data-glup-note />
+      </g>
+    ))}
   </g>
 </svg>
