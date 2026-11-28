@@ -11,6 +11,12 @@ plugin ScrollTrigger. Dos archivos:
   arranca también el héroe: `hero-logo.ts` (el logotipo) y `hero-mascot.ts` (Glup), que devuelven una
   función que quita sus listeners y llamadas pendientes cuando `gsap.matchMedia` revierte. Sus bucles
   esperan mientras el héroe no está en pantalla.
+- `src/scripts/glup-routines.ts`: las rutinas de Glup en reposo, una función por rutina que devuelve su
+  timeline (saluda, camina, se quita los audífonos, baila, se estira y bosteza, mira los archivos y se
+  relame, se come uno), y `settle`, que lo devuelve a su lugar si alguien interrumpe. Qué rutina sigue y
+  cuánto espera lo decide `lib/glup-routine-picker.ts` (lógica pura, con pruebas): una cada 6–12 s, nunca
+  la misma dos veces seguidas. `hero-mascot.ts` las reproduce solo con la entrada terminada, el héroe en
+  pantalla y la pestaña visible; el cursor, el foco o un clic sobre Glup cortan la rutina en curso.
 
 ## Carga sin parpadeo
 
@@ -50,7 +56,8 @@ plugin ScrollTrigger. Dos archivos:
   | `data-depth="0.4"` | Parallax: se desplaza con el scroll del héroe, más cuanto mayor es la profundidad |
   | `data-eat-scene` | La escena de «Cómo funciona»: un archivo cae y Glup se lo come |
   | `data-logo`, `data-logo-letter`, `data-logo-throat`, `data-logo-snack` | El logotipo: entrada de las letras, la «u» que se come un archivito cada 6–8 s y la gelatina al pasar el cursor |
-  | `data-hero-glup`, `data-glup-art`, `data-glup-eye`, `data-glup-leaf`, `data-glup-cheeks`, `data-glup-mouth="smile"/"open"`, `data-glup-arm`, `data-snack`, `data-hero-bubble` | Glup del héroe (SVG): entra con un rebote (CSS, `glup-enter`), respira, mece la hojita, parpadea, mira al cursor y se come el archivo flotante más cercano |
+  | `data-hero-glup`, `data-glup-art`, `data-glup-eye`, `data-glup-leaf`, `data-glup-cheeks`, `data-glup-mouth="smile"/"open"`, `data-glup-arm`, `data-snack`, `data-hero-bubble` | Glup del héroe (SVG): entra con un rebote (CSS, `glup-enter`), respira, mece la hojita, parpadea y mira al cursor |
+  | `data-glup-foot`, `data-glup-phones`, `data-glup-note`, `data-glup-tongue`, `data-glup-mouth="yawn"`, `data-glup-arm="left"/"right"` | Las piezas de sus rutinas; las que solo aparecen en una rutina están en el SVG con `opacity-0` |
   | `data-glup-poke` | El botón «Saludar a Glup»: con el cursor o el foco encima, sonrisa grande y saltito; al hacer clic, salta y saluda. `hidden` en el HTML, lo muestra el script solo con movimiento |
   | `data-eat-file`, `data-eat-mouth="open"/"smile"`, `data-eat-bubble`, `data-eat-body` | Sus piezas |
 
@@ -61,7 +68,15 @@ plugin ScrollTrigger. Dos archivos:
 - Duraciones cortas (0,3–1,2 s) y curvas suaves (`sine.inOut` para flotar, `back.out` para los
   rebotes). Nada que parpadee más de tres veces por segundo.
 
+- **El origen de un giro en el SVG se fija una vez** (`prepareParts` en `glup-routines.ts`). GSAP mantiene
+  en su sitio una pieza de un SVG cuando cambia su `transformOrigin` (le suma un desplazamiento), así que
+  un tween que pasara otro origen la dejaría corrida. Los brazos giran desde el hombro con `svgOrigin`, en
+  unidades del dibujo, a las poses de `ARM_POSES` (ángulo, largo, giro de la mano y dónde queda el hombro).
+
 ## Comprobar
+
+- En desarrollo (`pnpm web:dev`), `?glup=<rutina>` reproduce esa rutina apenas Glup puede: `wave`, `walk`,
+  `headphones`, `dance`, `stretch`, `lick` o `eat`. En el build no existe (`import.meta.env.DEV`).
 
 - `pnpm web:shots` recorre toda la página antes de la captura completa: ahí se ve todo, con las
   escenas terminadas.
