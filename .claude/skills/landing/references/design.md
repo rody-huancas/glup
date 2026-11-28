@@ -55,12 +55,20 @@ Un color o una medida nuevos se agregan como token, nunca sueltos en `class`.
 
 ## Imágenes de Glup
 
+- **El Glup del héroe es un SVG dibujado a mano** (`components/art/glup-art.astro`), para que se vea
+  nítido a cualquier tamaño y cada parte se anime sola. Cada parte va en su grupo con id (`glup-body`,
+  `glup-leaf`, `glup-headphones`, `glup-ear-left`, `glup-ear-right`, `glup-eye-left`, `glup-eye-right`,
+  `glup-mouth`, `glup-cheeks`, `glup-feet`, `glup-arms`). Es la única ilustración con degradados suaves y
+  brillos (el volumen de la mascota, sin copiar su 3D), con el borde `ink` de las demás. Sus colores son
+  los tokens `glup-*` y los rellenos con degradado, clases de `glup.css`. Va una sola vez por página (los
+  degradados van por id).
+- Los demás Glups («Cómo funciona», «Glup sigue creciendo», las imágenes para redes) se arman con las
+  piezas de la app (`glup-figure.astro`).
 - Las piezas de la mascota y los Glups de familia van **sin pérdida** (`lib/image-widths.ts`,
   `sharpImage`): WebP sin pérdida (`astro.config.ts` lo pone para todo WebP), con anchos para pantallas
   1x, 2x y 3x hasta el tamaño de cada archivo. Las capturas de la app van en AVIF (con pérdida, no se
   nota).
-- El límite es el archivo de origen: el cuerpo de Glup mide 656 px (alcanza para 2x a su tamaño en el
-  héroe) y los Glups de familia, 256 px. Para más nitidez hacen falta piezas más grandes en la app.
+- El límite es el archivo de origen: el cuerpo de Glup mide 656 px y los Glups de familia, 256 px. Para más nitidez hacen falta piezas más grandes en la app.
 
 ## Enlaces
 
