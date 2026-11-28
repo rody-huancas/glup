@@ -60,8 +60,8 @@ const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 3
   </defs>
 
   <g id="glup-feet">
-    <path class="glup-art-line glup-art-phones" d="M178 500 H288 L286 548 C285 570 270 581 246 581 H220 C196 581 181 570 180 548 Z" />
-    <path class="glup-art-line glup-art-phones" d="M368 500 H478 L476 548 C475 570 460 581 436 581 H410 C386 581 371 570 370 548 Z" />
+    <path class="glup-art-line glup-art-phones" d="M178 500 H288 L286 548 C285 570 270 581 246 581 H220 C196 581 181 570 180 548 Z" data-glup-foot="left" />
+    <path class="glup-art-line glup-art-phones" d="M368 500 H478 L476 548 C475 570 460 581 436 581 H410 C386 581 371 570 370 548 Z" data-glup-foot="right" />
   </g>
 
   <g id="glup-arms">
@@ -70,7 +70,7 @@ const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 3
     <path class="glup-art-line glup-art-limb opacity-0" d="M522 420 C536 388 556 346 574 314 C586 292 614 284 630 300 C644 316 636 340 616 350 C598 360 584 392 568 432 Z" data-glup-arm="wave" />
   </g>
 
-  <g id="glup-headphones">
+  <g id="glup-headphones" data-glup-phones>
     <path class="glup-art-band-edge" d={band} />
     <path class="glup-art-band" d={band} />
     <path class="glup-art-band-shine" d="M170 140 C210 100 260 86 310 84" />
@@ -110,13 +110,13 @@ const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 3
     </g>
   </g>
 
-  <g id="glup-ear-left">
+  <g id="glup-ear-left" data-glup-phones>
     <ellipse class="glup-art-line glup-art-cushion" cx="144" cy="300" rx="42" ry="94" />
     <ellipse class="glup-art-line glup-art-cup" cx="98" cy="300" rx="48" ry="80" />
     <path class="glup-art-line fill-glup-star" d={star} />
   </g>
 
-  <g id="glup-ear-right">
+  <g id="glup-ear-right" data-glup-phones>
     <ellipse class="glup-art-line glup-art-cup" cx="566" cy="294" rx="30" ry="78" />
     <ellipse class="glup-art-line glup-art-cushion" cx="540" cy="292" rx="30" ry="90" />
   </g>
