@@ -61,7 +61,15 @@ Un color o una medida nuevos se agregan como token, nunca sueltos en `class`.
   `glup-mouth`, `glup-cheeks`, `glup-feet`, `glup-arms`). Es la única ilustración con degradados suaves y
   brillos (el volumen de la mascota, sin copiar su 3D), con el borde `ink` de las demás. Sus colores son
   los tokens `glup-*` y los rellenos con degradado, clases de `glup.css`. Va una sola vez por página (los
-  degradados van por id).
+  degradados van por id). Las piezas que solo usan sus rutinas (boca de bostezo, lengüita, notas) están
+  dibujadas y ocultas (`opacity-0`); sin los audífonos se ve la cabeza entera, sin huecos.
+- **Un brazo levantado es el mismo bracito en reposo**, girado hacia afuera y arriba desde un hombro que
+  está dentro del cuerpo (hasta 1,3 veces más largo, nunca más delgado), un poco más abajo en el costado
+  para que quede fuera de la copa del audífono. Cada bracito tiene una base larga metida dentro del cuerpo,
+  así en ninguna pose asoma su raíz ni queda fondo entre el brazo y el cuerpo, y el borde del cuerpo pasa
+  por encima de la unión. Los brazos van detrás del cuerpo; solo para sostener los audífonos pasan delante
+  de las copas (`placeArms`), recortados con la silueta del cuerpo un poco agrandada (`clipPath`
+  `glup-art-outside`), así aun delante salen de detrás del cuerpo.
 - Los demás Glups («Cómo funciona», «Glup sigue creciendo», las imágenes para redes) se arman con las
   piezas de la app (`glup-figure.astro`).
 - Las piezas de la mascota y los Glups de familia van **sin pérdida** (`lib/image-widths.ts`,
