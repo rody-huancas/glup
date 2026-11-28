@@ -3,11 +3,11 @@ import BubbleArt from '@/components/art/bubble-art.astro';
 import CursorArt from '@/components/art/cursor-art.astro';
 import FileTile from '@/components/art/file-tile.astro';
 import FolderArt from '@/components/art/folder-art.astro';
+import GlupArt from '@/components/art/glup-art.astro';
 import GlupLogo from '@/components/art/glup-logo.astro';
 import SparkleArt from '@/components/art/sparkle-art.astro';
 import ButtonLink from '@/components/button-link.astro';
 import DownloadNote from '@/components/download-note.astro';
-import GlupFigure from '@/components/glup-figure.astro';
 import { LINKS } from '@/config/links';
 import { HERO } from '@/content/hero';
 import type { FileKind } from '@/types/content.types';
@@ -78,7 +78,7 @@ const FILES: IFallingFile[] = [
         <div class="art-extra absolute bottom-0 left-0 w-1/4" data-depth="0.1"><div data-float><div data-enter="11"><FolderArt class="w-full" /></div></div></div>
 
         <div class="absolute right-1/12 bottom-0 w-3/5" data-hero-glup data-enter="1">
-          <GlupFigure width={345} eager wave />
+          <GlupArt />
         </div>
       </div>
 

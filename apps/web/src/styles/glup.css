@@ -25,4 +25,58 @@
   .glup-arm-wave    { z-index : 0; left : 81.555%; top : 43.369%; width : 17.683%; transform-origin : 12% 88%; opacity : 0; }
   .glup-foot-left   { z-index : 0; left : 26.829%; top : 83.403%; width : 16.902%; }
   .glup-foot-right  { z-index : 0; left : 55.869%; top : 83.403%; width : 16.817%; }
+
+  /* The hero's Glup drawn in SVG (art/glup-art.astro): an ink outline as thick as the other drawings
+     look at its size, and fills that go by its gradients' ids. */
+  .glup-art {
+    display  : block;
+    width    : 100%;
+    height   : auto;
+    overflow : visible;
+  }
+
+  .glup-art-line {
+    stroke          : var(--color-ink);
+    stroke-width    : 6;
+    stroke-linejoin : round;
+    stroke-linecap  : round;
+  }
+
+  .glup-art-body       { fill : url(#glup-art-body); }
+  .glup-art-limb       { fill : url(#glup-art-limb); }
+  .glup-art-leaf-front { fill : url(#glup-art-leaf-front); }
+  .glup-art-leaf-back  { fill : url(#glup-art-leaf-back); }
+  .glup-art-phones     { fill : url(#glup-art-phones); }
+  .glup-art-cup        { fill : url(#glup-art-cup); }
+  .glup-art-cushion    { fill : url(#glup-art-cushion); }
+  .glup-art-cheek      { fill : url(#glup-art-cheek); }
+  .glup-art-shine      { fill : url(#glup-art-shine); }
+
+  .glup-art-band-edge,
+  .glup-art-band,
+  .glup-art-band-shine,
+  .glup-art-smile {
+    fill           : none;
+    stroke-linecap : round;
+  }
+
+  .glup-art-band-edge  { stroke : var(--color-ink); stroke-width : 48; }
+  .glup-art-band       { stroke : url(#glup-art-phones); stroke-width : 36; }
+  .glup-art-band-shine { stroke : var(--color-glup-phones-shine); stroke-width : 7; stroke-opacity : 0.7; }
+  .glup-art-smile      { stroke : var(--color-glup-eye); stroke-width : 9; }
+
+  .glup-stop-body-light   { stop-color : var(--color-glup-body-light); }
+  .glup-stop-body         { stop-color : var(--color-glup-body); }
+  .glup-stop-body-deep    { stop-color : var(--color-glup-body-deep); }
+  .glup-stop-leaf-light   { stop-color : var(--color-glup-leaf-light); }
+  .glup-stop-leaf         { stop-color : var(--color-glup-leaf); }
+  .glup-stop-leaf-deep    { stop-color : var(--color-glup-leaf-deep); }
+  .glup-stop-phones-light { stop-color : var(--color-glup-phones-light); }
+  .glup-stop-phones-deep  { stop-color : var(--color-glup-phones-deep); }
+  .glup-stop-cushion      { stop-color : var(--color-glup-cushion); }
+  .glup-stop-cushion-deep { stop-color : var(--color-glup-cushion-deep); }
+  .glup-stop-cheek        { stop-color : var(--color-glup-cheek); }
+  .glup-stop-cheek-out    { stop-color : var(--color-glup-cheek); stop-opacity : 0; }
+  .glup-stop-shine        { stop-color : var(--color-white); stop-opacity : 0.75; }
+  .glup-stop-shine-out    { stop-color : var(--color-white); stop-opacity : 0; }
 }

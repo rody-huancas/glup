@@ -28,6 +28,23 @@
   --color-white        : #FFFFFF;
   --color-scrim        : #0C1230A6;
 
+  --color-glup-body-light    : #D6FCF4;
+  --color-glup-body          : #BCEDE3;
+  --color-glup-body-deep     : #93CDBF;
+  --color-glup-leaf-light    : #9AF5D6;
+  --color-glup-leaf          : #7AEFC6;
+  --color-glup-leaf-deep     : #43C499;
+  --color-glup-phones-light  : #B693FB;
+  --color-glup-phones-deep   : #7752DA;
+  --color-glup-phones-shine  : #D4BEFF;
+  --color-glup-cushion       : #EEE5FD;
+  --color-glup-cushion-deep  : #C2B4EA;
+  --color-glup-star          : #F7E9EF;
+  --color-glup-cheek         : #FC9DB6;
+  --color-glup-eye           : #362926;
+  --color-glup-mouth         : #6E2223;
+  --color-glup-tongue        : #F77388;
+
   --font-display       : 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono          : 'JetBrains Mono Variable', ui-monospace, monospace;
   --font-sans          : 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
