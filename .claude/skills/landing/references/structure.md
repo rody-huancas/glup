@@ -21,7 +21,8 @@ apps/web/
     │   ├── hero-section.astro, families-section.astro, how-section.astro,
     │   │   privacy-section.astro, faq-section.astro, download-section.astro, ideas-section.astro
     │   ├── retro-window.astro, section-heading.astro, button-link.astro, glup-figure.astro
-    │   └── art/              Ilustraciones SVG: file-tile, cursor, sparkle, bubble, folder, family-*
+    │   └── art/              Ilustraciones SVG: glup-art (el Glup del héroe), file-tile, cursor, sparkle,
+    │                         bubble, folder, family-*
     ├── assets/familias/      Los Glups de familia en PNG transparente y recortado
     ├── social/               /social/<página>, solo con astro dev: las imágenes para redes (carrusel
     │                         de 8 diapositivas 1080 x 1350, post 1200 x 1200, enlace 1200 x 627), con
