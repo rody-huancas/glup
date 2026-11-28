@@ -50,8 +50,8 @@ plugin ScrollTrigger. Dos archivos:
   | `data-depth="0.4"` | Parallax: se desplaza con el scroll del héroe, más cuanto mayor es la profundidad |
   | `data-eat-scene` | La escena de «Cómo funciona»: un archivo cae y Glup se lo come |
   | `data-logo`, `data-logo-letter`, `data-logo-throat`, `data-logo-snack` | El logotipo: entrada de las letras, la «u» que se come un archivito cada 6–8 s y la gelatina al pasar el cursor |
-  | `data-hero-glup`, `data-glup-eye`, `data-glup-arm`, `data-snack`, `data-hero-bubble` | Glup del héroe: respira, parpadea, mira al cursor, se come el archivo flotante más cercano |
-  | `data-glup-poke` | El botón «Saludar a Glup» (salta y saluda): `hidden` en el HTML, lo muestra el script solo con movimiento |
+  | `data-hero-glup`, `data-glup-art`, `data-glup-eye`, `data-glup-leaf`, `data-glup-cheeks`, `data-glup-mouth="smile"/"open"`, `data-glup-arm`, `data-snack`, `data-hero-bubble` | Glup del héroe (SVG): entra con un rebote (CSS, `glup-enter`), respira, mece la hojita, parpadea, mira al cursor y se come el archivo flotante más cercano |
+  | `data-glup-poke` | El botón «Saludar a Glup»: con el cursor o el foco encima, sonrisa grande y saltito; al hacer clic, salta y saluda. `hidden` en el HTML, lo muestra el script solo con movimiento |
   | `data-eat-file`, `data-eat-mouth="open"/"smile"`, `data-eat-bubble`, `data-eat-body` | Sus piezas |
 
 - **ScrollTrigger con `scrub`** para el parallax (sigue al scroll) y con `once: true` para la escena
