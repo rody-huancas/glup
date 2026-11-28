@@ -33,7 +33,8 @@ apps/web/
     ├── config/               links.ts (descarga, repo, autor), sections.ts (la barra), seo.ts
     ├── lib/                  Lógica pura con su .test.ts al lado
     ├── scripts/              Lo que corre en el navegador: motion.ts (carga tarde motion-scenes.ts,
-    │                         con GSAP), section-nav.ts
+    │                         con GSAP), hero-mascot.ts y glup-routines.ts (Glup del héroe),
+    │                         section-nav.ts
     ├── styles/               globals.css (entrada), tokens.css (@theme), base.css, motion.css (las
     │                         entradas) y una hoja por familia (window.css, nav.css, glup.css, art.css)
     └── types/                content.types.ts, section.types.ts
