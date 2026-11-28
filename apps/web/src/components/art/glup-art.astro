@@ -10,11 +10,27 @@ type Props = IGlupArtProps;
 
 const { class: className } = Astro.props;
 
-const body  = 'M323 148 C400 148 470 152 495 185 C515 212 522 280 528 340 C534 400 540 440 528 475 C515 515 470 528 400 529 H246 C176 528 131 515 118 475 C106 440 112 400 118 340 C124 280 131 212 151 185 C176 152 246 148 323 148 Z';
+const body  = 'M323 148 C400 148 470 152 495 185 C515 212 522 280 528 340 C534 400 540 440 528 475 C515 515 470 528 400 529 L246 529 C176 528 131 515 118 475 C106 440 112 400 118 340 C124 280 131 212 151 185 C176 152 246 148 323 148 Z';
 const band  = 'M128 232 C140 120 230 70 330 70 C430 70 512 118 528 228';
 const star  = 'M84 260 L94 282 L118 285 L100 301 L105 325 L84 312 L63 325 L68 301 L50 285 L74 282 Z';
 const smile = 'M320 316 C330 336 368 336 378 316';
 const grin  = 'M310 312 C330 304 368 304 388 312 C386 346 368 362 349 362 C330 362 312 346 310 312 Z';
+
+// The arms: a little mitten each, with a long base hidden inside the body (the body and its outline are
+// drawn over it), so when an arm turns up from its shoulder its root is always tucked behind the body.
+const armRight = 'M456 404 L524 398 C544 390 570 394 584 410 C598 426 594 452 574 462 C556 470 534 462 524 448 L456 452 C444 446 444 410 456 404 Z';
+const armLeft  = 'M200 404 L132 398 C112 390 86 394 72 410 C58 426 62 452 82 462 C100 470 122 462 132 448 L200 452 C212 446 212 410 200 404 Z';
+
+// The arms are cut where the body and its outline are (a little past the body's edge): behind the body that
+// changes nothing, and when the headphones routine brings them over the headphones (to hold them), they
+// still come out from behind the body.
+const BODY_CENTRE = { x: 323, y: 338 };
+const OUTLINE     = 1.016;
+const bodyEdge    = body.replace(/(-?\d+) (-?\d+)/g, (_, x: string, y: string) => {
+  const grow = (value: string, centre: number): number => Math.round((centre + (Number(value) - centre) * OUTLINE) * 10) / 10;
+  return `${grow(x, BODY_CENTRE.x)} ${grow(y, BODY_CENTRE.y)}`;
+});
+const outside     = `M-400 -400 H1056 V1000 H-400 Z ${bodyEdge}`;
 
 // A quaver (head, stem and flag) for the dance, drawn around its head; where each of the three starts
 // (shown 1.6 times bigger).
@@ -24,6 +40,9 @@ const NOTES = ['585 175', '622 128', '552 112'];
 
 <svg class:list={['glup-art', className]} viewBox="0 0 656 600" aria-hidden="true" focusable="false" data-glup-art>
   <defs>
+    <clipPath id="glup-art-outside">
+      <path d={outside} clip-rule="evenodd" />
+    </clipPath>
     <radialGradient id="glup-art-body" cx="0.4" cy="0.28" r="0.8">
       <stop class="glup-stop-body-light" offset="0" />
       <stop class="glup-stop-body" offset="0.55" />
@@ -69,10 +88,9 @@ const NOTES = ['585 175', '622 128', '552 112'];
     <path class="glup-art-line glup-art-phones" d="M368 500 H478 L476 548 C475 570 460 581 436 581 H410 C386 581 371 570 370 548 Z" data-glup-foot="right" />
   </g>
 
-  <g id="glup-arms">
-    <path class="glup-art-line glup-art-limb" d="M132 398 C112 390 86 394 72 410 C58 426 62 452 82 462 C100 470 122 462 132 448 Z" data-glup-arm="left" />
-    <path class="glup-art-line glup-art-limb" d="M524 398 C544 390 570 394 584 410 C598 426 594 452 574 462 C556 470 534 462 524 448 Z" data-glup-arm="right" />
-    <path class="glup-art-line glup-art-limb opacity-0" d="M522 420 C536 388 556 346 574 314 C586 292 614 284 630 300 C644 316 636 340 616 350 C598 360 584 392 568 432 Z" data-glup-arm="wave" />
+  <g id="glup-arms" clip-path="url(#glup-art-outside)" data-glup-arms>
+    <path class="glup-art-line glup-art-limb" d={armLeft} data-glup-arm="left" />
+    <path class="glup-art-line glup-art-limb" d={armRight} data-glup-arm="right" />
   </g>
 
   <g id="glup-headphones" data-glup-phones>
